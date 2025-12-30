@@ -41,15 +41,19 @@ export default function ClientEditPage({ params }: PageProps) {
   }) => {
     if (!tenant?.id || !id) return
 
+    console.log('Tentative de modification client:', { clientId: id, data, tenantId: tenant.id })
+
     try {
-      await updateClient.mutateAsync({
+      const result = await updateClient.mutateAsync({
         clientId: id,
         updates: data,
       })
 
+      console.log('Client modifié avec succès:', result)
       toast.success('Client modifié avec succès')
       router.push(`/clients/${id}`)
     } catch (error: any) {
+      console.error('Erreur modification client:', error)
       toast.error(`Erreur: ${error?.message || 'Erreur inconnue'}`)
     }
   }
