@@ -286,7 +286,7 @@ export default function RelancesPage() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.facturesEnRetard}</div>
             <p className="text-sm text-muted-foreground mt-1">
-              {formatCurrency(stats.montantEnRetard)} en attente
+              X en attente
             </p>
           </CardContent>
         </Card>
@@ -402,7 +402,7 @@ export default function RelancesPage() {
                             </div>
                           </TableCell>
                           <TableCell className="font-semibold text-right">
-                            {formatCurrency(d.montant_ttc)}
+                            X
                           </TableCell>
                           <TableCell>
                             {d.date_envoi ? formatDate(d.date_envoi) : 'Non envoyé'}
@@ -474,7 +474,7 @@ export default function RelancesPage() {
                             </div>
                           </TableCell>
                           <TableCell className="font-semibold text-white">
-                            {formatCurrency(f.montant_ttc)}
+                            X
                           </TableCell>
                           <TableCell className="text-gray-400">
                             {f.date_echeance ? formatDate(f.date_echeance) : '—'}
@@ -534,7 +534,7 @@ export default function RelancesPage() {
                             </div>
                           </TableCell>
                           <TableCell className="font-semibold text-white">
-                            {formatCurrency(f.montant_ttc)}
+                            X
                           </TableCell>
                           <TableCell className="text-red-400">
                             {formatDate(f.date_echeance)}
