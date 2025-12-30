@@ -689,7 +689,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                       <FileText className="h-3 w-3" />
                       <span className="font-medium">Montant TTC</span>
                     </div>
-                    <p className="font-bold text-base text-[#FF4D00]">{formatCurrency(devis.montant_ttc || 0)}</p>
+                    <p className="font-bold text-base text-[#FF4D00]">X</p>
                   </div>
                 </div>
               </CardContent>
@@ -857,7 +857,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                               <div>
                                 <p className="text-xs text-gray-500 mb-1">Prix unitaire HT</p>
                                 <p className="font-semibold text-white text-sm">
-                                  {formatCurrency(ligne.prix_unitaire_ht)}
+                                  X
                                 </p>
                               </div>
 
@@ -869,14 +869,14 @@ export default function DevisDetailPage({ params }: PageProps) {
                               <div>
                                 <p className="text-xs text-gray-500 mb-1">Total HT</p>
                                 <p className="font-semibold text-white text-sm">
-                                  {formatCurrency(ligne.quantite * ligne.prix_unitaire_ht)}
+                                  X
                                 </p>
                               </div>
 
                               <div className="bg-gradient-to-br from-[#FF4D00]/20 to-[#E64600]/10 rounded-lg px-3 py-2 border border-[#FF4D00]/40">
                                 <p className="text-xs text-[#FF4D00] mb-1">Total TTC</p>
                                 <p className="font-bold text-[#FF4D00] text-base">
-                                  {formatCurrency(ligne.quantite * ligne.prix_unitaire_ht * (1 + (ligne.tva_pct || 0) / 100))}
+                                  X
                                 </p>
                               </div>
                             </div>
@@ -896,15 +896,15 @@ export default function DevisDetailPage({ params }: PageProps) {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <p className="text-xs text-gray-400 mb-1">Total HT</p>
-                      <p className="text-xl font-bold">{formatCurrency(devis.montant_ht || 0)}</p>
+                      <p className="text-xl font-bold">X</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-400 mb-1">Total TVA</p>
-                      <p className="text-xl font-bold">{formatCurrency(devis.montant_tva || 0)}</p>
+                      <p className="text-xl font-bold">X</p>
                     </div>
                     <div className="bg-gradient-to-br from-[#FF4D00] to-[#E64600] rounded-lg p-3">
                       <p className="text-xs mb-1">Total TTC</p>
-                      <p className="text-2xl font-bold">{formatCurrency(devis.montant_ttc || 0)}</p>
+                      <p className="text-2xl font-bold">X</p>
                     </div>
                   </div>
                 </div>
@@ -1451,12 +1451,12 @@ export default function DevisDetailPage({ params }: PageProps) {
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-white/90 font-medium">Total HT</span>
-                    <span className="font-bold text-lg">{formatCurrency(devis.montant_ht || 0)}</span>
+                    <span className="font-bold text-lg">X</span>
                   </div>
 
                   <div className="flex justify-between items-center">
                     <span className="text-white/90 font-medium">TVA</span>
-                    <span className="font-bold text-lg">{formatCurrency(devis.montant_tva || 0)}</span>
+                    <span className="font-bold text-lg">X</span>
                   </div>
                 </div>
 
@@ -1465,7 +1465,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                 <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 border-2 border-white/30">
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-bold">Total TTC</span>
-                    <span className="text-2xl font-bold">{formatCurrency(devis.montant_ttc || 0)}</span>
+                    <span className="text-2xl font-bold">X</span>
                   </div>
                 </div>
 
