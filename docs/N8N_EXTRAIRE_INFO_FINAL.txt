@@ -1,0 +1,275 @@
+// Code FINAL pour le nœud "extraire info de la demande"
+// Combine l'ancien code qui fonctionnait avec la logique pour lire history[0].content
+
+const items = $input.all();
+const body = items[0]?.json?.body || {};
+
+// ===============================
+// 1️⃣ RÉCUPÉRER LE MESSAGE À PARSER
+// ===============================
+
+// PRIORITÉ 1 : Chercher dans history[0].content (message initial avec toutes les infos)
+let message = '';
+if (body.history && Array.isArray(body.history) && body.history.length > 0) {
+  // Chercher le premier message de l'utilisateur dans l'historique
+  const firstUserMessage = body.history.find(msg => msg.role === 'user');
+  if (firstUserMessage && firstUserMessage.content) {
+    message = firstUserMessage.content;
+  }
+}
+
+// PRIORITÉ 2 : Si pas de history, utiliser raw_message ou message
+if (!message) {
+  message = body.raw_message || body.message || '';
+}
+
+// ===============================
+// 2️⃣ TENANT + DATE
+// ===============================
+const tenantId =
+  body.context?.tenant_id ||
+  'f117dc59-1cef-41c3-91a3-8c12d47f6bfb';
+
+const now = new Date();
+const todayDate = now.toISOString().slice(0, 10);
+
+// ===============================
+// 3️⃣ EXTRACTION CLIENT (ANCIEN CODE QUI FONCTIONNAIT)
+// ===============================
+
+// Nom / Prénom
+const nameMatch = message.match(/devis pour\s+([A-Za-zÀ-ÿ\s'-]+)/i);
+const clientName = nameMatch ? nameMatch[1].trim() : null;
+
+// Extraire prénom et nom séparément
+let prenom = null;
+let nom = null;
+if (clientName) {
+  const nameParts = clientName.split(/\s+/);
+  prenom = nameParts[0];
+  nom = nameParts.slice(1).join(" ") || nameParts[0];
+}
+
+// Adresse (ANCIEN PATTERN QUI FONCTIONNAIT)
+const addressMatch = message.match(/,\s*(\d{1,3}[^,\n]+,\s*\d{5}\s*[A-Za-zÀ-ÿ\s-]+)/);
+const address = addressMatch ? addressMatch[1].trim() : null;
+
+// Téléphone
+const phoneMatch = message.match(/(0\d(?:[\s.-]?\d{2}){4})/);
+const phone = phoneMatch ? phoneMatch[1].replace(/\s+/g, '') : null;
+
+// Email
+const emailMatch = message.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+const email = emailMatch ? emailMatch[0] : null;
+
+// ===============================
+// 4️⃣ EXTRACTION DES LIGNES DE TRAVAUX (CORRIGÉ - APPROCHE EN 2 ÉTAPES)
+// ===============================
+const lines = [];
+
+// ÉTAPE 1 : Trouver toutes les lignes qui commencent par • (avec ou sans tabulation)
+// Découper le message en lignes individuelles
+const linePattern = /(?:\t)?\s*•\s*\t?\s*([^\n]+)/g;
+const allLines = [];
+let lineMatch;
+while ((lineMatch = linePattern.exec(message)) !== null) {
+  allLines.push(lineMatch[1].trim());
+}
+
+// ÉTAPE 2 : Pour chaque ligne trouvée, extraire les informations
+for (const line of allLines) {
+  // Format 1: "Travail → quantité unité × prix € — TVA %"
+  const lineRegex = /^([^→]+?)\s*→\s*(\d+(?:[.,]\d+)?)\s*(m²|u\.)?\s*×\s*(\d+(?:[.,]\d+)?)\s*€\s*—\s*TVA\s*(\d+)%/i;
+  const match = line.match(lineRegex);
+  
+  if (match) {
+    const designation = match[1].trim().replace(/\t/g, '').replace(/\s+/g, ' ');
+    lines.push({
+      label: designation,
+      quantity: parseFloat(match[2].replace(',', '.')),
+      unit: match[3] || 'forfait',
+      unit_price: parseFloat(match[4].replace(',', '.')),
+      tva: parseInt(match[5], 10)
+    });
+  } else {
+    // Format 2: "Travail → forfait prix € — TVA %"
+    const forfaitRegex = /^([^→]+?)\s*→\s*forfait\s+(\d+(?:[.,]\d+)?)\s*€\s*—\s*TVA\s*(\d+)%/i;
+    const forfaitMatch = line.match(forfaitRegex);
+    
+    if (forfaitMatch) {
+      const designation = forfaitMatch[1].trim().replace(/\t/g, '').replace(/\s+/g, ' ');
+      lines.push({
+        label: designation,
+        quantity: 1,
+        unit: 'forfait',
+        unit_price: parseFloat(forfaitMatch[2].replace(',', '.')),
+        tva: parseInt(forfaitMatch[3], 10)
+      });
+    }
+  }
+}
+
+// ===============================
+// 5️⃣ STRUCTURE FINALE
+// ===============================
+return {
+  json: {
+    body: {
+      raw_message: message,
+      
+      client: {
+        name: clientName,
+        prenom: prenom,
+        nom: nom,
+        address: address,
+        phone: phone,
+        email: email
+      },
+      
+      travaux: lines.length > 0 ? lines : null,
+      
+      context: {
+        tenant_id: tenantId,
+        conversation_date: todayDate,
+        is_whatsapp: body.is_whatsapp || false
+      }
+    }
+  }
+};
+
+
+const items = $input.all();
+const body = items[0]?.json?.body || {};
+
+// ===============================
+// 1️⃣ RÉCUPÉRER LE MESSAGE À PARSER
+// ===============================
+
+// PRIORITÉ 1 : Chercher dans history[0].content (message initial avec toutes les infos)
+let message = '';
+if (body.history && Array.isArray(body.history) && body.history.length > 0) {
+  // Chercher le premier message de l'utilisateur dans l'historique
+  const firstUserMessage = body.history.find(msg => msg.role === 'user');
+  if (firstUserMessage && firstUserMessage.content) {
+    message = firstUserMessage.content;
+  }
+}
+
+// PRIORITÉ 2 : Si pas de history, utiliser raw_message ou message
+if (!message) {
+  message = body.raw_message || body.message || '';
+}
+
+// ===============================
+// 2️⃣ TENANT + DATE
+// ===============================
+const tenantId =
+  body.context?.tenant_id ||
+  'f117dc59-1cef-41c3-91a3-8c12d47f6bfb';
+
+const now = new Date();
+const todayDate = now.toISOString().slice(0, 10);
+
+// ===============================
+// 3️⃣ EXTRACTION CLIENT (ANCIEN CODE QUI FONCTIONNAIT)
+// ===============================
+
+// Nom / Prénom
+const nameMatch = message.match(/devis pour\s+([A-Za-zÀ-ÿ\s'-]+)/i);
+const clientName = nameMatch ? nameMatch[1].trim() : null;
+
+// Extraire prénom et nom séparément
+let prenom = null;
+let nom = null;
+if (clientName) {
+  const nameParts = clientName.split(/\s+/);
+  prenom = nameParts[0];
+  nom = nameParts.slice(1).join(" ") || nameParts[0];
+}
+
+// Adresse (ANCIEN PATTERN QUI FONCTIONNAIT)
+const addressMatch = message.match(/,\s*(\d{1,3}[^,\n]+,\s*\d{5}\s*[A-Za-zÀ-ÿ\s-]+)/);
+const address = addressMatch ? addressMatch[1].trim() : null;
+
+// Téléphone
+const phoneMatch = message.match(/(0\d(?:[\s.-]?\d{2}){4})/);
+const phone = phoneMatch ? phoneMatch[1].replace(/\s+/g, '') : null;
+
+// Email
+const emailMatch = message.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+const email = emailMatch ? emailMatch[0] : null;
+
+// ===============================
+// 4️⃣ EXTRACTION DES LIGNES DE TRAVAUX (CORRIGÉ - APPROCHE EN 2 ÉTAPES)
+// ===============================
+const lines = [];
+
+// ÉTAPE 1 : Trouver toutes les lignes qui commencent par • (avec ou sans tabulation)
+// Découper le message en lignes individuelles
+const linePattern = /(?:\t)?\s*•\s*\t?\s*([^\n]+)/g;
+const allLines = [];
+let lineMatch;
+while ((lineMatch = linePattern.exec(message)) !== null) {
+  allLines.push(lineMatch[1].trim());
+}
+
+// ÉTAPE 2 : Pour chaque ligne trouvée, extraire les informations
+for (const line of allLines) {
+  // Format 1: "Travail → quantité unité × prix € — TVA %"
+  const lineRegex = /^([^→]+?)\s*→\s*(\d+(?:[.,]\d+)?)\s*(m²|u\.)?\s*×\s*(\d+(?:[.,]\d+)?)\s*€\s*—\s*TVA\s*(\d+)%/i;
+  const match = line.match(lineRegex);
+  
+  if (match) {
+    const designation = match[1].trim().replace(/\t/g, '').replace(/\s+/g, ' ');
+    lines.push({
+      label: designation,
+      quantity: parseFloat(match[2].replace(',', '.')),
+      unit: match[3] || 'forfait',
+      unit_price: parseFloat(match[4].replace(',', '.')),
+      tva: parseInt(match[5], 10)
+    });
+  } else {
+    // Format 2: "Travail → forfait prix € — TVA %"
+    const forfaitRegex = /^([^→]+?)\s*→\s*forfait\s+(\d+(?:[.,]\d+)?)\s*€\s*—\s*TVA\s*(\d+)%/i;
+    const forfaitMatch = line.match(forfaitRegex);
+    
+    if (forfaitMatch) {
+      const designation = forfaitMatch[1].trim().replace(/\t/g, '').replace(/\s+/g, ' ');
+      lines.push({
+        label: designation,
+        quantity: 1,
+        unit: 'forfait',
+        unit_price: parseFloat(forfaitMatch[2].replace(',', '.')),
+        tva: parseInt(forfaitMatch[3], 10)
+      });
+    }
+  }
+}
+
+// ===============================
+// 5️⃣ STRUCTURE FINALE
+// ===============================
+return {
+  json: {
+    body: {
+      raw_message: message,
+      
+      client: {
+        name: clientName,
+        prenom: prenom,
+        nom: nom,
+        address: address,
+        phone: phone,
+        email: email
+      },
+      
+      travaux: lines.length > 0 ? lines : null,
+      
+      context: {
+        tenant_id: tenantId,
+        conversation_date: todayDate,
+        is_whatsapp: body.is_whatsapp || false
+      }
+    }
+  }
+};

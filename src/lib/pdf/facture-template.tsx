@@ -1,0 +1,661 @@
+import React from 'react'
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+} from '@react-pdf/renderer'
+
+// Colors
+const COLORS = {
+  black: '#000000',
+  orange: '#FF4D00',
+  white: '#FFFFFF',
+  gray: '#666666',
+  lightGray: '#F5F5F5',
+  borderGray: '#E0E0E0',
+  green: '#10B981',
+  red: '#EF4444',
+}
+
+const styles = StyleSheet.create({
+  page: {
+    fontFamily: 'Helvetica',
+    fontSize: 9,
+    padding: 0,
+    backgroundColor: COLORS.white,
+  },
+  // Header
+  header: {
+    backgroundColor: COLORS.black,
+    padding: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  companyInfo: {
+    flex: 1,
+  },
+  companyName: {
+    fontSize: 20,
+    fontWeight: 700,
+    color: COLORS.white,
+    marginBottom: 6,
+  },
+  companyNameOrange: {
+    color: COLORS.orange,
+  },
+  companyDetails: {
+    fontSize: 8,
+    color: COLORS.white,
+    opacity: 0.9,
+    lineHeight: 1.4,
+  },
+  documentInfo: {
+    textAlign: 'right',
+  },
+  docTitle: {
+    fontSize: 28,
+    fontWeight: 700,
+    color: COLORS.orange,
+    marginBottom: 4,
+  },
+  docNumber: {
+    fontSize: 11,
+    fontWeight: 600,
+    color: COLORS.white,
+  },
+  docType: {
+    fontSize: 9,
+    color: COLORS.orange,
+    marginTop: 4,
+    textTransform: 'uppercase',
+  },
+  // Content
+  content: {
+    padding: 20,
+    flex: 1,
+  },
+  // Info section
+  infoSection: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 15,
+  },
+  infoCard: {
+    flex: 1,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 6,
+    padding: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.orange,
+  },
+  infoTitle: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: COLORS.orange,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.orange,
+  },
+  clientName: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: COLORS.black,
+    marginBottom: 4,
+  },
+  infoText: {
+    fontSize: 8,
+    color: COLORS.gray,
+    marginBottom: 2,
+    lineHeight: 1.4,
+  },
+  infoLabel: {
+    fontWeight: 600,
+    color: COLORS.gray,
+  },
+  // Prestations
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: COLORS.black,
+    marginBottom: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 3,
+    borderBottomColor: COLORS.orange,
+  },
+  // Table
+  tableContainer: {
+    marginBottom: 20,
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.borderGray,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.black,
+    padding: 10,
+  },
+  tableHeaderText: {
+    color: COLORS.white,
+    fontWeight: 600,
+    fontSize: 9,
+    textTransform: 'uppercase',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderGray,
+    padding: 10,
+    backgroundColor: COLORS.white,
+  },
+  tableRowAlt: {
+    backgroundColor: COLORS.lightGray,
+  },
+  tableCell: {
+    fontSize: 9,
+    color: COLORS.black,
+  },
+  tableCellDesc: { flex: 4 },
+  tableCellQty: { flex: 1, textAlign: 'center' },
+  tableCellUnit: { flex: 1, textAlign: 'center' },
+  tableCellPrice: { flex: 1.5, textAlign: 'right' },
+  tableCellTva: { flex: 1, textAlign: 'center' },
+  tableCellTotal: { flex: 1.5, textAlign: 'right', fontWeight: 600 },
+  // Summary section
+  summarySection: {
+    flexDirection: 'row',
+    gap: 15,
+    marginBottom: 15,
+  },
+  paymentBox: {
+    flex: 1.2,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 8,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: COLORS.borderGray,
+  },
+  paymentTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: COLORS.black,
+    marginBottom: 10,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.orange,
+  },
+  paymentText: {
+    fontSize: 9,
+    color: COLORS.black,
+    marginBottom: 5,
+    lineHeight: 1.4,
+  },
+  totalsBox: {
+    flex: 0.8,
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: COLORS.borderGray,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderGray,
+  },
+  totalRowAlt: {
+    backgroundColor: COLORS.lightGray,
+  },
+  totalLabel: {
+    fontSize: 10,
+    fontWeight: 500,
+    color: COLORS.gray,
+  },
+  totalValue: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: COLORS.black,
+  },
+  totalRowFinal: {
+    backgroundColor: COLORS.orange,
+    padding: 12,
+  },
+  totalLabelFinal: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: COLORS.white,
+  },
+  totalValueFinal: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: COLORS.white,
+  },
+  // Due date alert
+  dueAlert: {
+    borderWidth: 2,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  dueAlertNormal: {
+    backgroundColor: '#FFF3E0',
+    borderColor: COLORS.orange,
+  },
+  dueAlertOverdue: {
+    backgroundColor: '#FEE2E2',
+    borderColor: COLORS.red,
+  },
+  dueText: {
+    fontSize: 11,
+    fontWeight: 600,
+  },
+  dueTextNormal: {
+    color: COLORS.black,
+  },
+  dueTextOverdue: {
+    color: COLORS.red,
+  },
+  dueDate: {
+    fontWeight: 700,
+  },
+  // Devis reference
+  devisReference: {
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  devisReferenceText: {
+    fontSize: 10,
+    color: COLORS.gray,
+  },
+  devisReferenceNumber: {
+    fontWeight: 700,
+    color: COLORS.orange,
+  },
+  // Bank details
+  bankDetails: {
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 8,
+    padding: 15,
+    marginTop: 10,
+  },
+  bankTitle: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: COLORS.black,
+    marginBottom: 8,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.orange,
+  },
+  bankInfo: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 15,
+  },
+  bankField: {
+    minWidth: 120,
+  },
+  bankLabel: {
+    fontSize: 8,
+    color: COLORS.gray,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  bankValue: {
+    fontSize: 9,
+    fontWeight: 600,
+    color: COLORS.black,
+  },
+  // Status badge
+  statusBadge: {
+    position: 'absolute',
+    top: 80,
+    right: 25,
+    padding: '8 15',
+    borderRadius: 5,
+    transform: 'rotate(-15deg)',
+  },
+  statusPaid: {
+    backgroundColor: COLORS.green,
+  },
+  statusPending: {
+    backgroundColor: COLORS.orange,
+  },
+  statusOverdue: {
+    backgroundColor: COLORS.red,
+  },
+  statusText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+  },
+  // Footer
+  footer: {
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.borderGray,
+    backgroundColor: COLORS.lightGray,
+    textAlign: 'center',
+  },
+  footerText: {
+    fontSize: 7,
+    color: COLORS.gray,
+    marginBottom: 1,
+  },
+  footerBold: {
+    fontWeight: 700,
+    color: COLORS.black,
+  },
+})
+
+// Format currency
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: false // Désactive les séparateurs de milliers
+  }).format(amount)
+}
+
+// Format date
+const formatDate = (date: string) => {
+  return new Date(date).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+}
+
+export type FactureLigne = {
+  designation: string
+  description_detaillee?: string
+  quantite: number
+  unite: string
+  prix_unitaire_ht: number
+  tva_pct: number
+  total_ht: number
+  total_ttc: number
+}
+
+export type FacturePDFData = {
+  entreprise: {
+    nom: string
+    adresse: string
+    cp: string
+    ville: string
+    telephone: string
+    email: string
+    siret: string
+    forme_juridique?: string
+    tva_intra?: string
+    iban?: string
+    bic?: string
+    banque?: string
+  }
+  numero: string
+  type?: string
+  statut?: string
+  date_emission: string
+  date_echeance?: string
+  objet?: string
+  devis_numero?: string
+  client: {
+    nom: string
+    adresse?: string
+    cp?: string
+    ville?: string
+    telephone?: string
+    email?: string
+  }
+  lignes: FactureLigne[]
+  montant_ht: number
+  montant_tva: number
+  montant_ttc: number
+  notes?: string
+}
+
+const TYPE_LABELS: Record<string, string> = {
+  acompte: 'Facture d\'acompte',
+  intermediaire: 'Facture intermédiaire',
+  solde: 'Facture de solde',
+  standalone: 'Facture',
+}
+
+export function FacturePDF({ data }: { data: FacturePDFData }) {
+  const isOverdue = data.date_echeance && new Date(data.date_echeance) < new Date() && data.statut !== 'payee'
+  const typeLabel = TYPE_LABELS[data.type || 'standalone'] || 'Facture'
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* HEADER */}
+        <View style={styles.header}>
+          <View style={styles.companyInfo}>
+            <Text style={styles.companyName}>
+              {data.entreprise.nom || 'MY LÉO'}
+            </Text>
+            <Text style={styles.companyDetails}>
+              {data.entreprise.adresse}{'\n'}
+              {data.entreprise.cp} {data.entreprise.ville}{'\n'}
+              Tél : {data.entreprise.telephone}{'\n'}
+              Email : {data.entreprise.email}{'\n'}
+              SIRET : {data.entreprise.siret}
+            </Text>
+          </View>
+          <View style={styles.documentInfo}>
+            <Text style={styles.docTitle}>FACTURE</Text>
+            <Text style={styles.docNumber}>N° {data.numero}</Text>
+            {data.type && data.type !== 'standalone' && (
+              <Text style={styles.docType}>{typeLabel}</Text>
+            )}
+          </View>
+        </View>
+
+        {/* Status Badge */}
+        {data.statut === 'payee' && (
+          <View style={[styles.statusBadge, styles.statusPaid]}>
+            <Text style={styles.statusText}>PAYÉE</Text>
+          </View>
+        )}
+        {isOverdue && (
+          <View style={[styles.statusBadge, styles.statusOverdue]}>
+            <Text style={styles.statusText}>EN RETARD</Text>
+          </View>
+        )}
+
+        {/* CONTENT */}
+        <View style={styles.content}>
+          {/* Devis Reference */}
+          {data.devis_numero && (
+            <View style={styles.devisReference}>
+              <Text style={styles.devisReferenceText}>
+                Référence devis : <Text style={styles.devisReferenceNumber}>{data.devis_numero}</Text>
+              </Text>
+            </View>
+          )}
+
+          {/* Info Cards */}
+          <View style={styles.infoSection}>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoTitle}>Client</Text>
+              <Text style={styles.clientName}>{data.client.nom}</Text>
+              {data.client.adresse && (
+                <Text style={styles.infoText}>
+                  {data.client.adresse}, {data.client.cp} {data.client.ville}
+                </Text>
+              )}
+              {data.client.telephone && (
+                <Text style={styles.infoText}>Tél : {data.client.telephone}</Text>
+              )}
+              {data.client.email && (
+                <Text style={styles.infoText}>Email : {data.client.email}</Text>
+              )}
+            </View>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoTitle}>Informations</Text>
+              <Text style={styles.infoText}>
+                <Text style={styles.infoLabel}>Date d'émission : </Text>
+                {formatDate(data.date_emission)}
+              </Text>
+              {data.date_echeance && (
+                <Text style={styles.infoText}>
+                  <Text style={styles.infoLabel}>Échéance : </Text>
+                  {formatDate(data.date_echeance)}
+                </Text>
+              )}
+              {data.objet && (
+                <Text style={styles.infoText}>
+                  <Text style={styles.infoLabel}>Objet : </Text>
+                  <Text style={{ fontWeight: 700 }}>{data.objet}</Text>
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {/* Prestations */}
+          <Text style={styles.sectionTitle}>Détail des prestations</Text>
+          <View style={styles.tableContainer}>
+            {/* Header */}
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableHeaderText, styles.tableCellDesc]}>Description</Text>
+              <Text style={[styles.tableHeaderText, styles.tableCellQty]}>Qté</Text>
+              <Text style={[styles.tableHeaderText, styles.tableCellUnit]}>Unité</Text>
+              <Text style={[styles.tableHeaderText, styles.tableCellPrice]}>Prix HT</Text>
+              <Text style={[styles.tableHeaderText, styles.tableCellTva]}>TVA</Text>
+              <Text style={[styles.tableHeaderText, styles.tableCellTotal]}>Total HT</Text>
+            </View>
+            {/* Rows */}
+            {data.lignes.map((ligne, index) => (
+              <View 
+                key={index} 
+                style={[
+                  styles.tableRow,
+                  ...(index % 2 === 1 ? [styles.tableRowAlt] : [])
+                ]}
+              >
+                <View style={styles.tableCellDesc}>
+                  <Text style={[styles.tableCell, { fontWeight: 600 }]}>{ligne.designation}</Text>
+                  {ligne.description_detaillee && (
+                    <Text style={[styles.tableCell, { color: COLORS.gray, fontSize: 8, marginTop: 2 }]}>
+                      {ligne.description_detaillee}
+                    </Text>
+                  )}
+                </View>
+                <Text style={[styles.tableCell, styles.tableCellQty]}>{ligne.quantite}</Text>
+                <Text style={[styles.tableCell, styles.tableCellUnit]}>{ligne.unite}</Text>
+                <Text style={[styles.tableCell, styles.tableCellPrice]}>
+                  {formatCurrency(ligne.prix_unitaire_ht)}
+                </Text>
+                <Text style={[styles.tableCell, styles.tableCellTva]}>{ligne.tva_pct}%</Text>
+                <Text style={[styles.tableCell, styles.tableCellTotal]}>
+                  {formatCurrency(ligne.total_ht)}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Summary */}
+          <View style={styles.summarySection}>
+            <View style={styles.paymentBox}>
+              <Text style={styles.paymentTitle}>Modalités de paiement</Text>
+              <Text style={styles.paymentText}>
+                <Text style={{ fontWeight: 700 }}>Mode : </Text>
+                Virement bancaire
+              </Text>
+              {data.entreprise.iban && (
+                <Text style={styles.paymentText}>
+                  <Text style={{ fontWeight: 700 }}>IBAN : </Text>
+                  {data.entreprise.iban}
+                </Text>
+              )}
+              {data.entreprise.bic && (
+                <Text style={styles.paymentText}>
+                  <Text style={{ fontWeight: 700 }}>BIC : </Text>
+                  {data.entreprise.bic}
+                </Text>
+              )}
+              {data.date_echeance && (
+                <Text style={styles.paymentText}>
+                  <Text style={{ fontWeight: 700 }}>Échéance : </Text>
+                  {formatDate(data.date_echeance)}
+                </Text>
+              )}
+              {data.notes && (
+                <Text style={styles.paymentText}>
+                  <Text style={{ fontWeight: 700 }}>Notes : </Text>
+                  {data.notes}
+                </Text>
+              )}
+            </View>
+            <View style={styles.totalsBox}>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Total HT</Text>
+                <Text style={styles.totalValue}>{formatCurrency(data.montant_ht)}</Text>
+              </View>
+              <View style={[styles.totalRow, styles.totalRowAlt]}>
+                <Text style={styles.totalLabel}>TVA</Text>
+                <Text style={styles.totalValue}>{formatCurrency(data.montant_tva)}</Text>
+              </View>
+              <View style={[styles.totalRow, styles.totalRowFinal]}>
+                <Text style={styles.totalLabelFinal}>TOTAL TTC</Text>
+                <Text style={styles.totalValueFinal}>{formatCurrency(data.montant_ttc)}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Due date alert */}
+          {data.date_echeance && data.statut !== 'payee' && (
+            <View style={[
+              styles.dueAlert, 
+              isOverdue ? styles.dueAlertOverdue : styles.dueAlertNormal
+            ]}>
+              <Text style={[
+                styles.dueText,
+                isOverdue ? styles.dueTextOverdue : styles.dueTextNormal
+              ]}>
+                {isOverdue ? (
+                  <>Facture en retard - Échéance dépassée le <Text style={styles.dueDate}>{formatDate(data.date_echeance)}</Text></>
+                ) : (
+                  <>À régler avant le <Text style={styles.dueDate}>{formatDate(data.date_echeance)}</Text></>
+                )}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* FOOTER */}
+        <View style={styles.footer}>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 30 }}>
+            <Text style={styles.footerText}>
+              <Text style={styles.footerBold}>{data.entreprise.nom}</Text> — {data.entreprise.forme_juridique || 'SAS'}
+            </Text>
+            <Text style={styles.footerText}>
+              SIRET : {data.entreprise.siret}
+            </Text>
+            {data.entreprise.tva_intra && (
+              <Text style={styles.footerText}>
+                TVA : {data.entreprise.tva_intra}
+              </Text>
+            )}
+          </View>
+        </View>
+      </Page>
+    </Document>
+  )
+}

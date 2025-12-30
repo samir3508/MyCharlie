@@ -1,0 +1,150 @@
+{
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
+
+  "properties": {
+    "query": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
+  "properties": {
+    "query": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
+
+  "properties": {
+    "query": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
+  "properties": {
+    "query": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
+
+  "properties": {
+    "query": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
+  "properties": {
+    "query": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
+
+  "properties": {
+    "query": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

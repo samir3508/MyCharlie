@@ -1,0 +1,678 @@
+// Code ultra-simple - Extraction directe avec optional chaining
+const input = $input.item.json;
+
+// DEBUG
+console.log('INPUT:', JSON.stringify(input, null, 2));
+
+// Extraction directe depuis query (avec fallback)
+const action = input.query?.action || input.action;
+const payload = input.query?.payload || input.payload || {};
+const tenant_id = input.query?.tenant_id || input.tenant_id;
+
+console.log('action:', action);
+console.log('payload:', payload);
+console.log('tenant_id:', tenant_id);
+
+// Validation
+if (!action) {
+  throw new Error('action manquante. Input: ' + JSON.stringify(input, null, 2));
+}
+
+if (!tenant_id) {
+  throw new Error('tenant_id manquant. Input: ' + JSON.stringify(input, null, 2));
+}
+
+// Conversion FR → EN
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Body pour Supabase
+const requestBody = { ...payload, tenant_id };
+
+// Appel API
+const response = await fetch(
+  `https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1/${normalizedAction}`,
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestBody)
+  }
+);
+
+if (!response.ok) {
+  const text = await response.text();
+  throw new Error(`${normalizedAction} error (${response.status}): ${text}`);
+}
+
+return await response.json();
+
+
+// DEBUG
+console.log('INPUT:', JSON.stringify(input, null, 2));
+
+// Extraction directe depuis query (avec fallback)
+const action = input.query?.action || input.action;
+const payload = input.query?.payload || input.payload || {};
+const tenant_id = input.query?.tenant_id || input.tenant_id;
+
+console.log('action:', action);
+console.log('payload:', payload);
+console.log('tenant_id:', tenant_id);
+
+// Validation
+if (!action) {
+  throw new Error('action manquante. Input: ' + JSON.stringify(input, null, 2));
+}
+
+if (!tenant_id) {
+  throw new Error('tenant_id manquant. Input: ' + JSON.stringify(input, null, 2));
+}
+
+// Conversion FR → EN
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Body pour Supabase
+const requestBody = { ...payload, tenant_id };
+
+// Appel API
+const response = await fetch(
+  `https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1/${normalizedAction}`,
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestBody)
+  }
+);
+
+if (!response.ok) {
+  const text = await response.text();
+  throw new Error(`${normalizedAction} error (${response.status}): ${text}`);
+}
+
+return await response.json();
+
+// DEBUG
+console.log('INPUT:', JSON.stringify(input, null, 2));
+
+// Extraction directe depuis query (avec fallback)
+const action = input.query?.action || input.action;
+const payload = input.query?.payload || input.payload || {};
+const tenant_id = input.query?.tenant_id || input.tenant_id;
+
+console.log('action:', action);
+console.log('payload:', payload);
+console.log('tenant_id:', tenant_id);
+
+// Validation
+if (!action) {
+  throw new Error('action manquante. Input: ' + JSON.stringify(input, null, 2));
+}
+
+if (!tenant_id) {
+  throw new Error('tenant_id manquant. Input: ' + JSON.stringify(input, null, 2));
+}
+
+// Conversion FR → EN
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Body pour Supabase
+const requestBody = { ...payload, tenant_id };
+
+// Appel API
+const response = await fetch(
+  `https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1/${normalizedAction}`,
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestBody)
+  }
+);
+
+if (!response.ok) {
+  const text = await response.text();
+  throw new Error(`${normalizedAction} error (${response.status}): ${text}`);
+}
+
+return await response.json();
+
+
+// DEBUG
+console.log('INPUT:', JSON.stringify(input, null, 2));
+
+// Extraction directe depuis query (avec fallback)
+const action = input.query?.action || input.action;
+const payload = input.query?.payload || input.payload || {};
+const tenant_id = input.query?.tenant_id || input.tenant_id;
+
+console.log('action:', action);
+console.log('payload:', payload);
+console.log('tenant_id:', tenant_id);
+
+// Validation
+if (!action) {
+  throw new Error('action manquante. Input: ' + JSON.stringify(input, null, 2));
+}
+
+if (!tenant_id) {
+  throw new Error('tenant_id manquant. Input: ' + JSON.stringify(input, null, 2));
+}
+
+// Conversion FR → EN
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Body pour Supabase
+const requestBody = { ...payload, tenant_id };
+
+// Appel API
+const response = await fetch(
+  `https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1/${normalizedAction}`,
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestBody)
+  }
+);
+
+if (!response.ok) {
+  const text = await response.text();
+  throw new Error(`${normalizedAction} error (${response.status}): ${text}`);
+}
+
+return await response.json();
+
+// DEBUG
+console.log('INPUT:', JSON.stringify(input, null, 2));
+
+// Extraction directe depuis query (avec fallback)
+const action = input.query?.action || input.action;
+const payload = input.query?.payload || input.payload || {};
+const tenant_id = input.query?.tenant_id || input.tenant_id;
+
+console.log('action:', action);
+console.log('payload:', payload);
+console.log('tenant_id:', tenant_id);
+
+// Validation
+if (!action) {
+  throw new Error('action manquante. Input: ' + JSON.stringify(input, null, 2));
+}
+
+if (!tenant_id) {
+  throw new Error('tenant_id manquant. Input: ' + JSON.stringify(input, null, 2));
+}
+
+// Conversion FR → EN
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Body pour Supabase
+const requestBody = { ...payload, tenant_id };
+
+// Appel API
+const response = await fetch(
+  `https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1/${normalizedAction}`,
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestBody)
+  }
+);
+
+if (!response.ok) {
+  const text = await response.text();
+  throw new Error(`${normalizedAction} error (${response.status}): ${text}`);
+}
+
+return await response.json();
+
+
+// DEBUG
+console.log('INPUT:', JSON.stringify(input, null, 2));
+
+// Extraction directe depuis query (avec fallback)
+const action = input.query?.action || input.action;
+const payload = input.query?.payload || input.payload || {};
+const tenant_id = input.query?.tenant_id || input.tenant_id;
+
+console.log('action:', action);
+console.log('payload:', payload);
+console.log('tenant_id:', tenant_id);
+
+// Validation
+if (!action) {
+  throw new Error('action manquante. Input: ' + JSON.stringify(input, null, 2));
+}
+
+if (!tenant_id) {
+  throw new Error('tenant_id manquant. Input: ' + JSON.stringify(input, null, 2));
+}
+
+// Conversion FR → EN
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Body pour Supabase
+const requestBody = { ...payload, tenant_id };
+
+// Appel API
+const response = await fetch(
+  `https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1/${normalizedAction}`,
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestBody)
+  }
+);
+
+if (!response.ok) {
+  const text = await response.text();
+  throw new Error(`${normalizedAction} error (${response.status}): ${text}`);
+}
+
+return await response.json();
+
+// DEBUG
+console.log('INPUT:', JSON.stringify(input, null, 2));
+
+// Extraction directe depuis query (avec fallback)
+const action = input.query?.action || input.action;
+const payload = input.query?.payload || input.payload || {};
+const tenant_id = input.query?.tenant_id || input.tenant_id;
+
+console.log('action:', action);
+console.log('payload:', payload);
+console.log('tenant_id:', tenant_id);
+
+// Validation
+if (!action) {
+  throw new Error('action manquante. Input: ' + JSON.stringify(input, null, 2));
+}
+
+if (!tenant_id) {
+  throw new Error('tenant_id manquant. Input: ' + JSON.stringify(input, null, 2));
+}
+
+// Conversion FR → EN
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Body pour Supabase
+const requestBody = { ...payload, tenant_id };
+
+// Appel API
+const response = await fetch(
+  `https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1/${normalizedAction}`,
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestBody)
+  }
+);
+
+if (!response.ok) {
+  const text = await response.text();
+  throw new Error(`${normalizedAction} error (${response.status}): ${text}`);
+}
+
+return await response.json();
+
+
+// DEBUG
+console.log('INPUT:', JSON.stringify(input, null, 2));
+
+// Extraction directe depuis query (avec fallback)
+const action = input.query?.action || input.action;
+const payload = input.query?.payload || input.payload || {};
+const tenant_id = input.query?.tenant_id || input.tenant_id;
+
+console.log('action:', action);
+console.log('payload:', payload);
+console.log('tenant_id:', tenant_id);
+
+// Validation
+if (!action) {
+  throw new Error('action manquante. Input: ' + JSON.stringify(input, null, 2));
+}
+
+if (!tenant_id) {
+  throw new Error('tenant_id manquant. Input: ' + JSON.stringify(input, null, 2));
+}
+
+// Conversion FR → EN
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Body pour Supabase
+const requestBody = { ...payload, tenant_id };
+
+// Appel API
+const response = await fetch(
+  `https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1/${normalizedAction}`,
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestBody)
+  }
+);
+
+if (!response.ok) {
+  const text = await response.text();
+  throw new Error(`${normalizedAction} error (${response.status}): ${text}`);
+}
+
+return await response.json();

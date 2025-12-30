@@ -1,0 +1,102 @@
+// TEST : Extraire action depuis query et retourner en STRING
+const input = $input.item.json;
+
+// Extraction simple
+const action = input.query ? input.query.action : input.action;
+const tenant_id = input.query ? input.query.tenant_id : input.tenant_id;
+
+// Retourner en STRING (comme N8N l'attend)
+return JSON.stringify({
+  message: 'Extraction test',
+  action_trouve: action,
+  tenant_id_trouve: tenant_id,
+  input_complet: input
+});
+
+
+// Extraction simple
+const action = input.query ? input.query.action : input.action;
+const tenant_id = input.query ? input.query.tenant_id : input.tenant_id;
+
+// Retourner en STRING (comme N8N l'attend)
+return JSON.stringify({
+  message: 'Extraction test',
+  action_trouve: action,
+  tenant_id_trouve: tenant_id,
+  input_complet: input
+});
+
+// Extraction simple
+const action = input.query ? input.query.action : input.action;
+const tenant_id = input.query ? input.query.tenant_id : input.tenant_id;
+
+// Retourner en STRING (comme N8N l'attend)
+return JSON.stringify({
+  message: 'Extraction test',
+  action_trouve: action,
+  tenant_id_trouve: tenant_id,
+  input_complet: input
+});
+
+
+// Extraction simple
+const action = input.query ? input.query.action : input.action;
+const tenant_id = input.query ? input.query.tenant_id : input.tenant_id;
+
+// Retourner en STRING (comme N8N l'attend)
+return JSON.stringify({
+  message: 'Extraction test',
+  action_trouve: action,
+  tenant_id_trouve: tenant_id,
+  input_complet: input
+});
+
+// Extraction simple
+const action = input.query ? input.query.action : input.action;
+const tenant_id = input.query ? input.query.tenant_id : input.tenant_id;
+
+// Retourner en STRING (comme N8N l'attend)
+return JSON.stringify({
+  message: 'Extraction test',
+  action_trouve: action,
+  tenant_id_trouve: tenant_id,
+  input_complet: input
+});
+
+
+// Extraction simple
+const action = input.query ? input.query.action : input.action;
+const tenant_id = input.query ? input.query.tenant_id : input.tenant_id;
+
+// Retourner en STRING (comme N8N l'attend)
+return JSON.stringify({
+  message: 'Extraction test',
+  action_trouve: action,
+  tenant_id_trouve: tenant_id,
+  input_complet: input
+});
+
+// Extraction simple
+const action = input.query ? input.query.action : input.action;
+const tenant_id = input.query ? input.query.tenant_id : input.tenant_id;
+
+// Retourner en STRING (comme N8N l'attend)
+return JSON.stringify({
+  message: 'Extraction test',
+  action_trouve: action,
+  tenant_id_trouve: tenant_id,
+  input_complet: input
+});
+
+
+// Extraction simple
+const action = input.query ? input.query.action : input.action;
+const tenant_id = input.query ? input.query.tenant_id : input.tenant_id;
+
+// Retourner en STRING (comme N8N l'attend)
+return JSON.stringify({
+  message: 'Extraction test',
+  action_trouve: action,
+  tenant_id_trouve: tenant_id,
+  input_complet: input
+});

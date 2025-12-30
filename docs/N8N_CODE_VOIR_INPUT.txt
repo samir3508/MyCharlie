@@ -1,0 +1,94 @@
+// Retourner l'input pour le voir dans l'output (pas d'erreur)
+const input = $input.item.json;
+
+// Retourner l'input pour voir ce qui est reçu
+return {
+  message: 'INPUT RECU - Voyez ci-dessous',
+  input_complet: input,
+  input_query: input.query,
+  action_dans_query: input.query ? input.query.action : 'QUERY N EXISTE PAS',
+  tenant_id_dans_query: input.query ? input.query.tenant_id : 'QUERY N EXISTE PAS',
+  keys_de_input: Object.keys(input || {}),
+  type_de_input: typeof input
+};
+
+
+// Retourner l'input pour voir ce qui est reçu
+return {
+  message: 'INPUT RECU - Voyez ci-dessous',
+  input_complet: input,
+  input_query: input.query,
+  action_dans_query: input.query ? input.query.action : 'QUERY N EXISTE PAS',
+  tenant_id_dans_query: input.query ? input.query.tenant_id : 'QUERY N EXISTE PAS',
+  keys_de_input: Object.keys(input || {}),
+  type_de_input: typeof input
+};
+
+// Retourner l'input pour voir ce qui est reçu
+return {
+  message: 'INPUT RECU - Voyez ci-dessous',
+  input_complet: input,
+  input_query: input.query,
+  action_dans_query: input.query ? input.query.action : 'QUERY N EXISTE PAS',
+  tenant_id_dans_query: input.query ? input.query.tenant_id : 'QUERY N EXISTE PAS',
+  keys_de_input: Object.keys(input || {}),
+  type_de_input: typeof input
+};
+
+
+// Retourner l'input pour voir ce qui est reçu
+return {
+  message: 'INPUT RECU - Voyez ci-dessous',
+  input_complet: input,
+  input_query: input.query,
+  action_dans_query: input.query ? input.query.action : 'QUERY N EXISTE PAS',
+  tenant_id_dans_query: input.query ? input.query.tenant_id : 'QUERY N EXISTE PAS',
+  keys_de_input: Object.keys(input || {}),
+  type_de_input: typeof input
+};
+
+// Retourner l'input pour voir ce qui est reçu
+return {
+  message: 'INPUT RECU - Voyez ci-dessous',
+  input_complet: input,
+  input_query: input.query,
+  action_dans_query: input.query ? input.query.action : 'QUERY N EXISTE PAS',
+  tenant_id_dans_query: input.query ? input.query.tenant_id : 'QUERY N EXISTE PAS',
+  keys_de_input: Object.keys(input || {}),
+  type_de_input: typeof input
+};
+
+
+// Retourner l'input pour voir ce qui est reçu
+return {
+  message: 'INPUT RECU - Voyez ci-dessous',
+  input_complet: input,
+  input_query: input.query,
+  action_dans_query: input.query ? input.query.action : 'QUERY N EXISTE PAS',
+  tenant_id_dans_query: input.query ? input.query.tenant_id : 'QUERY N EXISTE PAS',
+  keys_de_input: Object.keys(input || {}),
+  type_de_input: typeof input
+};
+
+// Retourner l'input pour voir ce qui est reçu
+return {
+  message: 'INPUT RECU - Voyez ci-dessous',
+  input_complet: input,
+  input_query: input.query,
+  action_dans_query: input.query ? input.query.action : 'QUERY N EXISTE PAS',
+  tenant_id_dans_query: input.query ? input.query.tenant_id : 'QUERY N EXISTE PAS',
+  keys_de_input: Object.keys(input || {}),
+  type_de_input: typeof input
+};
+
+
+// Retourner l'input pour voir ce qui est reçu
+return {
+  message: 'INPUT RECU - Voyez ci-dessous',
+  input_complet: input,
+  input_query: input.query,
+  action_dans_query: input.query ? input.query.action : 'QUERY N EXISTE PAS',
+  tenant_id_dans_query: input.query ? input.query.tenant_id : 'QUERY N EXISTE PAS',
+  keys_de_input: Object.keys(input || {}),
+  type_de_input: typeof input
+};

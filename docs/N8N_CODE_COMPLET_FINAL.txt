@@ -1,0 +1,965 @@
+// ============================================
+// CODE COMPLET - GÈRE TOUS LES FORMATS
+// ============================================
+
+const input = $input.item.json;
+
+let action, payload, tenant_id;
+
+// RÈGLE 1 : Format query.parameters.* (nouveau format N8N - PRIORITÉ 1)
+if (input.query && input.query.parameters && input.query.parameters.action) {
+  action = input.query.parameters.action;
+  payload = input.query.parameters.payload || {};
+  tenant_id = input.query.parameters.tenant_id || input.query.tenant_id || input.tenant_id;
+}
+// RÈGLE 2 : Format double query (query.query.action)
+else if (input.query && input.query.query && input.query.query.action) {
+  action = input.query.query.action;
+  payload = input.query.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id || input.query.query.tenant_id;
+}
+// RÈGLE 3 : Format simple query (query.action)
+else if (input.query && input.query.action) {
+  action = input.query.action;
+  payload = input.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id;
+}
+// RÈGLE 4 : Format direct (action)
+else if (input.action) {
+  action = input.action;
+  payload = input.payload || {};
+  tenant_id = input.tenant_id;
+}
+// RÈGLE 5 : Si aucun format n'est reconnu, erreur
+else {
+  throw new Error('Structure inattendue. Reçu: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 6 : Valider que action existe
+if (!action) {
+  throw new Error('Le paramètre "action" est obligatoire');
+}
+
+// RÈGLE 7 : Valider que tenant_id existe
+if (!tenant_id) {
+  throw new Error('Le paramètre "tenant_id" est obligatoire. Structure reçue: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 8 : Convertir les actions françaises en anglaises
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// RÈGLE 9 : Construire le body de la requête
+const requestBody = {};
+if (payload) {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// RÈGLE 10 : Appeler l'edge function directement
+const LEO_API_SECRET = 'bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22';
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const functionUrl = BASE_URL + '/' + normalizedAction;
+
+const response = await fetch(functionUrl, {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer ' + LEO_API_SECRET,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(requestBody)
+});
+
+// RÈGLE 11 : Gérer les erreurs HTTP
+if (!response.ok) {
+  const errorText = await response.text();
+  throw new Error('Erreur ' + normalizedAction + ' (' + response.status + '): ' + errorText);
+}
+
+// RÈGLE 12 : Retourner le résultat
+const result = await response.json();
+return result;
+
+
+// ============================================
+
+const input = $input.item.json;
+
+let action, payload, tenant_id;
+
+// RÈGLE 1 : Format query.parameters.* (nouveau format N8N - PRIORITÉ 1)
+if (input.query && input.query.parameters && input.query.parameters.action) {
+  action = input.query.parameters.action;
+  payload = input.query.parameters.payload || {};
+  tenant_id = input.query.parameters.tenant_id || input.query.tenant_id || input.tenant_id;
+}
+// RÈGLE 2 : Format double query (query.query.action)
+else if (input.query && input.query.query && input.query.query.action) {
+  action = input.query.query.action;
+  payload = input.query.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id || input.query.query.tenant_id;
+}
+// RÈGLE 3 : Format simple query (query.action)
+else if (input.query && input.query.action) {
+  action = input.query.action;
+  payload = input.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id;
+}
+// RÈGLE 4 : Format direct (action)
+else if (input.action) {
+  action = input.action;
+  payload = input.payload || {};
+  tenant_id = input.tenant_id;
+}
+// RÈGLE 5 : Si aucun format n'est reconnu, erreur
+else {
+  throw new Error('Structure inattendue. Reçu: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 6 : Valider que action existe
+if (!action) {
+  throw new Error('Le paramètre "action" est obligatoire');
+}
+
+// RÈGLE 7 : Valider que tenant_id existe
+if (!tenant_id) {
+  throw new Error('Le paramètre "tenant_id" est obligatoire. Structure reçue: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 8 : Convertir les actions françaises en anglaises
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// RÈGLE 9 : Construire le body de la requête
+const requestBody = {};
+if (payload) {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// RÈGLE 10 : Appeler l'edge function directement
+const LEO_API_SECRET = 'bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22';
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const functionUrl = BASE_URL + '/' + normalizedAction;
+
+const response = await fetch(functionUrl, {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer ' + LEO_API_SECRET,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(requestBody)
+});
+
+// RÈGLE 11 : Gérer les erreurs HTTP
+if (!response.ok) {
+  const errorText = await response.text();
+  throw new Error('Erreur ' + normalizedAction + ' (' + response.status + '): ' + errorText);
+}
+
+// RÈGLE 12 : Retourner le résultat
+const result = await response.json();
+return result;
+
+// ============================================
+
+const input = $input.item.json;
+
+let action, payload, tenant_id;
+
+// RÈGLE 1 : Format query.parameters.* (nouveau format N8N - PRIORITÉ 1)
+if (input.query && input.query.parameters && input.query.parameters.action) {
+  action = input.query.parameters.action;
+  payload = input.query.parameters.payload || {};
+  tenant_id = input.query.parameters.tenant_id || input.query.tenant_id || input.tenant_id;
+}
+// RÈGLE 2 : Format double query (query.query.action)
+else if (input.query && input.query.query && input.query.query.action) {
+  action = input.query.query.action;
+  payload = input.query.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id || input.query.query.tenant_id;
+}
+// RÈGLE 3 : Format simple query (query.action)
+else if (input.query && input.query.action) {
+  action = input.query.action;
+  payload = input.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id;
+}
+// RÈGLE 4 : Format direct (action)
+else if (input.action) {
+  action = input.action;
+  payload = input.payload || {};
+  tenant_id = input.tenant_id;
+}
+// RÈGLE 5 : Si aucun format n'est reconnu, erreur
+else {
+  throw new Error('Structure inattendue. Reçu: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 6 : Valider que action existe
+if (!action) {
+  throw new Error('Le paramètre "action" est obligatoire');
+}
+
+// RÈGLE 7 : Valider que tenant_id existe
+if (!tenant_id) {
+  throw new Error('Le paramètre "tenant_id" est obligatoire. Structure reçue: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 8 : Convertir les actions françaises en anglaises
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// RÈGLE 9 : Construire le body de la requête
+const requestBody = {};
+if (payload) {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// RÈGLE 10 : Appeler l'edge function directement
+const LEO_API_SECRET = 'bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22';
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const functionUrl = BASE_URL + '/' + normalizedAction;
+
+const response = await fetch(functionUrl, {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer ' + LEO_API_SECRET,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(requestBody)
+});
+
+// RÈGLE 11 : Gérer les erreurs HTTP
+if (!response.ok) {
+  const errorText = await response.text();
+  throw new Error('Erreur ' + normalizedAction + ' (' + response.status + '): ' + errorText);
+}
+
+// RÈGLE 12 : Retourner le résultat
+const result = await response.json();
+return result;
+
+
+// ============================================
+
+const input = $input.item.json;
+
+let action, payload, tenant_id;
+
+// RÈGLE 1 : Format query.parameters.* (nouveau format N8N - PRIORITÉ 1)
+if (input.query && input.query.parameters && input.query.parameters.action) {
+  action = input.query.parameters.action;
+  payload = input.query.parameters.payload || {};
+  tenant_id = input.query.parameters.tenant_id || input.query.tenant_id || input.tenant_id;
+}
+// RÈGLE 2 : Format double query (query.query.action)
+else if (input.query && input.query.query && input.query.query.action) {
+  action = input.query.query.action;
+  payload = input.query.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id || input.query.query.tenant_id;
+}
+// RÈGLE 3 : Format simple query (query.action)
+else if (input.query && input.query.action) {
+  action = input.query.action;
+  payload = input.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id;
+}
+// RÈGLE 4 : Format direct (action)
+else if (input.action) {
+  action = input.action;
+  payload = input.payload || {};
+  tenant_id = input.tenant_id;
+}
+// RÈGLE 5 : Si aucun format n'est reconnu, erreur
+else {
+  throw new Error('Structure inattendue. Reçu: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 6 : Valider que action existe
+if (!action) {
+  throw new Error('Le paramètre "action" est obligatoire');
+}
+
+// RÈGLE 7 : Valider que tenant_id existe
+if (!tenant_id) {
+  throw new Error('Le paramètre "tenant_id" est obligatoire. Structure reçue: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 8 : Convertir les actions françaises en anglaises
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// RÈGLE 9 : Construire le body de la requête
+const requestBody = {};
+if (payload) {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// RÈGLE 10 : Appeler l'edge function directement
+const LEO_API_SECRET = 'bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22';
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const functionUrl = BASE_URL + '/' + normalizedAction;
+
+const response = await fetch(functionUrl, {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer ' + LEO_API_SECRET,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(requestBody)
+});
+
+// RÈGLE 11 : Gérer les erreurs HTTP
+if (!response.ok) {
+  const errorText = await response.text();
+  throw new Error('Erreur ' + normalizedAction + ' (' + response.status + '): ' + errorText);
+}
+
+// RÈGLE 12 : Retourner le résultat
+const result = await response.json();
+return result;
+
+// ============================================
+
+const input = $input.item.json;
+
+let action, payload, tenant_id;
+
+// RÈGLE 1 : Format query.parameters.* (nouveau format N8N - PRIORITÉ 1)
+if (input.query && input.query.parameters && input.query.parameters.action) {
+  action = input.query.parameters.action;
+  payload = input.query.parameters.payload || {};
+  tenant_id = input.query.parameters.tenant_id || input.query.tenant_id || input.tenant_id;
+}
+// RÈGLE 2 : Format double query (query.query.action)
+else if (input.query && input.query.query && input.query.query.action) {
+  action = input.query.query.action;
+  payload = input.query.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id || input.query.query.tenant_id;
+}
+// RÈGLE 3 : Format simple query (query.action)
+else if (input.query && input.query.action) {
+  action = input.query.action;
+  payload = input.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id;
+}
+// RÈGLE 4 : Format direct (action)
+else if (input.action) {
+  action = input.action;
+  payload = input.payload || {};
+  tenant_id = input.tenant_id;
+}
+// RÈGLE 5 : Si aucun format n'est reconnu, erreur
+else {
+  throw new Error('Structure inattendue. Reçu: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 6 : Valider que action existe
+if (!action) {
+  throw new Error('Le paramètre "action" est obligatoire');
+}
+
+// RÈGLE 7 : Valider que tenant_id existe
+if (!tenant_id) {
+  throw new Error('Le paramètre "tenant_id" est obligatoire. Structure reçue: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 8 : Convertir les actions françaises en anglaises
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// RÈGLE 9 : Construire le body de la requête
+const requestBody = {};
+if (payload) {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// RÈGLE 10 : Appeler l'edge function directement
+const LEO_API_SECRET = 'bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22';
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const functionUrl = BASE_URL + '/' + normalizedAction;
+
+const response = await fetch(functionUrl, {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer ' + LEO_API_SECRET,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(requestBody)
+});
+
+// RÈGLE 11 : Gérer les erreurs HTTP
+if (!response.ok) {
+  const errorText = await response.text();
+  throw new Error('Erreur ' + normalizedAction + ' (' + response.status + '): ' + errorText);
+}
+
+// RÈGLE 12 : Retourner le résultat
+const result = await response.json();
+return result;
+
+
+// ============================================
+
+const input = $input.item.json;
+
+let action, payload, tenant_id;
+
+// RÈGLE 1 : Format query.parameters.* (nouveau format N8N - PRIORITÉ 1)
+if (input.query && input.query.parameters && input.query.parameters.action) {
+  action = input.query.parameters.action;
+  payload = input.query.parameters.payload || {};
+  tenant_id = input.query.parameters.tenant_id || input.query.tenant_id || input.tenant_id;
+}
+// RÈGLE 2 : Format double query (query.query.action)
+else if (input.query && input.query.query && input.query.query.action) {
+  action = input.query.query.action;
+  payload = input.query.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id || input.query.query.tenant_id;
+}
+// RÈGLE 3 : Format simple query (query.action)
+else if (input.query && input.query.action) {
+  action = input.query.action;
+  payload = input.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id;
+}
+// RÈGLE 4 : Format direct (action)
+else if (input.action) {
+  action = input.action;
+  payload = input.payload || {};
+  tenant_id = input.tenant_id;
+}
+// RÈGLE 5 : Si aucun format n'est reconnu, erreur
+else {
+  throw new Error('Structure inattendue. Reçu: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 6 : Valider que action existe
+if (!action) {
+  throw new Error('Le paramètre "action" est obligatoire');
+}
+
+// RÈGLE 7 : Valider que tenant_id existe
+if (!tenant_id) {
+  throw new Error('Le paramètre "tenant_id" est obligatoire. Structure reçue: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 8 : Convertir les actions françaises en anglaises
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// RÈGLE 9 : Construire le body de la requête
+const requestBody = {};
+if (payload) {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// RÈGLE 10 : Appeler l'edge function directement
+const LEO_API_SECRET = 'bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22';
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const functionUrl = BASE_URL + '/' + normalizedAction;
+
+const response = await fetch(functionUrl, {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer ' + LEO_API_SECRET,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(requestBody)
+});
+
+// RÈGLE 11 : Gérer les erreurs HTTP
+if (!response.ok) {
+  const errorText = await response.text();
+  throw new Error('Erreur ' + normalizedAction + ' (' + response.status + '): ' + errorText);
+}
+
+// RÈGLE 12 : Retourner le résultat
+const result = await response.json();
+return result;
+
+// ============================================
+
+const input = $input.item.json;
+
+let action, payload, tenant_id;
+
+// RÈGLE 1 : Format query.parameters.* (nouveau format N8N - PRIORITÉ 1)
+if (input.query && input.query.parameters && input.query.parameters.action) {
+  action = input.query.parameters.action;
+  payload = input.query.parameters.payload || {};
+  tenant_id = input.query.parameters.tenant_id || input.query.tenant_id || input.tenant_id;
+}
+// RÈGLE 2 : Format double query (query.query.action)
+else if (input.query && input.query.query && input.query.query.action) {
+  action = input.query.query.action;
+  payload = input.query.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id || input.query.query.tenant_id;
+}
+// RÈGLE 3 : Format simple query (query.action)
+else if (input.query && input.query.action) {
+  action = input.query.action;
+  payload = input.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id;
+}
+// RÈGLE 4 : Format direct (action)
+else if (input.action) {
+  action = input.action;
+  payload = input.payload || {};
+  tenant_id = input.tenant_id;
+}
+// RÈGLE 5 : Si aucun format n'est reconnu, erreur
+else {
+  throw new Error('Structure inattendue. Reçu: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 6 : Valider que action existe
+if (!action) {
+  throw new Error('Le paramètre "action" est obligatoire');
+}
+
+// RÈGLE 7 : Valider que tenant_id existe
+if (!tenant_id) {
+  throw new Error('Le paramètre "tenant_id" est obligatoire. Structure reçue: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 8 : Convertir les actions françaises en anglaises
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// RÈGLE 9 : Construire le body de la requête
+const requestBody = {};
+if (payload) {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// RÈGLE 10 : Appeler l'edge function directement
+const LEO_API_SECRET = 'bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22';
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const functionUrl = BASE_URL + '/' + normalizedAction;
+
+const response = await fetch(functionUrl, {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer ' + LEO_API_SECRET,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(requestBody)
+});
+
+// RÈGLE 11 : Gérer les erreurs HTTP
+if (!response.ok) {
+  const errorText = await response.text();
+  throw new Error('Erreur ' + normalizedAction + ' (' + response.status + '): ' + errorText);
+}
+
+// RÈGLE 12 : Retourner le résultat
+const result = await response.json();
+return result;
+
+
+// ============================================
+
+const input = $input.item.json;
+
+let action, payload, tenant_id;
+
+// RÈGLE 1 : Format query.parameters.* (nouveau format N8N - PRIORITÉ 1)
+if (input.query && input.query.parameters && input.query.parameters.action) {
+  action = input.query.parameters.action;
+  payload = input.query.parameters.payload || {};
+  tenant_id = input.query.parameters.tenant_id || input.query.tenant_id || input.tenant_id;
+}
+// RÈGLE 2 : Format double query (query.query.action)
+else if (input.query && input.query.query && input.query.query.action) {
+  action = input.query.query.action;
+  payload = input.query.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id || input.query.query.tenant_id;
+}
+// RÈGLE 3 : Format simple query (query.action)
+else if (input.query && input.query.action) {
+  action = input.query.action;
+  payload = input.query.payload || {};
+  tenant_id = input.tenant_id || input.query.tenant_id;
+}
+// RÈGLE 4 : Format direct (action)
+else if (input.action) {
+  action = input.action;
+  payload = input.payload || {};
+  tenant_id = input.tenant_id;
+}
+// RÈGLE 5 : Si aucun format n'est reconnu, erreur
+else {
+  throw new Error('Structure inattendue. Reçu: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 6 : Valider que action existe
+if (!action) {
+  throw new Error('Le paramètre "action" est obligatoire');
+}
+
+// RÈGLE 7 : Valider que tenant_id existe
+if (!tenant_id) {
+  throw new Error('Le paramètre "tenant_id" est obligatoire. Structure reçue: ' + JSON.stringify(input, null, 2));
+}
+
+// RÈGLE 8 : Convertir les actions françaises en anglaises
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// RÈGLE 9 : Construire le body de la requête
+const requestBody = {};
+if (payload) {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// RÈGLE 10 : Appeler l'edge function directement
+const LEO_API_SECRET = 'bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22';
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const functionUrl = BASE_URL + '/' + normalizedAction;
+
+const response = await fetch(functionUrl, {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer ' + LEO_API_SECRET,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(requestBody)
+});
+
+// RÈGLE 11 : Gérer les erreurs HTTP
+if (!response.ok) {
+  const errorText = await response.text();
+  throw new Error('Erreur ' + normalizedAction + ' (' + response.status + '): ' + errorText);
+}
+
+// RÈGLE 12 : Retourner le résultat
+const result = await response.json();
+return result;

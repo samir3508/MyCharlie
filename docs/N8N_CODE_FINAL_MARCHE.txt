@@ -1,0 +1,646 @@
+// CODE FINAL - Utilise this.helpers.httpRequest
+// "query" contient directement {action, payload, tenant_id}
+
+const action = query.action;
+const payload = query.payload || {};
+const tenant_id = query.tenant_id;
+
+// Validation
+if (!action) {
+  throw new Error('action manquante');
+}
+if (!tenant_id) {
+  throw new Error('tenant_id manquant');
+}
+
+// Conversion français → anglais
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Construire body pour Supabase
+const requestBody = {};
+if (payload && typeof payload === 'object') {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// Appel API Supabase
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const url = BASE_URL + '/' + normalizedAction;
+
+const response = await this.helpers.httpRequest({
+  method: 'POST',
+  url: url,
+  headers: {
+    'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+    'Content-Type': 'application/json'
+  },
+  body: requestBody
+});
+
+// Retourner en STRING
+return JSON.stringify(response);
+
+
+const action = query.action;
+const payload = query.payload || {};
+const tenant_id = query.tenant_id;
+
+// Validation
+if (!action) {
+  throw new Error('action manquante');
+}
+if (!tenant_id) {
+  throw new Error('tenant_id manquant');
+}
+
+// Conversion français → anglais
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Construire body pour Supabase
+const requestBody = {};
+if (payload && typeof payload === 'object') {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// Appel API Supabase
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const url = BASE_URL + '/' + normalizedAction;
+
+const response = await this.helpers.httpRequest({
+  method: 'POST',
+  url: url,
+  headers: {
+    'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+    'Content-Type': 'application/json'
+  },
+  body: requestBody
+});
+
+// Retourner en STRING
+return JSON.stringify(response);
+
+const action = query.action;
+const payload = query.payload || {};
+const tenant_id = query.tenant_id;
+
+// Validation
+if (!action) {
+  throw new Error('action manquante');
+}
+if (!tenant_id) {
+  throw new Error('tenant_id manquant');
+}
+
+// Conversion français → anglais
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Construire body pour Supabase
+const requestBody = {};
+if (payload && typeof payload === 'object') {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// Appel API Supabase
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const url = BASE_URL + '/' + normalizedAction;
+
+const response = await this.helpers.httpRequest({
+  method: 'POST',
+  url: url,
+  headers: {
+    'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+    'Content-Type': 'application/json'
+  },
+  body: requestBody
+});
+
+// Retourner en STRING
+return JSON.stringify(response);
+
+
+const action = query.action;
+const payload = query.payload || {};
+const tenant_id = query.tenant_id;
+
+// Validation
+if (!action) {
+  throw new Error('action manquante');
+}
+if (!tenant_id) {
+  throw new Error('tenant_id manquant');
+}
+
+// Conversion français → anglais
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Construire body pour Supabase
+const requestBody = {};
+if (payload && typeof payload === 'object') {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// Appel API Supabase
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const url = BASE_URL + '/' + normalizedAction;
+
+const response = await this.helpers.httpRequest({
+  method: 'POST',
+  url: url,
+  headers: {
+    'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+    'Content-Type': 'application/json'
+  },
+  body: requestBody
+});
+
+// Retourner en STRING
+return JSON.stringify(response);
+
+const action = query.action;
+const payload = query.payload || {};
+const tenant_id = query.tenant_id;
+
+// Validation
+if (!action) {
+  throw new Error('action manquante');
+}
+if (!tenant_id) {
+  throw new Error('tenant_id manquant');
+}
+
+// Conversion français → anglais
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Construire body pour Supabase
+const requestBody = {};
+if (payload && typeof payload === 'object') {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// Appel API Supabase
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const url = BASE_URL + '/' + normalizedAction;
+
+const response = await this.helpers.httpRequest({
+  method: 'POST',
+  url: url,
+  headers: {
+    'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+    'Content-Type': 'application/json'
+  },
+  body: requestBody
+});
+
+// Retourner en STRING
+return JSON.stringify(response);
+
+
+const action = query.action;
+const payload = query.payload || {};
+const tenant_id = query.tenant_id;
+
+// Validation
+if (!action) {
+  throw new Error('action manquante');
+}
+if (!tenant_id) {
+  throw new Error('tenant_id manquant');
+}
+
+// Conversion français → anglais
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Construire body pour Supabase
+const requestBody = {};
+if (payload && typeof payload === 'object') {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// Appel API Supabase
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const url = BASE_URL + '/' + normalizedAction;
+
+const response = await this.helpers.httpRequest({
+  method: 'POST',
+  url: url,
+  headers: {
+    'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+    'Content-Type': 'application/json'
+  },
+  body: requestBody
+});
+
+// Retourner en STRING
+return JSON.stringify(response);
+
+const action = query.action;
+const payload = query.payload || {};
+const tenant_id = query.tenant_id;
+
+// Validation
+if (!action) {
+  throw new Error('action manquante');
+}
+if (!tenant_id) {
+  throw new Error('tenant_id manquant');
+}
+
+// Conversion français → anglais
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Construire body pour Supabase
+const requestBody = {};
+if (payload && typeof payload === 'object') {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// Appel API Supabase
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const url = BASE_URL + '/' + normalizedAction;
+
+const response = await this.helpers.httpRequest({
+  method: 'POST',
+  url: url,
+  headers: {
+    'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+    'Content-Type': 'application/json'
+  },
+  body: requestBody
+});
+
+// Retourner en STRING
+return JSON.stringify(response);
+
+
+const action = query.action;
+const payload = query.payload || {};
+const tenant_id = query.tenant_id;
+
+// Validation
+if (!action) {
+  throw new Error('action manquante');
+}
+if (!tenant_id) {
+  throw new Error('tenant_id manquant');
+}
+
+// Conversion français → anglais
+const actionMap = {
+  'chercher-client': 'search-client',
+  'recherche-client': 'search-client',
+  'creer-client': 'create-client',
+  'obtenir-client': 'get-client',
+  'lister-clients': 'list-clients',
+  'modifier-client': 'update-client',
+  'supprimer-client': 'delete-client',
+  'creer-devis': 'create-devis',
+  'ajouter-ligne-devis': 'add-ligne-devis',
+  'modifier-ligne-devis': 'update-ligne-devis',
+  'supprimer-ligne-devis': 'delete-ligne-devis',
+  'finaliser-devis': 'finalize-devis',
+  'envoyer-devis': 'send-devis',
+  'obtenir-devis': 'get-devis',
+  'lister-devis': 'list-devis',
+  'modifier-devis': 'update-devis',
+  'supprimer-devis': 'delete-devis',
+  'creer-facture': 'create-facture',
+  'ajouter-ligne-facture': 'add-ligne-facture',
+  'modifier-ligne-facture': 'update-ligne-facture',
+  'supprimer-ligne-facture': 'delete-ligne-facture',
+  'finaliser-facture': 'finalize-facture',
+  'envoyer-facture': 'send-facture',
+  'marquer-facture-payee': 'mark-facture-paid',
+  'envoyer-relance': 'send-relance',
+  'obtenir-facture': 'get-facture',
+  'lister-factures': 'list-factures',
+  'modifier-facture': 'update-facture',
+  'supprimer-facture': 'delete-facture',
+  'statistiques': 'stats-dashboard',
+  'stats': 'stats-dashboard',
+  'dashboard': 'stats-dashboard',
+  'recherche-globale': 'search-global',
+  'recherche': 'search-global'
+};
+
+const normalizedAction = actionMap[action] || action;
+
+// Construire body pour Supabase
+const requestBody = {};
+if (payload && typeof payload === 'object') {
+  for (var key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      requestBody[key] = payload[key];
+    }
+  }
+}
+requestBody.tenant_id = tenant_id;
+
+// Appel API Supabase
+const BASE_URL = 'https://zhemkkukhxspakxvrmlr.supabase.co/functions/v1';
+const url = BASE_URL + '/' + normalizedAction;
+
+const response = await this.helpers.httpRequest({
+  method: 'POST',
+  url: url,
+  headers: {
+    'Authorization': 'Bearer bfcce0dca821fbf3d0f0303e90710bf7b24882d8418f276ee30fe7906ba0bf22',
+    'Content-Type': 'application/json'
+  },
+  body: requestBody
+});
+
+// Retourner en STRING
+return JSON.stringify(response);

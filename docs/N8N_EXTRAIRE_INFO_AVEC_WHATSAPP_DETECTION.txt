@@ -1,0 +1,294 @@
+// Code SIMPLIFIÉ et ROBUSTE pour le nœud "extraire info de la demande"
+// Gère les sauts de ligne et tous les formats (x, ×, forfait, etc.)
+
+const items = $input.all();
+const body = items[0]?.json?.body || {};
+
+// ===============================
+// 1️⃣ RÉCUPÉRER LE MESSAGE À PARSER
+// ===============================
+
+let message = '';
+if (body.history && Array.isArray(body.history) && body.history.length > 0) {
+  const firstUserMessage = body.history.find(msg => msg.role === 'user');
+  if (firstUserMessage && firstUserMessage.content) {
+    message = firstUserMessage.content;
+  }
+}
+
+if (!message) {
+  message = body.raw_message || body.message || '';
+}
+
+// ===============================
+// 2️⃣ TENANT + DATE
+// ===============================
+const tenantId = body.context?.tenant_id || 'f117dc59-1cef-41c3-91a3-8c12d47f6bfb';
+const now = new Date();
+const todayDate = now.toISOString().slice(0, 10);
+
+// ===============================
+// 3️⃣ DÉTECTION WHATSAPP (AJOUTÉ)
+// ===============================
+// Détecter si le message vient de WhatsApp en vérifiant body.From
+const fromPhone = body.From || '';
+const isWhatsApp = fromPhone.includes('whatsapp:') || body.is_whatsapp === true;
+
+// ===============================
+// 4️⃣ EXTRACTION CLIENT
+// ===============================
+
+const nameMatch = message.match(/devis pour\s+([A-Za-zÀ-ÿ\s'-]+)/i);
+const clientName = nameMatch ? nameMatch[1].trim() : null;
+
+let prenom = null;
+let nom = null;
+if (clientName) {
+  const nameParts = clientName.split(/\s+/);
+  prenom = nameParts[0];
+  nom = nameParts.slice(1).join(" ") || nameParts[0];
+}
+
+const addressMatch = message.match(/,\s*(\d{1,3}[^,\n]+,\s*\d{5}\s*[A-Za-zÀ-ÿ\s-]+)/);
+const address = addressMatch ? addressMatch[1].trim() : null;
+
+const phoneMatch = message.match(/(0\d(?:[\s.-]?\d{2}){4})/);
+const phone = phoneMatch ? phoneMatch[1].replace(/\s+/g, '') : null;
+
+const emailMatch = message.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+const email = emailMatch ? emailMatch[0] : null;
+
+// ===============================
+// 5️⃣ EXTRACTION DES LIGNES DE TRAVAUX (VERSION SIMPLIFIÉE ET ROBUSTE)
+// ===============================
+const lines = [];
+
+// ÉTAPE 1 : Normaliser le message (remplacer tous les sauts de ligne par des espaces)
+const normalizedMsg = message
+  .replace(/\r\n/g, ' ')
+  .replace(/\r/g, ' ')
+  .replace(/\n/g, ' ')
+  .replace(/\t/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+console.log('📝 Message normalisé (200 premiers caractères):', normalizedMsg.substring(0, 200));
+
+// ÉTAPE 2 : Chercher les lignes avec pattern simple mais robuste
+// Pattern FORFAIT : "... → forfait XXX € ... TVA YY%"
+const forfaitRegex = /([A-Za-zÀ-ÿ\s-]+?)\s*→\s*forfait\s+(\d+(?:[.,]\d+)?)\s*€[^€]*?TVA\s*(\d+)%/gi;
+let match;
+while ((match = forfaitRegex.exec(normalizedMsg)) !== null) {
+  const label = match[1].trim();
+  const prix = parseFloat(match[2].replace(',', '.'));
+  const tva = parseInt(match[3], 10);
+  
+  if (!lines.find(l => l.label === label && l.unit_price === prix)) {
+    lines.push({
+      label: label,
+      quantity: 1,
+      unit: 'forfait',
+      unit_price: prix,
+      tva: tva
+    });
+  }
+}
+
+// Pattern QUANTITÉ × PRIX : "... → XXX m² x YYY € ... TVA ZZ%"
+// Gère "x" (lettre), "×" (symbole), "X" (majuscule)
+const qtyPriceRegex = /([A-Za-zÀ-ÿ\s-]+?)\s*→\s*(\d+(?:[.,]\d+)?)\s+(m²|ml|m|u\.|unité)\s*[×xX]\s*(\d+(?:[.,]\d+)?)\s*€[^€]*?TVA\s*(\d+)%/gi;
+while ((match = qtyPriceRegex.exec(normalizedMsg)) !== null) {
+  const label = match[1].trim();
+  const qty = parseFloat(match[2].replace(',', '.'));
+  const unit = match[3];
+  const prix = parseFloat(match[4].replace(',', '.'));
+  const tva = parseInt(match[5], 10);
+  
+  if (!lines.find(l => l.label === label && l.quantity === qty && l.unit_price === prix)) {
+    lines.push({
+      label: label,
+      quantity: qty,
+      unit: unit,
+      unit_price: prix,
+      tva: tva
+    });
+  }
+}
+
+// DEBUG
+console.log(`✅ ${lines.length} ligne(s) de travaux extraite(s)`);
+lines.forEach((line, idx) => {
+  console.log(`  ${idx + 1}. ${line.label} - ${line.quantity} ${line.unit} × ${line.unit_price} € (TVA ${line.tva}%)`);
+});
+
+// ===============================
+// 6️⃣ STRUCTURE FINALE
+// ===============================
+return {
+  json: {
+    body: {
+      raw_message: message,
+      client: {
+        name: clientName,
+        prenom: prenom,
+        nom: nom,
+        address: address,
+        phone: phone,
+        email: email
+      },
+      travaux: lines.length > 0 ? lines : null,
+      context: {
+        tenant_id: tenantId,
+        conversation_date: todayDate,
+        is_whatsapp: isWhatsApp  // ✅ DÉTECTION CORRIGÉE
+      }
+    }
+  }
+};
+
+
+
+const items = $input.all();
+const body = items[0]?.json?.body || {};
+
+// ===============================
+// 1️⃣ RÉCUPÉRER LE MESSAGE À PARSER
+// ===============================
+
+let message = '';
+if (body.history && Array.isArray(body.history) && body.history.length > 0) {
+  const firstUserMessage = body.history.find(msg => msg.role === 'user');
+  if (firstUserMessage && firstUserMessage.content) {
+    message = firstUserMessage.content;
+  }
+}
+
+if (!message) {
+  message = body.raw_message || body.message || '';
+}
+
+// ===============================
+// 2️⃣ TENANT + DATE
+// ===============================
+const tenantId = body.context?.tenant_id || 'f117dc59-1cef-41c3-91a3-8c12d47f6bfb';
+const now = new Date();
+const todayDate = now.toISOString().slice(0, 10);
+
+// ===============================
+// 3️⃣ DÉTECTION WHATSAPP (AJOUTÉ)
+// ===============================
+// Détecter si le message vient de WhatsApp en vérifiant body.From
+const fromPhone = body.From || '';
+const isWhatsApp = fromPhone.includes('whatsapp:') || body.is_whatsapp === true;
+
+// ===============================
+// 4️⃣ EXTRACTION CLIENT
+// ===============================
+
+const nameMatch = message.match(/devis pour\s+([A-Za-zÀ-ÿ\s'-]+)/i);
+const clientName = nameMatch ? nameMatch[1].trim() : null;
+
+let prenom = null;
+let nom = null;
+if (clientName) {
+  const nameParts = clientName.split(/\s+/);
+  prenom = nameParts[0];
+  nom = nameParts.slice(1).join(" ") || nameParts[0];
+}
+
+const addressMatch = message.match(/,\s*(\d{1,3}[^,\n]+,\s*\d{5}\s*[A-Za-zÀ-ÿ\s-]+)/);
+const address = addressMatch ? addressMatch[1].trim() : null;
+
+const phoneMatch = message.match(/(0\d(?:[\s.-]?\d{2}){4})/);
+const phone = phoneMatch ? phoneMatch[1].replace(/\s+/g, '') : null;
+
+const emailMatch = message.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+const email = emailMatch ? emailMatch[0] : null;
+
+// ===============================
+// 5️⃣ EXTRACTION DES LIGNES DE TRAVAUX (VERSION SIMPLIFIÉE ET ROBUSTE)
+// ===============================
+const lines = [];
+
+// ÉTAPE 1 : Normaliser le message (remplacer tous les sauts de ligne par des espaces)
+const normalizedMsg = message
+  .replace(/\r\n/g, ' ')
+  .replace(/\r/g, ' ')
+  .replace(/\n/g, ' ')
+  .replace(/\t/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+console.log('📝 Message normalisé (200 premiers caractères):', normalizedMsg.substring(0, 200));
+
+// ÉTAPE 2 : Chercher les lignes avec pattern simple mais robuste
+// Pattern FORFAIT : "... → forfait XXX € ... TVA YY%"
+const forfaitRegex = /([A-Za-zÀ-ÿ\s-]+?)\s*→\s*forfait\s+(\d+(?:[.,]\d+)?)\s*€[^€]*?TVA\s*(\d+)%/gi;
+let match;
+while ((match = forfaitRegex.exec(normalizedMsg)) !== null) {
+  const label = match[1].trim();
+  const prix = parseFloat(match[2].replace(',', '.'));
+  const tva = parseInt(match[3], 10);
+  
+  if (!lines.find(l => l.label === label && l.unit_price === prix)) {
+    lines.push({
+      label: label,
+      quantity: 1,
+      unit: 'forfait',
+      unit_price: prix,
+      tva: tva
+    });
+  }
+}
+
+// Pattern QUANTITÉ × PRIX : "... → XXX m² x YYY € ... TVA ZZ%"
+// Gère "x" (lettre), "×" (symbole), "X" (majuscule)
+const qtyPriceRegex = /([A-Za-zÀ-ÿ\s-]+?)\s*→\s*(\d+(?:[.,]\d+)?)\s+(m²|ml|m|u\.|unité)\s*[×xX]\s*(\d+(?:[.,]\d+)?)\s*€[^€]*?TVA\s*(\d+)%/gi;
+while ((match = qtyPriceRegex.exec(normalizedMsg)) !== null) {
+  const label = match[1].trim();
+  const qty = parseFloat(match[2].replace(',', '.'));
+  const unit = match[3];
+  const prix = parseFloat(match[4].replace(',', '.'));
+  const tva = parseInt(match[5], 10);
+  
+  if (!lines.find(l => l.label === label && l.quantity === qty && l.unit_price === prix)) {
+    lines.push({
+      label: label,
+      quantity: qty,
+      unit: unit,
+      unit_price: prix,
+      tva: tva
+    });
+  }
+}
+
+// DEBUG
+console.log(`✅ ${lines.length} ligne(s) de travaux extraite(s)`);
+lines.forEach((line, idx) => {
+  console.log(`  ${idx + 1}. ${line.label} - ${line.quantity} ${line.unit} × ${line.unit_price} € (TVA ${line.tva}%)`);
+});
+
+// ===============================
+// 6️⃣ STRUCTURE FINALE
+// ===============================
+return {
+  json: {
+    body: {
+      raw_message: message,
+      client: {
+        name: clientName,
+        prenom: prenom,
+        nom: nom,
+        address: address,
+        phone: phone,
+        email: email
+      },
+      travaux: lines.length > 0 ? lines : null,
+      context: {
+        tenant_id: tenantId,
+        conversation_date: todayDate,
+        is_whatsapp: isWhatsApp  // ✅ DÉTECTION CORRIGÉE
+      }
+    }
+  }
+};
