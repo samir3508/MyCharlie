@@ -66,7 +66,7 @@ Ce message a été envoyé depuis l'application LÉO BTP
       console.log('API Key présente:', !!process.env.RESEND_API_KEY)
       
       const result = await resend.emails.send({
-        from: 'support@monentreprise.com',
+        from: 'onboarding@resend.dev',
         to: 'ddvcontact35@gmail.com', // Ton email pour recevoir les notifications
         subject: `🆕 Support LÉO [${urgency?.toUpperCase() || 'MEDIUM'}] - ${nom}`,
         html: `
