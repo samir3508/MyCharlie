@@ -71,31 +71,11 @@ export default function LandingPage() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
-              Commencer Gratuitement
+              Essayer Charlie Gratuitement
             </Button>
             <Button variant="outline" size="lg" className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg">
               Voir la démo
             </Button>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">500+</div>
-              <div className="text-gray-600">Artisans BTP</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600 mb-2">10 000+</div>
-              <div className="text-gray-600">Devis générés</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">95%</div>
-              <div className="text-gray-600">Satisfaction client</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">24/7</div>
-              <div className="text-gray-600">Disponible</div>
-            </div>
           </div>
         </div>
       </section>
@@ -255,193 +235,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="testimonials" className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">
-              Ils nous font confiance
-            </h2>
-            <p className="text-xl text-gray-600">
-              Découvrez pourquoi des centaines d'artisans choisissent Charlie
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                    <span className="text-blue-600 font-bold">JD</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Jean Dupont</h4>
-                    <p className="text-sm text-gray-600">Plombier</p>
-                  </div>
-                </div>
-                <CardDescription className="text-base italic">
-                  "Charlie a révolutionné ma gestion. Je gagne 2h par jour 
-                  sur les devis et plus aucun oubli de relances."
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                    <span className="text-green-600 font-bold">ML</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Marie Lemoine</h4>
-                    <p className="text-sm text-gray-600">Électricienne</p>
-                  </div>
-                </div>
-                <CardDescription className="text-base italic">
-                  "L'assistant IA est incroyable ! Il comprend exactement 
-                  ce dont j'ai besoin et génère des devis parfaits."
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mr-4">
-                    <span className="text-orange-600 font-bold">PB</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Pierre Bernard</h4>
-                    <p className="text-sm text-gray-600">Menuisier</p>
-                  </div>
-                </div>
-                <CardDescription className="text-base italic">
-                  "Les relances automatiques m'ont fait économiser 15% 
-                  de mon chiffre d'affaires. Plus aucun impayé !"
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">
-              Des tarifs simples et transparents
-            </h2>
-            <p className="text-xl text-gray-600">
-              Commencez gratuitement, payez seulement quand vous êtes convaincu
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="border-2 border-gray-200">
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-2xl">Gratuit</CardTitle>
-                <div className="text-4xl font-bold text-gray-900 mb-2">0€</div>
-                <p className="text-gray-600">/mois</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Jusqu'à 10 devis par mois</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>5 clients maximum</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Support par email</span>
-                </div>
-                <Button className="w-full mt-6" variant="outline">
-                  Commencer Gratuitement
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-blue-500 scale-105 shadow-lg">
-              <CardHeader className="text-center pb-4">
-                <Badge className="mb-2 bg-blue-100 text-blue-800">Le Plus Populaire</Badge>
-                <CardTitle className="text-2xl">Pro</CardTitle>
-                <div className="text-4xl font-bold text-blue-600 mb-2">29€</div>
-                <p className="text-gray-600">/mois</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Devis et factures illimités</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Clients illimités</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Assistant IA Charlie</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Relances automatiques</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Support prioritaire</span>
-                </div>
-                <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-700">
-                  Choisir Pro
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-orange-500">
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-2xl">Entreprise</CardTitle>
-                <div className="text-4xl font-bold text-orange-600 mb-2">79€</div>
-                <p className="text-gray-600">/mois</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Tout le plan Pro</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Multi-utilisateurs</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Intégrations avancées</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>API personnalisée</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Manager dédié</span>
-                </div>
-                <Button className="w-full mt-6 bg-orange-600 hover:bg-orange-700">
-                  Choisir Entreprise
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-orange-600">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
-            Prêt à révolutionner votre gestion ?
+            Testez Charlie gratuitement
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Rejoignez les centaines d'artisans qui font confiance à Charlie 
-            pour gérer leur entreprise plus intelligemment.
+            Charlie est actuellement en version beta. Profitez-en pour tester 
+            toutes les fonctionnalités gratuitement et donnez-nous votre retour.
           </p>
           
           <form onSubmit={handleSubmit} className="max-w-md mx-auto">
@@ -460,7 +262,7 @@ export default function LandingPage() {
                 className="bg-white text-blue-600 hover:bg-gray-100 px-8"
                 disabled={submitted}
               >
-                {submitted ? 'Inscription en cours...' : 'Commencer Gratuitement'}
+                {submitted ? 'Inscription en cours...' : 'Rejoindre la Beta'}
               </Button>
             </div>
           </form>

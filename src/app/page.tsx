@@ -117,24 +117,6 @@ export default function HomePage() {
     },
   ]
 
-  const testimonials = [
-    {
-      name: 'Thomas D.',
-      role: 'Artisan électricien',
-      content: 'Depuis que j\'utilise MY CHARLIE, j\'ai gagné au moins 10h par semaine sur la gestion administrative. Les relances automatiques m\'ont permis de réduire mes impayés de 80%.',
-    },
-    {
-      name: 'Sophie M.',
-      role: 'Cheffe d\'entreprise de rénovation',
-      content: 'L\'assistant WhatsApp est une révolution pour mon entreprise. Je ne rate plus aucune demande de devis, même en dehors des heures de bureau.',
-    },
-    {
-      name: 'Mehdi K.',
-      role: 'Plombier-chauffagiste',
-      content: 'La simplicité d\'utilisation est incroyable. Même sans être un pro de l\'informatique, j\'ai pu prendre en main l\'outil en quelques minutes.',
-    },
-  ]
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       {/* Navigation */}
@@ -203,13 +185,13 @@ export default function HomePage() {
                 transition={{ duration: 0.8 }}
               >
                 <motion.div 
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium border border-primary/20 shadow-sm"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-100 text-yellow-800 text-sm font-medium border border-yellow-200 shadow-sm"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Assistant IA pour artisans BTP</span>
+                  <span>Version Beta - Accès Gratuit</span>
                 </motion.div>
                 
                 <motion.h1 
@@ -244,7 +226,7 @@ export default function HomePage() {
                       size="lg" 
                       className="w-full h-14 px-8 text-lg bg-gradient-to-r from-primary to-primary/90 hover:opacity-90 transition-opacity shadow-lg hover:shadow-primary/20"
                     >
-                      Essai gratuit 14 jours
+                      Rejoindre la Beta Gratuitement
                       <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
@@ -259,25 +241,20 @@ export default function HomePage() {
                   </Link>
                 </motion.div>
                 
-                <motion.div 
-                  className="flex flex-wrap items-center gap-4 pt-4 text-sm text-muted-foreground"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                >
+                <div className="flex flex-wrap items-center gap-4 pt-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-full">
                     <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    <span>14 jours d'essai gratuit</span>
+                    <span>Version Beta</span>
                   </div>
                   <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-full">
                     <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    <span>Sans engagement</span>
+                    <span>Accès complet gratuit</span>
                   </div>
                   <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-full">
                     <CheckCircle2 className="w-4 h-4 text-green-500" />
                     <span>Sans carte bancaire</span>
                   </div>
-                </motion.div>
+                </div>
               </motion.div>
               
               <motion.div 
@@ -344,7 +321,7 @@ export default function HomePage() {
         </div>
       </section>
       
-      {/* Testimonials Section */}
+      {/* Beta Section */}
       <section className="py-20 px-4 bg-gradient-to-b from-muted/20 to-background">
         <div className="max-w-7xl mx-auto">
           <motion.div 
@@ -354,22 +331,58 @@ export default function HomePage() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-4xl font-bold mb-4">Ils nous font confiance</h2>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-100 text-yellow-800 text-sm font-medium mb-6">
+              <Sparkles className="w-4 h-4" />
+              <span>Version Beta</span>
+            </div>
+            <h2 className="text-4xl font-bold mb-4">Testez Charlie gratuitement</h2>
             <p className="text-xl text-muted-foreground">
-              Découvrez ce que nos utilisateurs pensent de MY CHARLIE
+              Charlie est actuellement en version beta. Profitez-en pour tester toutes les fonctionnalités gratuitement et donnez-nous votre retour.
             </p>
           </motion.div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <TestimonialCard 
-                key={index}
-                name={testimonial.name}
-                role={testimonial.role}
-                content={testimonial.content}
-                delay={index}
-              />
-            ))}
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-center p-6"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Accès complet</h3>
+              <p className="text-muted-foreground">Toutes les fonctionnalités disponibles sans limitation</p>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-center p-6"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                <ShieldCheck className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">100% gratuit</h3>
+              <p className="text-muted-foreground">Aucune carte bancaire requise pendant la beta</p>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="text-center p-6"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                <MessageCircle className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Votre avis compte</h3>
+              <p className="text-muted-foreground">Aidez-nous à améliorer Charlie avec vos retours</p>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -387,19 +400,19 @@ export default function HomePage() {
             <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Prêt à simplifier votre gestion d'entreprise ?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Prêt à tester Charlie gratuitement ?</h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Rejoignez des milliers d'artisans qui font confiance à MY CHARLIE pour gérer leur activité sereinement.
+              Rejoignez la version beta et découvrez comment Charlie peut simplifier votre gestion d'entreprise.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/signup" className="w-full sm:w-auto">
                 <Button size="lg" className="w-full h-14 px-8 text-lg bg-gradient-to-r from-primary to-primary/90 hover:opacity-90 transition-opacity">
-                  Essai gratuit 14 jours
+                  Rejoindre la Beta
                 </Button>
               </Link>
-              <Link href="/demo" className="w-full sm:w-auto">
+              <Link href="#fonctionnalites" className="w-full sm:w-auto">
                 <Button variant="outline" size="lg" className="w-full h-14 px-8 text-lg">
-                  Voir une démo
+                  Découvrir les fonctionnalités
                 </Button>
               </Link>
             </div>
