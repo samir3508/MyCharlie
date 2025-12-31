@@ -26,7 +26,8 @@ import {
   HelpCircle,
   Zap,
   Star,
-  MessageSquare
+  MessageSquare,
+  Smartphone
 } from 'lucide-react'
 
 export function SupportPopup() {
@@ -247,6 +248,15 @@ export function SupportPopup() {
                   <a href="mailto:support@monentreprise.com" className="flex items-center gap-1 hover:text-blue-600">
                     <Mail className="w-4 h-4" />
                     support@monentreprise.com
+                  </a>
+                  <a 
+                    href="https://wa.me/33745108883?text=Bonjour%20!%20J'ai%20besoin%20d'aide%20pour%20l'application%20LÉO%20BTP" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 hover:text-green-600 text-green-600 font-medium"
+                  >
+                    <Smartphone className="w-4 h-4" />
+                    WhatsApp
                   </a>
                 </div>
               </div>
