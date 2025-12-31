@@ -29,7 +29,7 @@ export default function ClientEditPage({ params }: PageProps) {
     getId()
   }, [params])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
     const formData = new FormData(e.currentTarget)
