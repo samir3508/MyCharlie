@@ -160,20 +160,20 @@ export default function HomePage() {
       <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
         <div className="max-w-7xl mx-auto">
           <motion.div className="text-center max-w-3xl mx-auto mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/20 text-red-400 text-sm mb-6"><AlertCircle className="w-4 h-4" /><span>Le problème</span></div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6 border border-orange-500/30"><AlertCircle className="w-4 h-4" /><span>Le problème</span></div>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">L&apos;administratif, ça bouffe ton temps.</h2>
             <p className="text-xl text-gray-400">Tu es artisan, pas secrétaire. Pourtant tu passes des heures sur la paperasse.</p>
           </motion.div>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {[{ icon: Clock, text: "Tu perds du temps le soir et le week-end sur l'administratif" }, { icon: FileText, text: "Créer un devis prend 30 minutes (parfois plus)" }, { icon: DollarSign, text: "Tu oublies de relancer → paiements en retard" }, { icon: Users, text: "Difficile de suivre qui doit quoi" }].map((item, index) => (
               <motion.div key={index} initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="flex items-start gap-4 p-4 bg-gray-800/30 rounded-xl border border-gray-800">
-                <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center flex-shrink-0"><item.icon className="w-5 h-5 text-red-400" /></div>
+                <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0"><item.icon className="w-5 h-5 text-orange-500" /></div>
                 <p className="text-gray-300">{item.text}</p>
               </motion.div>
             ))}
           </div>
           <motion.p className="text-center text-xl text-gray-400 mt-12 max-w-2xl mx-auto" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
-            <span className="text-white font-semibold">Résultat :</span> tu travailles <span className="text-red-400">pour</span> ton entreprise, pas <span className="text-green-400">sur</span> ton entreprise.
+            <span className="text-white font-semibold">Résultat :</span> tu travailles <span className="text-orange-400">pour</span> ton entreprise, pas <span className="text-orange-400">sur</span> ton entreprise.
           </motion.p>
         </div>
       </section>
@@ -254,15 +254,15 @@ export default function HomePage() {
               </div>
             </motion.div>
 
-            <motion.div className="bg-gradient-to-br from-red-950/40 to-gray-900 rounded-3xl p-6 lg:p-8 border border-red-900/50 shadow-2xl relative overflow-hidden" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
-              <div className="absolute top-0 right-0 w-40 h-40 bg-red-500/10 rounded-full blur-3xl"></div>
+            <motion.div className="bg-gradient-to-br from-gray-900/50 to-gray-800 rounded-3xl p-6 lg:p-8 border border-orange-500/30 shadow-2xl relative overflow-hidden" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+              <div className="absolute top-0 right-0 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl"></div>
               <div className="relative">
                 <div className="flex items-center gap-3 mb-8">
-                  <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
-                    <AlertCircle className="w-6 h-6 text-red-400" />
+                  <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-orange-400" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-red-400">Sans Charlie</h3>
+                    <h3 className="text-xl font-bold text-orange-400">Sans Charlie</h3>
                     <p className="text-xs text-gray-500">Ce que tu perds aujourd&apos;hui</p>
                   </div>
                 </div>
@@ -281,24 +281,24 @@ export default function HomePage() {
                     </div>
                     <p className="text-4xl font-bold text-white">{coutSemaine}<span className="text-xl text-gray-400">€</span></p>
                   </div>
-                  <div className="bg-red-500/10 rounded-2xl p-4 border border-red-500/30">
+                  <div className="bg-orange-500/10 rounded-2xl p-4 border border-orange-500/30">
                     <div className="flex items-center gap-3 mb-2">
-                      <TrendingUp className="w-5 h-5 text-red-400 rotate-180" />
-                      <p className="text-red-300 text-sm font-medium">Perte annuelle</p>
+                      <TrendingUp className="w-5 h-5 text-orange-400 rotate-180" />
+                      <p className="text-orange-300 text-sm font-medium">Perte annuelle</p>
                     </div>
-                    <p className="text-4xl font-bold text-red-400">{coutAn.toLocaleString()}<span className="text-xl">€</span></p>
+                    <p className="text-4xl font-bold text-orange-400">{coutAn.toLocaleString()}<span className="text-xl">€</span></p>
                   </div>
                   <div className="bg-gray-800/30 rounded-2xl p-4 border border-dashed border-gray-700">
                     <p className="text-gray-500 text-sm mb-1">+ Devis non relancés / mois</p>
-                    <p className="text-2xl font-bold text-red-400/80">-{devisPerdusParMois.toLocaleString()}€</p>
+                    <p className="text-2xl font-bold text-orange-400/80">-{devisPerdusParMois.toLocaleString()}€</p>
                   </div>
                 </div>
               </div>
             </motion.div>
 
-            <motion.div className="bg-gradient-to-br from-orange-500/20 via-orange-600/10 to-green-500/10 rounded-3xl p-6 lg:p-8 border border-orange-500/40 shadow-2xl relative overflow-hidden" initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+            <motion.div className="bg-gradient-to-br from-orange-500/20 via-orange-600/10 to-orange-700/10 rounded-3xl p-6 lg:p-8 border border-orange-500/40 shadow-2xl relative overflow-hidden" initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
               <div className="absolute top-0 right-0 w-40 h-40 bg-orange-500/20 rounded-full blur-3xl"></div>
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-orange-600/10 rounded-full blur-3xl"></div>
               <div className="relative">
                 <div className="flex items-center gap-3 mb-8">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
@@ -368,7 +368,7 @@ export default function HomePage() {
             <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-orange-500/5"></div>
             <div className="relative">
               <p className="text-2xl md:text-3xl font-bold mb-2">
-                &quot;Le vrai coût, c&apos;est de <span className="text-red-400">continuer</span> comme avant.&quot;
+                &quot;Le vrai coût, c&apos;est de <span className="text-orange-400">continuer</span> comme avant.&quot;
               </p>
               <p className="text-gray-400 mb-6">Avec Charlie, tu récupères du temps ET de l&apos;argent.</p>
               <Link href="/signup" className="inline-block">
