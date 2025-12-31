@@ -70,15 +70,19 @@ export default function HomePage() {
   const [panierMoyen, setPanierMoyen] = useState(900)
   const [gainCharlie, setGainCharlie] = useState(75)
 
-  const tempsAdminSemaine = (devisParSemaine * tempsMoyenDevis / 60) + autresTaches
+  const tempsManuelParDevis = 30 // minutes
+  const tempsCharlieParDevis = 2 // minutes
+  const tempsEconomiseParDevis = tempsManuelParDevis - tempsCharlieParDevis
+  
+  const tempsAdminSemaine = devisParSemaine * tempsManuelParDevis / 60
+  const tempsCharlieSemaine = devisParSemaine * tempsCharlieParDevis / 60
+  const tempsRecupere = tempsAdminSemaine - tempsCharlieSemaine
+  
   const coutSemaine = Math.round(tempsAdminSemaine * tauxHoraire)
   const coutAn = coutSemaine * 48
-  const devisPerdusParMois = devisPerdus * panierMoyen
-  const tempsRecupere = Math.round(tempsAdminSemaine * gainCharlie / 100 * 10) / 10
   const economieSemaine = Math.round(tempsRecupere * tauxHoraire)
   const economieAn = economieSemaine * 48
-  const devisRecuperes = Math.round(devisPerdus * panierMoyen * 0.5)
-  const economieTotaleAn = economieAn + (devisRecuperes * 12)
+  const economieTotaleAn = economieAn
 
   const resetCalculator = () => { setTauxHoraire(45); setTempsMoyenDevis(45); setDevisParSemaine(5); setAutresTaches(3); setDevisPerdus(2); setPanierMoyen(900); setGainCharlie(75) }
 
@@ -129,7 +133,7 @@ export default function HomePage() {
                 <a href="#comment-ca-marche"><Button variant="outline" size="lg" className="w-full sm:w-auto h-14 px-8 text-lg border-gray-700 text-gray-300">Comment ça marche ?</Button></a>
               </div>
               <div className="flex flex-wrap gap-6 pt-6">
-                <div className="flex items-center gap-2"><div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center"><Timer className="w-5 h-5 text-orange-500" /></div><div><p className="text-lg font-bold">5 min</p><p className="text-xs text-gray-400">Devis créé</p></div></div>
+                <div className="flex items-center gap-2"><div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center"><Timer className="w-5 h-5 text-orange-500" /></div><div><p className="text-lg font-bold">&lt;2 min</p><p className="text-xs text-gray-400">Devis créé</p></div></div>
                 <div className="flex items-center gap-2"><div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center"><Bell className="w-5 h-5 text-orange-500" /></div><div><p className="text-lg font-bold">Auto</p><p className="text-xs text-gray-400">Relances</p></div></div>
                 <div className="flex items-center gap-2"><div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center"><Users className="w-5 h-5 text-orange-500" /></div><div><p className="text-lg font-bold">100%</p><p className="text-xs text-gray-400">Suivi client</p></div></div>
               </div>
@@ -212,13 +216,13 @@ export default function HomePage() {
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-500/20 to-orange-600/20 text-orange-400 text-sm mb-6 border border-orange-500/30">
               <Calculator className="w-5 h-5" />
-              <span className="font-semibold">Simulateur de gains</span>
+              <span className="font-semibold">Calcule ton gain</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-              Combien te coûte <span className="bg-gradient-to-r from-red-400 to-red-500 bg-clip-text text-transparent">l&apos;administratif</span> ?
+              Combien tu <span className="bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent">gagnes</span> avec Charlie ?
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Déplace les curseurs pour voir <span className="text-white font-medium">en temps réel</span> combien tu perds... et combien tu pourrais économiser.
+              Dis-moi ta situation, je te calcule <span className="text-white font-medium">exactement</span> ce que Charlie te rapporte.
             </p>
           </motion.div>
 
@@ -237,19 +241,14 @@ export default function HomePage() {
               </div>
               <div className="space-y-5">
                 <SliderInput label="💰 Taux horaire" value={tauxHoraire} onChange={setTauxHoraire} min={20} max={100} step={5} unit="€" suffix="/h" />
-                <SliderInput label="⏱️ Temps par devis" value={tempsMoyenDevis} onChange={setTempsMoyenDevis} min={15} max={120} step={5} unit=" min" />
-                <SliderInput label="📄 Devis / semaine" value={devisParSemaine} onChange={setDevisParSemaine} min={1} max={20} step={1} suffix="devis" />
-                <SliderInput label="📋 Autres tâches admin" value={autresTaches} onChange={setAutresTaches} min={0} max={15} step={1} unit="h" suffix="/sem" />
+                <SliderInput label="📄 Devis par semaine" value={devisParSemaine} onChange={setDevisParSemaine} min={1} max={20} step={1} suffix="devis" />
+                <SliderInput label="🛒 Panier moyen par devis" value={panierMoyen} onChange={setPanierMoyen} min={200} max={5000} step={100} unit=" €" />
                 <div className="pt-4 border-t border-gray-700">
-                  <p className="text-xs text-gray-500 mb-4">Opportunités manquées</p>
-                  <SliderInput label="❌ Devis perdus" value={devisPerdus} onChange={setDevisPerdus} min={0} max={10} step={1} suffix="/mois" />
-                  <div className="mt-4">
-                    <SliderInput label="🛒 Panier moyen" value={panierMoyen} onChange={setPanierMoyen} min={200} max={5000} step={100} unit=" €" />
+                  <p className="text-xs text-gray-500 mb-4">Charlie économise 75% de ton temps admin</p>
+                  <div className="bg-orange-500/10 rounded-xl p-4 border border-orange-500/30">
+                    <p className="text-sm text-orange-300 font-medium">⚡ Moins de 2 min par devis</p>
+                    <p className="text-xs text-gray-400 mt-1">Au lieu de 30-45 minutes manuellement</p>
                   </div>
-                </div>
-                <div className="pt-4 border-t border-gray-700">
-                  <SliderInput label="🎯 Gain avec Charlie" value={gainCharlie} onChange={setGainCharlie} min={50} max={90} step={5} unit="%" />
-                  <p className="text-xs text-gray-500 mt-2">% du temps admin économisé</p>
                 </div>
               </div>
             </motion.div>
@@ -289,8 +288,8 @@ export default function HomePage() {
                     <p className="text-4xl font-bold text-orange-400">{coutAn.toLocaleString()}<span className="text-xl">€</span></p>
                   </div>
                   <div className="bg-gray-800/30 rounded-2xl p-4 border border-dashed border-gray-700">
-                    <p className="text-gray-500 text-sm mb-1">+ Devis non relancés / mois</p>
-                    <p className="text-2xl font-bold text-orange-400/80">-{devisPerdusParMois.toLocaleString()}€</p>
+                    <p className="text-gray-500 text-sm mb-1">⚡ Gain de temps par semaine</p>
+                    <p className="text-2xl font-bold text-orange-400/80">-{tempsRecupere.toFixed(1)}h économisées</p>
                   </div>
                 </div>
               </div>
@@ -332,9 +331,9 @@ export default function HomePage() {
                     <p className="text-4xl font-bold text-orange-400">+{economieAn.toLocaleString()}<span className="text-xl">€</span></p>
                   </div>
                   <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm border border-dashed border-orange-500/30">
-                    <p className="text-gray-400 text-sm mb-1">+ Devis récupérés / mois</p>
-                    <p className="text-2xl font-bold text-orange-400">+{devisRecuperes}€</p>
-                    <p className="text-xs text-gray-500">(estimation prudente à 50%)</p>
+                    <p className="text-gray-400 text-sm mb-1">⏱️ Temps par devis avec Charlie</p>
+                    <p className="text-2xl font-bold text-orange-400">2 minutes</p>
+                    <p className="text-xs text-gray-500">Au lieu de 30 minutes</p>
                   </div>
                 </div>
               </div>
@@ -388,7 +387,7 @@ export default function HomePage() {
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6"><Zap className="w-4 h-4" /><span>Simple comme bonjour</span></div>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">Comment ça marche ?</h2>
-            <p className="text-xl text-gray-400">4 étapes, 5 minutes max. Zéro formation nécessaire.</p>
+            <p className="text-xl text-gray-400">4 étapes, moins de 2 minutes max. Zéro formation nécessaire.</p>
           </motion.div>
           <div className="space-y-12">
             <StepCard number="01" title="Tu parles à Charlie" description="Par WhatsApp ou via le logiciel, dis-lui ce dont tu as besoin." example="Fais un devis pour Mme Martin, cuisine complète 15m²" delay={0} />
