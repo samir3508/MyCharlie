@@ -247,6 +247,15 @@ export async function POST(req: NextRequest) {
         console.warn(`⚠️ [Chat API ${requestId}] Response seems too short: "${leoResponse}"`)
       }
       
+      // Convertir les URLs localhost vers production dans la réponse LÉO
+      leoResponse = convertToAbsoluteUrls(leoResponse, req)
+      
+      // Convertir les URLs dans les actions aussi
+      actions = actions.map(action => ({
+        ...action,
+        args: action.args ? JSON.parse(JSON.stringify(action.args).replace(/http:\/\/localhost:3000\//g, 'https://mycharlie.onrender.com/')) : action.args
+      }))
+
       // Sauvegarder réponse LÉO IMMÉDIATEMENT après réception
       console.log(`💾 [Chat API ${requestId}] Saving LÉO response to database...`)
       const { error: insertLeoMsgError, data: insertedMessage } = await supabase
