@@ -18,13 +18,20 @@ export function formatCurrency(amount: number | null | undefined): string {
 export function formatDate(date: string | null | undefined): string {
   if (!date) return ''
   try {
-    return new Date(date).toLocaleDateString('fr-FR', {
+    const dateObj = new Date(date)
+    // Vérifier si la date est valide
+    if (isNaN(dateObj.getTime())) {
+      console.warn('Date invalide:', date)
+      return ''
+    }
+    return dateObj.toLocaleDateString('fr-FR', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
     })
-  } catch {
-    return date
+  } catch (error) {
+    console.error('Erreur formatage date:', date, error)
+    return ''
   }
 }
 

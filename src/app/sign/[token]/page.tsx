@@ -309,7 +309,9 @@ export default function SignaturePage({ params }: PageProps) {
               </div>
               <div>
                 <h4 className="font-medium text-sm text-gray-500 mb-1">Validité</h4>
-                <p className="font-medium">Jusqu'au {formatDate(devis.date_expiration)}</p>
+                <p className="font-medium">
+                  {devis.date_expiration ? `Jusqu'au ${formatDate(devis.date_expiration)}` : 'Non spécifiée'}
+                </p>
               </div>
             </div>
 
