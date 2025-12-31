@@ -99,6 +99,11 @@ export async function GET(
     const dateValidite = new Date(dateCreation)
     dateValidite.setDate(dateValidite.getDate() + 30)
 
+    // Construire les conditions de paiement détaillées
+    const conditionsPaiement = devis.template ? 
+      `${devis.template.nom}${devis.template.description ? ` - ${devis.template.description}` : ''}` : 
+      (devis.conditions_paiement || '')
+
     // Prepare PDF data
     const pdfData: DevisPDFData = {
       entreprise: {
@@ -138,7 +143,14 @@ export async function GET(
       montant_ht: devis.montant_ht || 0,
       montant_tva: devis.montant_tva || 0,
       montant_ttc: devis.montant_ttc || 0,
-      conditions_paiement: devis.template?.nom || devis.conditions_paiement || '',
+      conditions_paiement: (() => {
+        if (devis.template) {
+          return devis.template.description 
+            ? `${devis.template.nom} - ${devis.template.description}`
+            : devis.template.nom
+        }
+        return devis.conditions_paiement || ''
+      })(),
       delai_execution: devis.delai_execution || '',
       notes: devis.notes || '',
       // URL de signature électronique (si le devis n'est pas encore signé)
