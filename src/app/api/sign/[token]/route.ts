@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 // Créer un client Supabase avec la service role key pour contourner RLS
 function getServiceSupabase() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   
   console.log('Supabase URL:', supabaseUrl ? 'OK' : 'MISSING')
   console.log('Service Role Key:', serviceRoleKey ? 'OK' : 'MISSING')
