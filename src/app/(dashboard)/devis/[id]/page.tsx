@@ -547,7 +547,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                       ) : null}
                       {devis?.statut !== 'refuse' && (
                         <DropdownMenuItem onClick={() => handleUpdateStatus('refuse')}>
-                          <{formatCurrency(devis.montant_ttc || 0)}Circle className="h-4 w-4 mr-2" />
+                          <XCircle className="h-4 w-4 mr-2" />
                           Marquer comme refusé
                         </DropdownMenuItem>
                       )}
@@ -643,7 +643,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                     {(devis as any).statut === 'paye' && <CheckCircle className="h-3 w-3 mr-1 inline" />}
                     {devis.statut === 'accepte' && <CheckCircle className="h-3 w-3 mr-1 inline" />}
                     {devis.statut === 'envoye' && <Send className="h-3 w-3 mr-1 inline" />}
-                    {devis.statut === 'refuse' && <{formatCurrency(devis.montant_ttc || 0)}Circle className="h-3 w-3 mr-1 inline" />}
+                    {devis.statut === 'refuse' && <XCircle className="h-3 w-3 mr-1 inline" />}
                     {getStatusLabel(devis.statut)}
                   </Badge>
                 </div>
@@ -857,7 +857,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                               <div>
                                 <p className="text-xs text-gray-500 mb-1">Prix unitaire HT</p>
                                 <p className="font-semibold text-white text-sm">
-                                  {formatCurrency(devis.montant_ttc || 0)}
+                                  {formatCurrency(ligne.prix_unitaire_ht)}
                                 </p>
                               </div>
 
@@ -869,14 +869,14 @@ export default function DevisDetailPage({ params }: PageProps) {
                               <div>
                                 <p className="text-xs text-gray-500 mb-1">Total HT</p>
                                 <p className="font-semibold text-white text-sm">
-                                  {formatCurrency(devis.montant_ttc || 0)}
+                                  {formatCurrency(ligne.quantite * ligne.prix_unitaire_ht)}
                                 </p>
                               </div>
 
                               <div className="bg-gradient-to-br from-[#FF4D00]/20 to-[#E64600]/10 rounded-lg px-3 py-2 border border-[#FF4D00]/40">
                                 <p className="text-xs text-[#FF4D00] mb-1">Total TTC</p>
                                 <p className="font-bold text-[#FF4D00] text-base">
-                                  {formatCurrency(devis.montant_ttc || 0)}
+                                  {formatCurrency(ligne.quantite * ligne.prix_unitaire_ht * (1 + (ligne.tva_pct || 0) / 100))}
                                 </p>
                               </div>
                             </div>
@@ -896,11 +896,11 @@ export default function DevisDetailPage({ params }: PageProps) {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <p className="text-xs text-gray-400 mb-1">Total HT</p>
-                      <p className="text-xl font-bold">{formatCurrency(devis.montant_ttc || 0)}</p>
+                      <p className="text-xl font-bold">{formatCurrency(devis.montant_ht || 0)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-400 mb-1">Total TVA</p>
-                      <p className="text-xl font-bold">{formatCurrency(devis.montant_ttc || 0)}</p>
+                      <p className="text-xl font-bold">{formatCurrency(devis.montant_tva || 0)}</p>
                     </div>
                     <div className="bg-gradient-to-br from-[#FF4D00] to-[#E64600] rounded-lg p-3">
                       <p className="text-xs mb-1">Total TTC</p>
@@ -1451,12 +1451,12 @@ export default function DevisDetailPage({ params }: PageProps) {
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-white/90 font-medium">Total HT</span>
-                    <span className="font-bold text-lg">{formatCurrency(devis.montant_ttc || 0)}</span>
+                    <span className="font-bold text-lg">{formatCurrency(devis.montant_ht || 0)}</span>
                   </div>
 
                   <div className="flex justify-between items-center">
                     <span className="text-white/90 font-medium">TVA</span>
-                    <span className="font-bold text-lg">{formatCurrency(devis.montant_ttc || 0)}</span>
+                    <span className="font-bold text-lg">{formatCurrency(devis.montant_tva || 0)}</span>
                   </div>
                 </div>
 
@@ -1497,7 +1497,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                     ) : getDisplayedStatus() === 'refuse' ? (
                       <>
                         <div className="p-2 bg-red-500/30 rounded-lg">
-                          <{formatCurrency(devis.montant_ttc || 0)}Circle className="h-5 w-5 text-white" />
+                          <XCircle className="h-5 w-5 text-white" />
                         </div>
                         <span className="font-bold text-lg">Refusé</span>
                       </>
@@ -1699,7 +1699,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                           case 'acceptation':
                             return <CheckCircle className="h-4 w-4 text-white" />
                           case 'refus':
-                            return <{formatCurrency(devis.montant_ttc || 0)}Circle className="h-4 w-4 text-white" />
+                            return <XCircle className="h-4 w-4 text-white" />
                           case 'paye':
                             return <CheckCircle className="h-4 w-4 text-white" />
                           case 'facture':
