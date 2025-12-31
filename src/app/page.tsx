@@ -141,13 +141,13 @@ export default function HomePage() {
                     <NextImage src="/charlie-hero-v2.png" alt="Charlie - Assistant IA BTP" width={320} height={400} className="object-contain z-10" priority />
                   </div>
                   <motion.div className="absolute -right-16 top-4 bg-gray-900 border border-gray-700 rounded-xl p-3 shadow-xl z-20" animate={{ y: [0, -10, 0] }} transition={{ duration: 3, repeat: Infinity }}>
-                    <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center"><Send className="w-4 h-4 text-green-500" /></div><div><p className="text-xs font-medium">Devis envoyé</p><p className="text-xs text-gray-400">M. Dupont</p></div></div>
+                    <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center"><Send className="w-4 h-4 text-orange-500" /></div><div><p className="text-xs font-medium">Devis envoyé</p><p className="text-xs text-gray-400">M. Dupont</p></div></div>
                   </motion.div>
                   <motion.div className="absolute -left-20 top-16 bg-gray-900 border border-gray-700 rounded-xl p-3 shadow-xl z-20" animate={{ y: [0, 10, 0] }} transition={{ duration: 3.5, repeat: Infinity }}>
                     <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center"><Bell className="w-4 h-4 text-orange-500" /></div><div><p className="text-xs font-medium">Relance faite</p><p className="text-xs text-gray-400">Facture #1234</p></div></div>
                   </motion.div>
                   <motion.div className="absolute -right-20 bottom-24 bg-gray-900 border border-gray-700 rounded-xl p-3 shadow-xl z-20" animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity }}>
-                    <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center"><MessageSquare className="w-4 h-4 text-blue-500" /></div><div><p className="text-xs font-medium">Nouveau message</p><p className="text-xs text-gray-400">Via WhatsApp</p></div></div>
+                    <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center"><MessageSquare className="w-4 h-4 text-orange-500" /></div><div><p className="text-xs font-medium">Nouveau message</p><p className="text-xs text-gray-400">Via WhatsApp</p></div></div>
                   </motion.div>
                 </div>
               </div>
@@ -190,13 +190,13 @@ export default function HomePage() {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl"></div>
             </motion.div>
             <motion.div className="space-y-6 order-1 lg:order-2" initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/20 text-green-400 text-sm"><Sparkles className="w-4 h-4" /><span>La solution</span></div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-500/20 to-orange-600/20 text-orange-400 text-sm border border-orange-500/30"><Sparkles className="w-4 h-4" /><span>La solution</span></div>
               <h2 className="text-3xl sm:text-4xl font-bold">Voici Charlie. Ton assistant administratif.</h2>
               <p className="text-xl text-gray-400">Charlie gère tout l&apos;administratif pour toi. Par WhatsApp ou depuis ton logiciel de suivi.</p>
               <div className="space-y-4 pt-4">
                 {["Comprend ta demande", "Vérifie les infos", "Crée les documents", "Envoie aux clients", "Relance automatiquement", "Fait signer électroniquement"].map((item, index) => (
                   <motion.div key={index} className="flex items-center gap-3" initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }}>
-                    <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center"><Check className="w-4 h-4 text-white" /></div>
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center"><Check className="w-4 h-4 text-white" /></div>
                     <span className="text-lg">{item}</span>
                   </motion.div>
                 ))}
@@ -312,24 +312,24 @@ export default function HomePage() {
                 <div className="space-y-5">
                   <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-2">
-                      <Clock className="w-5 h-5 text-green-400" />
+                      <Clock className="w-5 h-5 text-orange-400" />
                       <p className="text-gray-300 text-sm">Temps récupéré / sem</p>
                     </div>
-                    <p className="text-4xl font-bold text-green-400">+{tempsRecupere}<span className="text-xl">h</span></p>
+                    <p className="text-4xl font-bold text-orange-400">+{tempsRecupere}<span className="text-xl">h</span></p>
                   </div>
                   <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-2">
-                      <Euro className="w-5 h-5 text-green-400" />
+                      <Euro className="w-5 h-5 text-orange-400" />
                       <p className="text-gray-300 text-sm">Économie / semaine</p>
                     </div>
-                    <p className="text-4xl font-bold text-green-400">+{economieSemaine}<span className="text-xl">€</span></p>
+                    <p className="text-4xl font-bold text-orange-400">+{economieSemaine}<span className="text-xl">€</span></p>
                   </div>
-                  <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 rounded-2xl p-4 border border-green-500/40">
+                  <div className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 rounded-2xl p-4 border border-orange-500/40">
                     <div className="flex items-center gap-3 mb-2">
-                      <TrendingUp className="w-5 h-5 text-green-400" />
-                      <p className="text-green-300 text-sm font-medium">Économie annuelle</p>
+                      <TrendingUp className="w-5 h-5 text-orange-400" />
+                      <p className="text-orange-300 text-sm font-medium">Économie annuelle</p>
                     </div>
-                    <p className="text-4xl font-bold text-green-400">+{economieAn.toLocaleString()}<span className="text-xl">€</span></p>
+                    <p className="text-4xl font-bold text-orange-400">+{economieAn.toLocaleString()}<span className="text-xl">€</span></p>
                   </div>
                   <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm border border-dashed border-orange-500/30">
                     <p className="text-gray-400 text-sm mb-1">+ Devis récupérés / mois</p>
@@ -342,24 +342,24 @@ export default function HomePage() {
           </div>
 
           <motion.div className="mt-10 grid md:grid-cols-2 gap-6" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
-            <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-2xl p-6 border border-blue-500/30 flex items-center gap-5">
-              <div className="w-16 h-16 rounded-2xl bg-blue-500/20 flex items-center justify-center">
-                <Calendar className="w-8 h-8 text-blue-400" />
+            <div className="bg-gradient-to-r from-orange-500/10 to-orange-600/10 rounded-2xl p-6 border border-orange-500/30 flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/20 flex items-center justify-center">
+                <Calendar className="w-8 h-8 text-orange-400" />
               </div>
               <div>
                 <p className="text-gray-400 text-sm mb-1">Temps récupéré chaque mois</p>
                 <p className="text-4xl font-bold text-white">{Math.round(tempsRecupere * 4)}<span className="text-xl text-gray-400">h</span></p>
-                <p className="text-xs text-blue-400 mt-1">→ {Math.round(tempsRecupere * 4 / 8)} jours de travail en plus</p>
+                <p className="text-xs text-orange-400 mt-1">→ {Math.round(tempsRecupere * 4 / 8)} jours de travail en plus</p>
               </div>
             </div>
-            <div className="bg-gradient-to-r from-orange-500/20 to-green-500/20 rounded-2xl p-6 border border-orange-500/40 flex items-center gap-5">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-green-500 flex items-center justify-center shadow-lg">
+            <div className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 rounded-2xl p-6 border border-orange-500/40 flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
                 <Euro className="w-8 h-8 text-white" />
               </div>
               <div>
                 <p className="text-gray-400 text-sm mb-1">Économie totale par an</p>
-                <p className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">{economieTotaleAn.toLocaleString()}€</p>
-                <p className="text-xs text-green-400 mt-1">Temps + devis récupérés</p>
+                <p className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent">{economieTotaleAn.toLocaleString()}€</p>
+                <p className="text-xs text-orange-400 mt-1">Temps + devis récupérés</p>
               </div>
             </div>
           </motion.div>
@@ -403,7 +403,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div className="space-y-6" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/20 text-blue-400 text-sm"><Calendar className="w-4 h-4" /><span>Notification quotidienne</span></div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-500/20 to-orange-600/20 text-orange-400 text-sm border border-orange-500/30"><Calendar className="w-4 h-4" /><span>Notification quotidienne</span></div>
               <h2 className="text-3xl sm:text-4xl font-bold">Chaque matin, Charlie fait le point pour toi</h2>
               <p className="text-xl text-gray-400">Tout est configurable : fréquence, types d&apos;alertes, confirmation obligatoire ou action automatique.</p>
               <div className="flex flex-wrap gap-4">
