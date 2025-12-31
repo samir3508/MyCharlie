@@ -241,10 +241,6 @@ export function SupportPopup() {
             <div className="flex justify-between items-center pt-4">
               <div className="text-sm text-gray-500">
                 <div className="flex items-center gap-4">
-                  <a href="tel:+33612345678" className="flex items-center gap-1 hover:text-blue-600">
-                    <Phone className="w-4 h-4" />
-                    01 23 45 67 89
-                  </a>
                   <a href="mailto:support@monentreprise.com" className="flex items-center gap-1 hover:text-blue-600">
                     <Mail className="w-4 h-4" />
                     support@monentreprise.com
@@ -253,10 +249,11 @@ export function SupportPopup() {
                     href="https://wa.me/33745108883?text=Bonjour%20!%20J'ai%20besoin%20d'aide%20pour%20l'application%20LÉO%20BTP" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 hover:text-green-600 text-green-600 font-medium"
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
-                    <Smartphone className="w-4 h-4" />
-                    WhatsApp
+                    <Smartphone className="w-5 h-5" />
+                    <span>WhatsApp</span>
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                   </a>
                 </div>
               </div>
