@@ -35,6 +35,7 @@ export function SupportPopup() {
   const [message, setMessage] = useState('')
   const [email, setEmail] = useState('')
   const [nom, setNom] = useState('')
+  const [telephone, setTelephone] = useState('')
   const [sending, setSending] = useState(false)
   const [step, setStep] = useState<'form' | 'success' | 'error'>('form')
   const [urgency, setUrgency] = useState<'low' | 'medium' | 'high'>('medium')
@@ -67,6 +68,7 @@ export function SupportPopup() {
         body: JSON.stringify({
           nom,
           email,
+          telephone,
           message,
           urgency,
           timestamp: new Date().toISOString(),
@@ -81,6 +83,7 @@ export function SupportPopup() {
           setMessage('')
           setEmail('')
           setNom('')
+          setTelephone('')
           setUrgency('medium')
           setStep('form')
           setOpen(false)
@@ -117,7 +120,7 @@ export function SupportPopup() {
           </Badge>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageCircle className="w-5 h-5 text-blue-600" />
@@ -163,7 +166,7 @@ export function SupportPopup() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="nom" className="text-sm font-medium">
                   Nom complet *
@@ -173,6 +176,18 @@ export function SupportPopup() {
                   value={nom}
                   onChange={(e) => setNom(e.target.value)}
                   placeholder="Votre nom et prénom"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="telephone" className="text-sm font-medium">
+                  Téléphone *
+                </label>
+                <Input
+                  id="telephone"
+                  value={telephone}
+                  onChange={(e) => setTelephone(e.target.value)}
+                  placeholder="Votre numéro de téléphone"
                   required
                 />
               </div>
