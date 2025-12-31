@@ -293,10 +293,7 @@ export function DevisForm({ clients: propClients, tenantId, onSubmit, isLoading,
           quantite: ligne.quantite,
           unite: ligne.unite,
           prix_unitaire_ht: ligne.prix_unitaire_ht,
-          tva_pct: ligne.tva_pct,
-          total_ht: ligne.quantite * ligne.prix_unitaire_ht,
-          total_tva: ligne.quantite * ligne.prix_unitaire_ht * (ligne.tva_pct / 100),
-          total_ttc: ligne.quantite * ligne.prix_unitaire_ht * (1 + ligne.tva_pct / 100),
+          tva_pct: ligne.tva_pct
         }))
 
         const { error: lignesError } = await supabase
