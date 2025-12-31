@@ -32,7 +32,7 @@ const StepCard = ({ number, title, description, example, delay }: { number: stri
       <div className="flex-1">
         <h3 className="text-xl font-bold mb-2">{title}</h3>
         <p className="text-gray-400 mb-4">{description}</p>
-        <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+        <div className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 rounded-xl p-4 border border-orange-500/30">
           <p className="text-sm text-gray-300 italic">&quot;{example}&quot;</p>
         </div>
       </div>
@@ -41,7 +41,7 @@ const StepCard = ({ number, title, description, example, delay }: { number: stri
 )
 
 const BenefitCard = ({ icon: Icon, title, description, delay }: { icon: React.ElementType; title: string; description: string; delay: number }) => (
-  <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay }} className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800 hover:border-orange-500/50 transition-all">
+  <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay }} className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 p-6 rounded-2xl border border-gray-800 hover:border-orange-500/50 transition-all">
     <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center mb-4">
       <Icon className="w-6 h-6 text-orange-500" />
     </div>
@@ -54,9 +54,9 @@ const SliderInput = ({ label, value, onChange, min, max, step, unit, suffix }: {
   <div className="space-y-3">
     <div className="flex justify-between items-center">
       <span className="text-gray-300">{label}</span>
-      <span className="text-orange-500 font-bold">{value}{unit || ''} {suffix || ''}</span>
+      <span className="bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent font-bold">{value}{unit || ''} {suffix || ''}</span>
     </div>
-    <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500" />
+    <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500" />
   </div>
 )
 
@@ -170,7 +170,7 @@ export default function HomePage() {
           </motion.div>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {[{ icon: Clock, text: "Tu perds du temps le soir et le week-end sur l'administratif" }, { icon: FileText, text: "Créer un devis prend 30 minutes (parfois plus)" }, { icon: DollarSign, text: "Tu oublies de relancer → paiements en retard" }, { icon: Users, text: "Difficile de suivre qui doit quoi" }].map((item, index) => (
-              <motion.div key={index} initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="flex items-start gap-4 p-4 bg-gray-800/30 rounded-xl border border-gray-800">
+              <motion.div key={index} initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="flex items-start gap-4 p-4 bg-gradient-to-r from-gray-900/30 to-gray-800/30 rounded-xl border border-gray-800">
                 <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0"><item.icon className="w-5 h-5 text-orange-500" /></div>
                 <p className="text-gray-300">{item.text}</p>
               </motion.div>
@@ -235,7 +235,7 @@ export default function HomePage() {
                   </div>
                   <h3 className="text-xl font-bold">Ta situation</h3>
                 </div>
-                <button onClick={resetCalculator} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-orange-400 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-700/50">
+                <button onClick={resetCalculator} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-orange-400 transition-colors px-3 py-1.5 rounded-lg hover:bg-gradient-to-r hover:from-gray-700/50 hover:to-gray-800/50">
                   <RotateCcw className="w-4 h-4" /> Reset
                 </button>
               </div>
@@ -266,14 +266,14 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="space-y-5">
-                  <div className="bg-gray-800/50 rounded-2xl p-4">
+                  <div className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
                     <div className="flex items-center gap-3 mb-2">
                       <Clock className="w-5 h-5 text-gray-400" />
                       <p className="text-gray-400 text-sm">Temps admin / semaine</p>
                     </div>
                     <p className="text-4xl font-bold text-white">{tempsAdminSemaine.toFixed(1)}<span className="text-xl text-gray-400">h</span></p>
                   </div>
-                  <div className="bg-gray-800/50 rounded-2xl p-4">
+                  <div className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
                     <div className="flex items-center gap-3 mb-2">
                       <Euro className="w-5 h-5 text-gray-400" />
                       <p className="text-gray-400 text-sm">Coût hebdomadaire</p>
@@ -287,7 +287,7 @@ export default function HomePage() {
                     </div>
                     <p className="text-4xl font-bold text-orange-400">{coutAn.toLocaleString()}<span className="text-xl">€</span></p>
                   </div>
-                  <div className="bg-gray-800/30 rounded-2xl p-4 border border-dashed border-gray-700">
+                  <div className="bg-gradient-to-r from-gray-900/30 to-gray-800/30 rounded-2xl p-4 border border-dashed border-orange-500/30">
                     <p className="text-gray-500 text-sm mb-1">⚡ Gain de temps par semaine</p>
                     <p className="text-2xl font-bold text-orange-400/80">-{tempsRecupere.toFixed(1)}h économisées</p>
                   </div>
@@ -406,14 +406,14 @@ export default function HomePage() {
               <h2 className="text-3xl sm:text-4xl font-bold">Chaque matin, Charlie fait le point pour toi</h2>
               <p className="text-xl text-gray-400">Tout est configurable : fréquence, types d&apos;alertes, confirmation obligatoire ou action automatique.</p>
               <div className="flex flex-wrap gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-full"><Clock className="w-4 h-4 text-orange-500" /><span className="text-sm">Fréquence personnalisable</span></div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-full"><CheckCircle2 className="w-4 h-4 text-orange-500" /><span className="text-sm">Confirmation ou auto</span></div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-800 rounded-full border border-gray-700/50"><Clock className="w-4 h-4 text-orange-500" /><span className="text-sm">Fréquence personnalisable</span></div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-800 rounded-full border border-gray-700/50"><CheckCircle2 className="w-4 h-4 text-orange-500" /><span className="text-sm">Confirmation ou auto</span></div>
               </div>
             </motion.div>
             <motion.div className="flex justify-center" initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <div className="w-72 bg-gray-900 rounded-3xl border border-gray-700 p-4 shadow-2xl">
+              <div className="w-72 bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl border border-orange-500/30 p-4 shadow-2xl">
                 <div className="flex items-center justify-between mb-4 text-xs text-gray-400"><span>08:00</span><span>�� 100%</span></div>
-                <div className="bg-gray-800 rounded-2xl p-4">
+                <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-4 border border-gray-700/50">
                   <div className="flex items-center gap-2 mb-3"><div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center"><HardHat className="w-4 h-4 text-white" /></div><span className="font-medium">Charlie</span><span className="text-xs text-gray-400">08:00</span></div>
                   <div className="space-y-2 text-sm"><p>Bonjour 👋</p><p>Aujourd&apos;hui :</p><p className="text-orange-400">• 2 factures à relancer</p><p className="text-orange-400">• 1 devis en attente de signature</p><p className="mt-2">Tu veux que je m&apos;en occupe ?</p></div>
                   <div className="flex gap-2 mt-4"><button className="flex-1 py-2 bg-orange-500 rounded-lg text-sm font-medium">Oui, vas-y</button><button className="flex-1 py-2 bg-gray-700 rounded-lg text-sm">Plus tard</button></div>
