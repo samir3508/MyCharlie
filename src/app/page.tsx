@@ -140,13 +140,13 @@ export default function HomePage() {
                   <div className="w-80 h-96 rounded-3xl flex items-center justify-center overflow-hidden relative">
                     <NextImage src="/charlie-hero-v2.png" alt="Charlie - Assistant IA BTP" width={320} height={400} className="object-contain z-10" priority />
                   </div>
-                  <motion.div className="absolute -right-4 top-10 bg-gray-900 border border-gray-700 rounded-xl p-3 shadow-xl" animate={{ y: [0, -10, 0] }} transition={{ duration: 3, repeat: Infinity }}>
+                  <motion.div className="absolute -right-16 top-4 bg-gray-900 border border-gray-700 rounded-xl p-3 shadow-xl z-20" animate={{ y: [0, -10, 0] }} transition={{ duration: 3, repeat: Infinity }}>
                     <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center"><Send className="w-4 h-4 text-green-500" /></div><div><p className="text-xs font-medium">Devis envoyé</p><p className="text-xs text-gray-400">M. Dupont</p></div></div>
                   </motion.div>
-                  <motion.div className="absolute -left-4 top-32 bg-gray-900 border border-gray-700 rounded-xl p-3 shadow-xl" animate={{ y: [0, 10, 0] }} transition={{ duration: 3.5, repeat: Infinity }}>
+                  <motion.div className="absolute -left-20 top-16 bg-gray-900 border border-gray-700 rounded-xl p-3 shadow-xl z-20" animate={{ y: [0, 10, 0] }} transition={{ duration: 3.5, repeat: Infinity }}>
                     <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center"><Bell className="w-4 h-4 text-orange-500" /></div><div><p className="text-xs font-medium">Relance faite</p><p className="text-xs text-gray-400">Facture #1234</p></div></div>
                   </motion.div>
-                  <motion.div className="absolute -right-8 bottom-20 bg-gray-900 border border-gray-700 rounded-xl p-3 shadow-xl" animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity }}>
+                  <motion.div className="absolute -right-20 bottom-24 bg-gray-900 border border-gray-700 rounded-xl p-3 shadow-xl z-20" animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity }}>
                     <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center"><MessageSquare className="w-4 h-4 text-blue-500" /></div><div><p className="text-xs font-medium">Nouveau message</p><p className="text-xs text-gray-400">Via WhatsApp</p></div></div>
                   </motion.div>
                 </div>
