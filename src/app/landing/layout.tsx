@@ -44,14 +44,6 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-  },
-  verification: {
-    google: {
-      other: {
-        name: 'google-site-verification',
-        content: 'your-google-verification-code'
-      }
-    }
   }
 }
 
