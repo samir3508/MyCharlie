@@ -160,8 +160,14 @@ export function useUpdateDevis() {
         // Insert new lignes
         if (lignes.length > 0) {
           const lignesWithDevisId = lignes.map(ligne => ({
-            ...ligne.data,
-            devis_id: devisId
+            devis_id: devisId,
+            ordre: ligne.data.ordre,
+            designation: ligne.data.designation,
+            description_detaillee: ligne.data.description_detaillee,
+            quantite: ligne.data.quantite,
+            unite: ligne.data.unite,
+            prix_unitaire_ht: ligne.data.prix_unitaire_ht,
+            tva_pct: ligne.data.tva_pct
           }))
 
           await supabase
