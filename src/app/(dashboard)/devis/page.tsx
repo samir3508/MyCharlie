@@ -217,7 +217,7 @@ export default function DevisPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">X</div>
+            <div className="text-2xl font-bold">{formatCurrency(stats.totalAmount)}</div>
           </CardContent>
         </Card>
       </div>
@@ -291,7 +291,7 @@ export default function DevisPage() {
                       {d.titre || '-'}
                     </TableCell>
                     <TableCell className="font-semibold">
-                      X
+                      {formatCurrency(d.montant_ttc)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(d.date_creation)}
