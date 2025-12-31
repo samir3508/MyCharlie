@@ -206,58 +206,179 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="calculateur" className="py-20 px-4 bg-black">
-        <div className="max-w-7xl mx-auto">
-          <motion.div className="text-center mb-12" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6"><Calculator className="w-4 h-4" /><span>Calculateur ROI</span></div>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Calcule combien te coûte l&apos;administratif</h2>
-            <p className="text-xl text-gray-400">Ajuste les curseurs selon ta situation réelle. Les résultats se mettent à jour en temps réel.</p>
+      <section id="calculateur" className="py-24 px-4 bg-gradient-to-b from-black via-gray-900/50 to-black relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-500/5 via-transparent to-transparent"></div>
+        <div className="max-w-7xl mx-auto relative">
+          <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-500/20 to-orange-600/20 text-orange-400 text-sm mb-6 border border-orange-500/30">
+              <Calculator className="w-5 h-5" />
+              <span className="font-semibold">Simulateur de gains</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
+              Combien te coûte <span className="bg-gradient-to-r from-red-400 to-red-500 bg-clip-text text-transparent">l&apos;administratif</span> ?
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Déplace les curseurs pour voir <span className="text-white font-medium">en temps réel</span> combien tu perds... et combien tu pourrais économiser.
+            </p>
           </motion.div>
-          <div className="grid lg:grid-cols-3 gap-8">
-            <motion.div className="bg-gray-900 rounded-2xl p-6 border border-gray-800" initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <div className="flex items-center justify-between mb-6"><h3 className="text-xl font-bold">Ta situation</h3><button onClick={resetCalculator} className="flex items-center gap-1 text-sm text-gray-400 hover:text-white"><RotateCcw className="w-4 h-4" /> Réinitialiser</button></div>
-              <div className="space-y-6">
-                <SliderInput label="Taux horaire" value={tauxHoraire} onChange={setTauxHoraire} min={20} max={100} step={5} unit="€" suffix="/h" />
-                <SliderInput label="Temps moyen par devis" value={tempsMoyenDevis} onChange={setTempsMoyenDevis} min={15} max={120} step={5} unit=" min" />
-                <SliderInput label="Devis par semaine" value={devisParSemaine} onChange={setDevisParSemaine} min={1} max={20} step={1} suffix="devis" />
-                <SliderInput label="Autres tâches admin" value={autresTaches} onChange={setAutresTaches} min={0} max={15} step={1} unit="h" suffix="/sem" />
-                <SliderInput label="Devis perdus / non relancés" value={devisPerdus} onChange={setDevisPerdus} min={0} max={10} step={1} suffix="/mois" />
-                <SliderInput label="Panier moyen par devis" value={panierMoyen} onChange={setPanierMoyen} min={200} max={5000} step={100} unit=" €" />
-                <SliderInput label="Gain estimé avec Charlie" value={gainCharlie} onChange={setGainCharlie} min={50} max={90} step={5} unit=" %" />
+
+          <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+            <motion.div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 lg:p-8 border border-gray-700 shadow-2xl" initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                    <Target className="w-5 h-5 text-orange-500" />
+                  </div>
+                  <h3 className="text-xl font-bold">Ta situation</h3>
+                </div>
+                <button onClick={resetCalculator} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-orange-400 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-700/50">
+                  <RotateCcw className="w-4 h-4" /> Reset
+                </button>
+              </div>
+              <div className="space-y-5">
+                <SliderInput label="💰 Taux horaire" value={tauxHoraire} onChange={setTauxHoraire} min={20} max={100} step={5} unit="€" suffix="/h" />
+                <SliderInput label="⏱️ Temps par devis" value={tempsMoyenDevis} onChange={setTempsMoyenDevis} min={15} max={120} step={5} unit=" min" />
+                <SliderInput label="📄 Devis / semaine" value={devisParSemaine} onChange={setDevisParSemaine} min={1} max={20} step={1} suffix="devis" />
+                <SliderInput label="📋 Autres tâches admin" value={autresTaches} onChange={setAutresTaches} min={0} max={15} step={1} unit="h" suffix="/sem" />
+                <div className="pt-4 border-t border-gray-700">
+                  <p className="text-xs text-gray-500 mb-4">Opportunités manquées</p>
+                  <SliderInput label="❌ Devis perdus" value={devisPerdus} onChange={setDevisPerdus} min={0} max={10} step={1} suffix="/mois" />
+                  <div className="mt-4">
+                    <SliderInput label="🛒 Panier moyen" value={panierMoyen} onChange={setPanierMoyen} min={200} max={5000} step={100} unit=" €" />
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-gray-700">
+                  <SliderInput label="🎯 Gain avec Charlie" value={gainCharlie} onChange={setGainCharlie} min={50} max={90} step={5} unit="%" />
+                  <p className="text-xs text-gray-500 mt-2">% du temps admin économisé</p>
+                </div>
               </div>
             </motion.div>
-            <motion.div className="bg-gray-900 rounded-2xl p-6 border border-gray-800" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
-              <div className="flex items-center gap-2 mb-6"><span className="text-2xl">😓</span><h3 className="text-xl font-bold">Sans Charlie</h3></div>
-              <div className="space-y-6">
-                <div><p className="text-gray-400 text-sm">Temps admin / semaine</p><p className="text-3xl font-bold text-white">{tempsAdminSemaine.toFixed(1)}h</p></div>
-                <div><p className="text-gray-400 text-sm">Coût / semaine</p><p className="text-3xl font-bold text-white">{coutSemaine}€</p></div>
-                <div><p className="text-gray-400 text-sm">Coût / an</p><p className="text-3xl font-bold text-red-400">{coutAn.toLocaleString()}€</p></div>
-                <div className="pt-4 border-t border-gray-800"><p className="text-gray-400 text-sm">Devis perdus / mois</p><p className="text-2xl font-bold text-red-400">-{devisPerdusParMois.toLocaleString()}€</p></div>
+
+            <motion.div className="bg-gradient-to-br from-red-950/40 to-gray-900 rounded-3xl p-6 lg:p-8 border border-red-900/50 shadow-2xl relative overflow-hidden" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+              <div className="absolute top-0 right-0 w-40 h-40 bg-red-500/10 rounded-full blur-3xl"></div>
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-red-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-red-400">Sans Charlie</h3>
+                    <p className="text-xs text-gray-500">Ce que tu perds aujourd&apos;hui</p>
+                  </div>
+                </div>
+                <div className="space-y-5">
+                  <div className="bg-gray-800/50 rounded-2xl p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Clock className="w-5 h-5 text-gray-400" />
+                      <p className="text-gray-400 text-sm">Temps admin / semaine</p>
+                    </div>
+                    <p className="text-4xl font-bold text-white">{tempsAdminSemaine.toFixed(1)}<span className="text-xl text-gray-400">h</span></p>
+                  </div>
+                  <div className="bg-gray-800/50 rounded-2xl p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Euro className="w-5 h-5 text-gray-400" />
+                      <p className="text-gray-400 text-sm">Coût hebdomadaire</p>
+                    </div>
+                    <p className="text-4xl font-bold text-white">{coutSemaine}<span className="text-xl text-gray-400">€</span></p>
+                  </div>
+                  <div className="bg-red-500/10 rounded-2xl p-4 border border-red-500/30">
+                    <div className="flex items-center gap-3 mb-2">
+                      <TrendingUp className="w-5 h-5 text-red-400 rotate-180" />
+                      <p className="text-red-300 text-sm font-medium">Perte annuelle</p>
+                    </div>
+                    <p className="text-4xl font-bold text-red-400">{coutAn.toLocaleString()}<span className="text-xl">€</span></p>
+                  </div>
+                  <div className="bg-gray-800/30 rounded-2xl p-4 border border-dashed border-gray-700">
+                    <p className="text-gray-500 text-sm mb-1">+ Devis non relancés / mois</p>
+                    <p className="text-2xl font-bold text-red-400/80">-{devisPerdusParMois.toLocaleString()}€</p>
+                  </div>
+                </div>
               </div>
             </motion.div>
-            <motion.div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-2xl p-6 border border-orange-500/30" initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
-              <div className="flex items-center gap-2 mb-6"><span className="text-2xl">🚀</span><h3 className="text-xl font-bold text-orange-400">Avec Charlie</h3></div>
-              <div className="space-y-6">
-                <div><p className="text-gray-400 text-sm">Temps récupéré / sem</p><p className="text-3xl font-bold text-green-400">+{tempsRecupere}h</p></div>
-                <div><p className="text-gray-400 text-sm">Économie / semaine</p><p className="text-3xl font-bold text-green-400">+{economieSemaine}€</p></div>
-                <div><p className="text-gray-400 text-sm">Économie / an</p><p className="text-3xl font-bold text-green-400">+{economieAn.toLocaleString()}€</p></div>
-                <div className="pt-4 border-t border-orange-500/30"><p className="text-gray-400 text-sm">Devis récupérés</p><p className="text-2xl font-bold text-green-400">+{devisRecuperes}€</p><p className="text-xs text-gray-500">(estimation prudente)</p></div>
+
+            <motion.div className="bg-gradient-to-br from-orange-500/20 via-orange-600/10 to-green-500/10 rounded-3xl p-6 lg:p-8 border border-orange-500/40 shadow-2xl relative overflow-hidden" initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+              <div className="absolute top-0 right-0 w-40 h-40 bg-orange-500/20 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl"></div>
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-orange-400">Avec Charlie</h3>
+                    <p className="text-xs text-gray-400">Ce que tu gagnes</p>
+                  </div>
+                </div>
+                <div className="space-y-5">
+                  <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Clock className="w-5 h-5 text-green-400" />
+                      <p className="text-gray-300 text-sm">Temps récupéré / sem</p>
+                    </div>
+                    <p className="text-4xl font-bold text-green-400">+{tempsRecupere}<span className="text-xl">h</span></p>
+                  </div>
+                  <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Euro className="w-5 h-5 text-green-400" />
+                      <p className="text-gray-300 text-sm">Économie / semaine</p>
+                    </div>
+                    <p className="text-4xl font-bold text-green-400">+{economieSemaine}<span className="text-xl">€</span></p>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 rounded-2xl p-4 border border-green-500/40">
+                    <div className="flex items-center gap-3 mb-2">
+                      <TrendingUp className="w-5 h-5 text-green-400" />
+                      <p className="text-green-300 text-sm font-medium">Économie annuelle</p>
+                    </div>
+                    <p className="text-4xl font-bold text-green-400">+{economieAn.toLocaleString()}<span className="text-xl">€</span></p>
+                  </div>
+                  <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm border border-dashed border-orange-500/30">
+                    <p className="text-gray-400 text-sm mb-1">+ Devis récupérés / mois</p>
+                    <p className="text-2xl font-bold text-orange-400">+{devisRecuperes}€</p>
+                    <p className="text-xs text-gray-500">(estimation prudente à 50%)</p>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>
-          <motion.div className="mt-8 grid md:grid-cols-2 gap-6" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
-            <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-blue-500/20 flex items-center justify-center"><Clock className="w-7 h-7 text-blue-400" /></div>
-              <div><p className="text-gray-400 text-sm">Temps récupéré / mois</p><p className="text-3xl font-bold">{Math.round(tempsRecupere * 4)}h</p></div>
+
+          <motion.div className="mt-10 grid md:grid-cols-2 gap-6" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
+            <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-2xl p-6 border border-blue-500/30 flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-blue-500/20 flex items-center justify-center">
+                <Calendar className="w-8 h-8 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm mb-1">Temps récupéré chaque mois</p>
+                <p className="text-4xl font-bold text-white">{Math.round(tempsRecupere * 4)}<span className="text-xl text-gray-400">h</span></p>
+                <p className="text-xs text-blue-400 mt-1">→ {Math.round(tempsRecupere * 4 / 8)} jours de travail en plus</p>
+              </div>
             </div>
-            <div className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 rounded-2xl p-6 border border-orange-500/30 flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-orange-500/20 flex items-center justify-center"><Euro className="w-7 h-7 text-orange-400" /></div>
-              <div><p className="text-gray-400 text-sm">Économie totale / an</p><p className="text-3xl font-bold text-orange-400">{economieTotaleAn.toLocaleString()}€</p></div>
+            <div className="bg-gradient-to-r from-orange-500/20 to-green-500/20 rounded-2xl p-6 border border-orange-500/40 flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-green-500 flex items-center justify-center shadow-lg">
+                <Euro className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm mb-1">Économie totale par an</p>
+                <p className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">{economieTotaleAn.toLocaleString()}€</p>
+                <p className="text-xs text-green-400 mt-1">Temps + devis récupérés</p>
+              </div>
             </div>
           </motion.div>
-          <motion.div className="mt-8 bg-gray-900 rounded-2xl p-8 text-center border border-gray-800" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.4 }}>
-            <p className="text-xl md:text-2xl font-medium">&quot;Le vrai coût, ce n&apos;est pas Charlie.<br/>C&apos;est de continuer comme avant.&quot;</p>
-            <Link href="/signup" className="inline-block mt-6"><Button size="lg" className="bg-gradient-to-r from-orange-500 to-orange-600">Recevoir mon calcul + une démo<ArrowRight className="ml-2 w-5 h-5" /></Button></Link>
+
+          <motion.div className="mt-10 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-3xl p-8 md:p-10 text-center border border-gray-700 relative overflow-hidden" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.4 }}>
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-orange-500/5"></div>
+            <div className="relative">
+              <p className="text-2xl md:text-3xl font-bold mb-2">
+                &quot;Le vrai coût, c&apos;est de <span className="text-red-400">continuer</span> comme avant.&quot;
+              </p>
+              <p className="text-gray-400 mb-6">Avec Charlie, tu récupères du temps ET de l&apos;argent.</p>
+              <Link href="/signup" className="inline-block">
+                <Button size="lg" className="h-14 px-8 text-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/30">
+                  Recevoir mon calcul personnalisé
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <p className="text-xs text-gray-500 mt-4">Démo gratuite • Sans engagement • Réponse en 24h</p>
+            </div>
           </motion.div>
         </div>
       </section>
