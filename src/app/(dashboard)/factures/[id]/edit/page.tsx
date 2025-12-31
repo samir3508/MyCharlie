@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
+import { getFactureUrl } from '@/lib/utils/urls'
 
 export default function FactureEditPage() {
   const params = useParams()
@@ -99,7 +100,7 @@ export default function FactureEditPage() {
       toast.success('Facture modifiée avec succès')
       
       // Redirect to facture page
-      window.location.href = `/factures/${id}`
+      window.location.href = getFactureUrl(id)
     } catch (error: any) {
       console.error('Erreur modification facture:', error)
       toast.error(`Erreur: ${error?.message || 'Erreur inconnue'}`)

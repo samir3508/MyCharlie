@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useQuery } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
+import { getDevisUrl } from '@/lib/utils/urls'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -303,7 +304,7 @@ export function DevisForm({ clients: propClients, tenantId, onSubmit, isLoading,
         if (lignesError) throw lignesError
 
         // Redirect to devis page
-        window.location.href = `/devis/${initialData.id}`
+        window.location.href = getDevisUrl(initialData.id)
       } catch (error) {
         console.error('Error updating devis:', error)
         alert('Erreur lors de la modification du devis')

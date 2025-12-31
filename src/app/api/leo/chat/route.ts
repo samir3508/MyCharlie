@@ -12,8 +12,8 @@ const MAX_HISTORY_LENGTH = 20
 
 // Fonction pour convertir les URLs relatives en URLs absolues
 function convertToAbsoluteUrls(text: string, request: NextRequest): string {
-  const host = request.headers.get('host') || 'my-leo-saas.vercel.app'
-  const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'https' : 'https'
+  const host = request.headers.get('host') || 'mycharlie.onrender.com'
+  const protocol = 'https'
   const baseUrl = `${protocol}://${host}`
   
   return text
