@@ -79,6 +79,8 @@ export function useUpdateClient() {
       clientId: string; 
       updates: UpdateTables<'clients'> 
     }) => {
+      console.log('useUpdateClient - Début modification:', { clientId, updates })
+      
       const { data, error } = await supabase
         .from('clients')
         .update(updates)
@@ -86,13 +88,24 @@ export function useUpdateClient() {
         .select()
         .single()
 
-      if (error) throw error
+      console.log('useUpdateClient - Résultat Supabase:', { data, error })
+
+      if (error) {
+        console.error('useUpdateClient - Erreur Supabase:', error)
+        throw error
+      }
+      
+      console.log('useUpdateClient - Succès:', data)
       return data
     },
     onSuccess: (data) => {
+      console.log('useUpdateClient - onSuccess:', data)
       queryClient.invalidateQueries({ queryKey: ['clients'] })
       queryClient.invalidateQueries({ queryKey: ['client', data.id] })
     },
+    onError: (error) => {
+      console.error('useUpdateClient - onError:', error)
+    }
   })
 }
 
