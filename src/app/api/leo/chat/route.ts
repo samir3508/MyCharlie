@@ -17,6 +17,8 @@ function convertToAbsoluteUrls(text: string, request: NextRequest): string {
   const baseUrl = `${protocol}://${host}`
   
   return text
+    // Remplacer les URLs localhost en URLs de production
+    .replace(/http:\/\/localhost:3000\//g, `${baseUrl}/`)
     // Remplacer les URLs relatives de PDF
     .replace(/\/api\/pdf\/devis\/([a-f0-9-]{36})/g, `${baseUrl}/api/pdf/devis/$1`)
     .replace(/\/api\/pdf\/facture\/([a-f0-9-]{36})/g, `${baseUrl}/api/pdf/facture/$1`)
