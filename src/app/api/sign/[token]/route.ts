@@ -6,19 +6,38 @@ function getServiceSupabase() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   
-  console.log('Supabase URL:', supabaseUrl ? 'OK' : 'MISSING')
-  console.log('Service Role Key:', serviceRoleKey ? 'OK' : 'MISSING')
+  console.log('=== DEBUG CONFIGURATION ===')
+  console.log('NODE_ENV:', process.env.NODE_ENV)
+  console.log('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'PRESENT' : 'MISSING')
+  console.log('SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'PRESENT' : 'MISSING')
+  console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'PRESENT' : 'MISSING')
+  console.log('Using key type:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SERVICE_ROLE' : 'ANON')
+  console.log('==========================')
   
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Missing Supabase configuration')
+  if (!supabaseUrl) {
+    console.error('Missing NEXT_PUBLIC_SUPABASE_URL')
+    throw new Error('Missing Supabase URL configuration')
   }
   
-  return createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  })
+  if (!serviceRoleKey) {
+    console.error('Missing both SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    throw new Error('Missing Supabase key configuration')
+  }
+  
+  try {
+    const client = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+    
+    console.log('Supabase client created successfully')
+    return client
+  } catch (error) {
+    console.error('Error creating Supabase client:', error)
+    throw new Error('Failed to create Supabase client')
+  }
 }
 
 // GET - Récupérer les infos du devis pour la signature
