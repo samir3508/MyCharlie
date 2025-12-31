@@ -138,7 +138,7 @@ export default function HomePage() {
               <div className="relative z-10 flex justify-center">
                 <div className="relative">
                   <div className="w-80 h-96 rounded-3xl flex items-center justify-center overflow-hidden relative">
-                    <NextImage src="/charlie-hero.png" alt="Charlie - Assistant IA BTP" width={320} height={400} className="object-contain z-10" priority />
+                    <NextImage src="/charlie-hero-v2.png" alt="Charlie - Assistant IA BTP" width={320} height={400} className="object-contain z-10" priority />
                   </div>
                   <motion.div className="absolute -right-4 top-10 bg-gray-900 border border-gray-700 rounded-xl p-3 shadow-xl" animate={{ y: [0, -10, 0] }} transition={{ duration: 3, repeat: Infinity }}>
                     <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center"><Send className="w-4 h-4 text-green-500" /></div><div><p className="text-xs font-medium">Devis envoyé</p><p className="text-xs text-gray-400">M. Dupont</p></div></div>
@@ -184,7 +184,7 @@ export default function HomePage() {
             <motion.div className="relative order-2 lg:order-1" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <div className="relative z-10 flex justify-center">
                 <div className="w-72 h-80 rounded-3xl flex items-center justify-center overflow-hidden relative">
-                  <NextImage src="/charlie-document.png" alt="Charlie avec document" width={288} height={350} className="object-contain z-10" />
+                  <NextImage src="/charlie-document-v2.png" alt="Charlie avec document" width={288} height={350} className="object-contain z-10" />
                 </div>
               </div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl"></div>
