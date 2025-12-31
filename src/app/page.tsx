@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, CheckCircle2, MessageSquare, FileText, Clock, Bell, Sparkles, ChevronDown, ChevronUp, Users, ShieldCheck, Phone, Send, FileSignature, Smartphone, TrendingUp, Zap, Target, Heart, Calendar, Check, AlertCircle, Timer, DollarSign, Briefcase, Building2, HardHat } from 'lucide-react'
+import { ArrowRight, CheckCircle2, MessageSquare, FileText, Clock, Bell, Sparkles, ChevronDown, ChevronUp, Users, ShieldCheck, Phone, Send, FileSignature, Smartphone, TrendingUp, Zap, Target, Heart, Calendar, Check, AlertCircle, Timer, DollarSign, Briefcase, Building2, HardHat, Calculator, RotateCcw, Euro } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const FAQItem = ({ question, answer, isOpen, onClick }: { question: string; answer: string; isOpen: boolean; onClick: () => void }) => (
@@ -50,8 +49,134 @@ const BenefitCard = ({ icon: Icon, title, description, delay }: { icon: React.El
   </motion.div>
 )
 
+const SliderInput = ({ label, value, onChange, min, max, step, unit, suffix }: { label: string; value: number; onChange: (v: number) => void; min: number; max: number; step: number; unit?: string; suffix?: string }) => (
+  <div className="space-y-3">
+    <div className="flex justify-between items-center">
+      <span className="text-gray-300">{label}</span>
+      <span className="text-orange-500 font-bold">{value}{unit || ''} {suffix || ''}</span>
+    </div>
+    <input
+      type="range"
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+    />
+  </div>
+)
+
+const CharlieAvatar = ({ className = "" }: { className?: string }) => (
+  <div className={`relative ${className}`}>
+    <svg viewBox="0 0 200 240" className="w-full h-full">
+      {/* Casque de chantier */}
+      <ellipse cx="100" cy="60" rx="70" ry="35" fill="#F97316" />
+      <rect x="30" y="55" width="140" height="25" fill="#F97316" />
+      <rect x="40" y="75" width="120" height="8" fill="#EA580C" />
+      {/* Visière */}
+      <rect x="35" y="80" width="130" height="6" fill="#C2410C" rx="3" />
+      {/* Tête */}
+      <ellipse cx="100" cy="130" rx="55" ry="60" fill="#FCD34D" />
+      {/* Yeux */}
+      <ellipse cx="75" cy="120" rx="12" ry="14" fill="white" />
+      <ellipse cx="125" cy="120" rx="12" ry="14" fill="white" />
+      <circle cx="77" cy="122" r="6" fill="#1F2937" />
+      <circle cx="127" cy="122" r="6" fill="#1F2937" />
+      <circle cx="79" cy="120" r="2" fill="white" />
+      <circle cx="129" cy="120" r="2" fill="white" />
+      {/* Sourcils */}
+      <path d="M60 105 Q75 100 90 108" stroke="#92400E" strokeWidth="4" fill="none" strokeLinecap="round" />
+      <path d="M110 108 Q125 100 140 105" stroke="#92400E" strokeWidth="4" fill="none" strokeLinecap="round" />
+      {/* Nez */}
+      <ellipse cx="100" cy="140" rx="8" ry="6" fill="#FBBF24" />
+      {/* Sourire */}
+      <path d="M70 160 Q100 185 130 160" stroke="#92400E" strokeWidth="4" fill="none" strokeLinecap="round" />
+      {/* Corps */}
+      <rect x="55" y="185" width="90" height="55" rx="10" fill="#F97316" />
+      {/* Bandes réfléchissantes */}
+      <rect x="55" y="200" width="90" height="8" fill="#FCD34D" />
+      <rect x="55" y="220" width="90" height="8" fill="#FCD34D" />
+    </svg>
+  </div>
+)
+
+const CharlieWithDocument = ({ className = "" }: { className?: string }) => (
+  <div className={`relative ${className}`}>
+    <svg viewBox="0 0 240 280" className="w-full h-full">
+      {/* Document */}
+      <rect x="140" y="100" width="80" height="100" fill="white" rx="5" />
+      <rect x="150" y="115" width="50" height="4" fill="#E5E7EB" />
+      <rect x="150" y="125" width="60" height="4" fill="#E5E7EB" />
+      <rect x="150" y="135" width="40" height="4" fill="#E5E7EB" />
+      <rect x="150" y="150" width="55" height="4" fill="#E5E7EB" />
+      <rect x="150" y="160" width="45" height="4" fill="#E5E7EB" />
+      <rect x="150" y="175" width="30" height="8" fill="#F97316" rx="2" />
+      {/* Casque */}
+      <ellipse cx="80" cy="50" rx="55" ry="28" fill="#F97316" />
+      <rect x="25" y="45" width="110" height="20" fill="#F97316" />
+      <rect x="32" y="62" width="96" height="6" fill="#EA580C" />
+      <rect x="28" y="66" width="104" height="5" fill="#C2410C" rx="2" />
+      {/* Tête */}
+      <ellipse cx="80" cy="105" rx="44" ry="48" fill="#FCD34D" />
+      {/* Yeux */}
+      <ellipse cx="60" cy="97" rx="10" ry="11" fill="white" />
+      <ellipse cx="100" cy="97" rx="10" ry="11" fill="white" />
+      <circle cx="62" cy="99" r="5" fill="#1F2937" />
+      <circle cx="102" cy="99" r="5" fill="#1F2937" />
+      <circle cx="63" cy="97" r="1.5" fill="white" />
+      <circle cx="103" cy="97" r="1.5" fill="white" />
+      {/* Sourcils */}
+      <path d="M48 85 Q60 81 72 87" stroke="#92400E" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <path d="M88 87 Q100 81 112 85" stroke="#92400E" strokeWidth="3" fill="none" strokeLinecap="round" />
+      {/* Nez */}
+      <ellipse cx="80" cy="112" rx="6" ry="5" fill="#FBBF24" />
+      {/* Sourire */}
+      <path d="M58 128 Q80 148 102 128" stroke="#92400E" strokeWidth="3" fill="none" strokeLinecap="round" />
+      {/* Corps */}
+      <rect x="45" y="150" width="70" height="45" rx="8" fill="#F97316" />
+      {/* Bandes */}
+      <rect x="45" y="162" width="70" height="6" fill="#FCD34D" />
+      <rect x="45" y="178" width="70" height="6" fill="#FCD34D" />
+      {/* Bras tenant document */}
+      <ellipse cx="130" cy="165" rx="12" ry="10" fill="#FCD34D" />
+    </svg>
+  </div>
+)
+
 export default function HomePage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
+  
+  // ROI Calculator state
+  const [tauxHoraire, setTauxHoraire] = useState(45)
+  const [tempsMoyenDevis, setTempsMoyenDevis] = useState(45)
+  const [devisParSemaine, setDevisParSemaine] = useState(5)
+  const [autresTaches, setAutresTaches] = useState(3)
+  const [devisPerdus, setDevisPerdus] = useState(2)
+  const [panierMoyen, setPanierMoyen] = useState(900)
+  const [gainCharlie, setGainCharlie] = useState(75)
+
+  // Calculs ROI
+  const tempsAdminSemaine = (devisParSemaine * tempsMoyenDevis / 60) + autresTaches
+  const coutSemaine = Math.round(tempsAdminSemaine * tauxHoraire)
+  const coutAn = coutSemaine * 48
+  const devisPerdusParMois = devisPerdus * panierMoyen
+  
+  const tempsRecupere = Math.round(tempsAdminSemaine * gainCharlie / 100 * 10) / 10
+  const economieSemaine = Math.round(tempsRecupere * tauxHoraire)
+  const economieAn = economieSemaine * 48
+  const devisRecuperes = Math.round(devisPerdus * panierMoyen * 0.5)
+  const economieTotaleAn = economieAn + (devisRecuperes * 12)
+
+  const resetCalculator = () => {
+    setTauxHoraire(45)
+    setTempsMoyenDevis(45)
+    setDevisParSemaine(5)
+    setAutresTaches(3)
+    setDevisPerdus(2)
+    setPanierMoyen(900)
+    setGainCharlie(75)
+  }
 
   const faqs = [
     { question: "C'est vraiment par WhatsApp ?", answer: "Oui ! Charlie est accessible directement via WhatsApp. Tu lui parles comme à un collègue, et il gère tout pour toi." },
@@ -75,6 +200,7 @@ export default function HomePage() {
             </Link>
             <nav className="hidden md:flex items-center gap-6 text-sm">
               <a href="#comment-ca-marche" className="text-gray-400 hover:text-white">Comment ça marche</a>
+              <a href="#calculateur" className="text-gray-400 hover:text-white">Calculateur ROI</a>
               <a href="#avantages" className="text-gray-400 hover:text-white">Avantages</a>
               <a href="#faq" className="text-gray-400 hover:text-white">FAQ</a>
             </nav>
@@ -86,6 +212,7 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-orange-600/5"></div>
         <div className="max-w-7xl mx-auto relative">
@@ -126,9 +253,8 @@ export default function HomePage() {
             <motion.div className="relative" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.2 }}>
               <div className="relative z-10 flex justify-center">
                 <div className="relative">
-                  <div className="w-80 h-96 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl flex items-center justify-center border border-gray-700 overflow-hidden relative">
-                    <Image src="/charlie-hero.png" alt="Charlie" width={320} height={384} className="object-contain z-10" priority />
-                    <HardHat className="w-32 h-32 text-orange-500/20 absolute" />
+                  <div className="w-80 h-96 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl flex items-center justify-center border border-gray-700 overflow-hidden relative p-8">
+                    <CharlieAvatar className="w-full h-full" />
                   </div>
                   <motion.div className="absolute -right-4 top-10 bg-gray-900 border border-gray-700 rounded-xl p-3 shadow-xl" animate={{ y: [0, -10, 0] }} transition={{ duration: 3, repeat: Infinity }}>
                     <div className="flex items-center gap-2">
@@ -156,6 +282,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Problem Section */}
       <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
         <div className="max-w-7xl mx-auto">
           <motion.div className="text-center max-w-3xl mx-auto mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -182,14 +309,14 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Solution Section */}
       <section className="py-20 px-4 bg-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div className="relative order-2 lg:order-1" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <div className="relative z-10 flex justify-center">
-                <div className="w-72 h-80 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl flex items-center justify-center border border-gray-700 overflow-hidden relative">
-                  <Image src="/charlie-document.png" alt="Charlie avec document" width={288} height={320} className="object-contain z-10" />
-                  <FileText className="w-24 h-24 text-orange-500/20 absolute" />
+                <div className="w-72 h-80 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl flex items-center justify-center border border-gray-700 overflow-hidden relative p-6">
+                  <CharlieWithDocument className="w-full h-full" />
                 </div>
               </div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl"></div>
@@ -211,7 +338,129 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="comment-ca-marche" className="py-20 px-4 bg-black">
+      {/* ROI Calculator Section */}
+      <section id="calculateur" className="py-20 px-4 bg-black">
+        <div className="max-w-7xl mx-auto">
+          <motion.div className="text-center mb-12" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6">
+              <Calculator className="w-4 h-4" /><span>Calculateur ROI</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Calcule combien te coûte l&apos;administratif</h2>
+            <p className="text-xl text-gray-400">Ajuste les curseurs selon ta situation réelle. Les résultats se mettent à jour en temps réel.</p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Inputs */}
+            <motion.div className="bg-gray-900 rounded-2xl p-6 border border-gray-800" initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold">Ta situation</h3>
+                <button onClick={resetCalculator} className="flex items-center gap-1 text-sm text-gray-400 hover:text-white">
+                  <RotateCcw className="w-4 h-4" /> Réinitialiser
+                </button>
+              </div>
+              <div className="space-y-6">
+                <SliderInput label="Taux horaire" value={tauxHoraire} onChange={setTauxHoraire} min={20} max={100} step={5} unit="€" suffix="/h" />
+                <SliderInput label="Temps moyen par devis" value={tempsMoyenDevis} onChange={setTempsMoyenDevis} min={15} max={120} step={5} unit=" min" />
+                <SliderInput label="Devis par semaine" value={devisParSemaine} onChange={setDevisParSemaine} min={1} max={20} step={1} suffix="devis" />
+                <SliderInput label="Autres tâches admin (hors devis)" value={autresTaches} onChange={setAutresTaches} min={0} max={15} step={1} unit="h" suffix="/sem" />
+                <p className="text-xs text-gray-500">Factures, relances, emails...</p>
+                <SliderInput label="Devis perdus / non relancés" value={devisPerdus} onChange={setDevisPerdus} min={0} max={10} step={1} suffix="/mois" />
+                <SliderInput label="Panier moyen par devis" value={panierMoyen} onChange={setPanierMoyen} min={200} max={5000} step={100} unit=" €" />
+                <SliderInput label="Gain estimé avec Charlie" value={gainCharlie} onChange={setGainCharlie} min={50} max={90} step={5} unit=" %" />
+                <p className="text-xs text-gray-500">Temps admin supprimé grâce à Charlie</p>
+              </div>
+            </motion.div>
+
+            {/* Sans Charlie */}
+            <motion.div className="bg-gray-900 rounded-2xl p-6 border border-gray-800" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+              <div className="flex items-center gap-2 mb-6">
+                <span className="text-2xl">😓</span>
+                <h3 className="text-xl font-bold">Sans Charlie</h3>
+              </div>
+              <div className="space-y-6">
+                <div>
+                  <p className="text-gray-400 text-sm">Temps admin / semaine</p>
+                  <p className="text-3xl font-bold text-white">{tempsAdminSemaine.toFixed(1)}h</p>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Coût / semaine</p>
+                  <p className="text-3xl font-bold text-white">{coutSemaine}€</p>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Coût / an</p>
+                  <p className="text-3xl font-bold text-red-400">{coutAn.toLocaleString()}€</p>
+                </div>
+                <div className="pt-4 border-t border-gray-800">
+                  <p className="text-gray-400 text-sm">Devis perdus / mois</p>
+                  <p className="text-2xl font-bold text-red-400">-{devisPerdusParMois.toLocaleString()}€</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Avec Charlie */}
+            <motion.div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-2xl p-6 border border-orange-500/30" initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+              <div className="flex items-center gap-2 mb-6">
+                <span className="text-2xl">🚀</span>
+                <h3 className="text-xl font-bold text-orange-400">Avec Charlie</h3>
+              </div>
+              <div className="space-y-6">
+                <div>
+                  <p className="text-gray-400 text-sm">Temps récupéré / sem</p>
+                  <p className="text-3xl font-bold text-green-400">+{tempsRecupere}h</p>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Économie / semaine</p>
+                  <p className="text-3xl font-bold text-green-400">+{economieSemaine}€</p>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Économie / an</p>
+                  <p className="text-3xl font-bold text-green-400">+{economieAn.toLocaleString()}€</p>
+                </div>
+                <div className="pt-4 border-t border-orange-500/30">
+                  <p className="text-gray-400 text-sm">Devis récupérés</p>
+                  <p className="text-2xl font-bold text-green-400">+{devisRecuperes}€</p>
+                  <p className="text-xs text-gray-500">(estimation prudente)</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Summary */}
+          <motion.div className="mt-8 grid md:grid-cols-2 gap-6" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
+            <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <Clock className="w-7 h-7 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm">Temps récupéré / mois</p>
+                <p className="text-3xl font-bold">{Math.round(tempsRecupere * 4)}h</p>
+              </div>
+            </div>
+            <div className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 rounded-2xl p-6 border border-orange-500/30 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                <Euro className="w-7 h-7 text-orange-400" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm">Économie totale / an</p>
+                <p className="text-3xl font-bold text-orange-400">{economieTotaleAn.toLocaleString()}€</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Quote */}
+          <motion.div className="mt-8 bg-gray-900 rounded-2xl p-8 text-center border border-gray-800" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.4 }}>
+            <p className="text-xl md:text-2xl font-medium">&quot;Le vrai coût, ce n&apos;est pas Charlie.<br/>C&apos;est de continuer comme avant.&quot;</p>
+            <Link href="/signup" className="inline-block mt-6">
+              <Button size="lg" className="bg-gradient-to-r from-orange-500 to-orange-600">
+                Recevoir mon calcul + une démo<ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="comment-ca-marche" className="py-20 px-4 bg-gray-900">
         <div className="max-w-4xl mx-auto">
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6"><Zap className="w-4 h-4" /><span>Simple comme bonjour</span></div>
@@ -227,7 +476,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
+      {/* Daily Notification */}
+      <section className="py-20 px-4 bg-gradient-to-b from-gray-900 to-black">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div className="space-y-6" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
@@ -264,7 +514,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gray-900">
+      {/* E-signature */}
+      <section className="py-20 px-4 bg-black">
         <div className="max-w-7xl mx-auto">
           <motion.div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-3xl p-8 md:p-12 border border-orange-500/20" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="grid md:grid-cols-2 gap-8 items-center">
@@ -298,7 +549,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="avantages" className="py-20 px-4 bg-black">
+      {/* Benefits */}
+      <section id="avantages" className="py-20 px-4 bg-gray-900">
         <div className="max-w-7xl mx-auto">
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6"><TrendingUp className="w-4 h-4" /><span>Les avantages</span></div>
@@ -315,7 +567,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="faq" className="py-20 px-4 bg-gray-900">
+      {/* FAQ */}
+      <section id="faq" className="py-20 px-4 bg-black">
         <div className="max-w-3xl mx-auto">
           <motion.div className="text-center mb-12" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">Questions fréquentes</h2>
@@ -326,6 +579,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Final CTA */}
       <section className="py-20 px-4 bg-gradient-to-br from-orange-500/20 via-black to-orange-600/20">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="space-y-6">
@@ -340,6 +594,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Footer */}
       <footer className="bg-black border-t border-gray-800 py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
@@ -355,6 +610,7 @@ export default function HomePage() {
               <h4 className="font-semibold mb-4">Liens</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#comment-ca-marche" className="hover:text-white">Comment ça marche</a></li>
+                <li><a href="#calculateur" className="hover:text-white">Calculateur ROI</a></li>
                 <li><a href="#avantages" className="hover:text-white">Avantages</a></li>
                 <li><a href="#faq" className="hover:text-white">FAQ</a></li>
               </ul>
