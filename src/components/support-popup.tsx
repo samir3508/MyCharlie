@@ -181,14 +181,13 @@ export function SupportPopup() {
               </div>
               <div>
                 <label htmlFor="telephone" className="text-sm font-medium">
-                  Téléphone *
+                  Téléphone
                 </label>
                 <Input
                   id="telephone"
                   value={telephone}
                   onChange={(e) => setTelephone(e.target.value)}
-                  placeholder="Votre numéro de téléphone"
-                  required
+                  placeholder="Votre numéro de téléphone (optionnel)"
                 />
               </div>
               <div>

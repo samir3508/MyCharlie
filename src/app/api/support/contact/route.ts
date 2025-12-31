@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validation
-    if (!nom || !email || !message || !telephone) {
+    if (!nom || !email || !message) {
       return NextResponse.json(
         { error: 'Champs requis manquants' },
         { status: 400 }
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
 👤 CLIENT: ${nom}
 📧 EMAIL: ${email}
-📞 TÉLÉPHONE: ${telephone}
+${telephone ? `📞 TÉLÉPHONE: ${telephone}` : ''}
 ⏰ DATE: ${timestamp ? new Date(timestamp).toLocaleString('fr-FR') : new Date().toLocaleString('fr-FR')}
 🌐 PAGE: ${url}
 💻 NAVIGATEUR: ${userAgent}
@@ -83,7 +83,7 @@ Ce message a été envoyé depuis l'application LÉO BTP
                 <div>
                   <strong style="color: #2563eb;">👤 Client:</strong> ${nom}<br>
                   <strong style="color: #2563eb;">📧 Email:</strong> ${email}<br>
-                  <strong style="color: #2563eb;">📞 Téléphone:</strong> ${telephone}<br>
+                  ${telephone ? `<strong style="color: #2563eb;">📞 Téléphone:</strong> ${telephone}<br>` : ''}
                   <strong style="color: #2563eb;">⏰ Date:</strong> ${timestamp ? new Date(timestamp).toLocaleString('fr-FR') : new Date().toLocaleString('fr-FR')}
                 </div>
                 <div>
