@@ -29,16 +29,21 @@ export default function ClientEditPage({ params }: PageProps) {
     getId()
   }, [params])
 
-  const handleSubmit = async (data: {
-    nom: string
-    prenom: string
-    email?: string
-    telephone?: string
-    adresse_facturation?: string
-    adresse_chantier?: string
-    type: 'particulier' | 'professionnel'
-    notes?: string
-  }) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const formData = new FormData(e.currentTarget)
+    const data = {
+      nom: formData.get('nom') as string,
+      prenom: formData.get('prenom') as string,
+      email: formData.get('email') as string || undefined,
+      telephone: formData.get('telephone') as string || undefined,
+      adresse_facturation: formData.get('adresse_facturation') as string || undefined,
+      adresse_chantier: formData.get('adresse_chantier') as string || undefined,
+      type: formData.get('type') as 'particulier' | 'professionnel',
+      notes: formData.get('notes') as string || undefined,
+    }
+
     if (!tenant?.id || !id) return
 
     console.log('Tentative de modification client:', { clientId: id, data, tenantId: tenant.id })
@@ -112,17 +117,13 @@ export default function ClientEditPage({ params }: PageProps) {
       </div>
 
       <div className="max-w-2xl">
-        <form onSubmit={(e) => {
-          e.preventDefault()
-          // Pour l'instant, afficher les données du client
-          console.log('Client à modifier:', client)
-          toast.info('Formulaire de modification en cours de développement')
-        }} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Prénom</label>
               <input
                 type="text"
+                name="prenom"
                 defaultValue={client.prenom}
                 className="w-full p-2 border rounded"
                 placeholder="Prénom"
@@ -132,6 +133,7 @@ export default function ClientEditPage({ params }: PageProps) {
               <label className="block text-sm font-medium mb-2">Nom</label>
               <input
                 type="text"
+                name="nom"
                 defaultValue={client.nom}
                 className="w-full p-2 border rounded"
                 placeholder="Nom"
@@ -143,6 +145,7 @@ export default function ClientEditPage({ params }: PageProps) {
             <label className="block text-sm font-medium mb-2">Email</label>
             <input
               type="email"
+              name="email"
               defaultValue={client.email || ''}
               className="w-full p-2 border rounded"
               placeholder="Email"
@@ -153,6 +156,7 @@ export default function ClientEditPage({ params }: PageProps) {
             <label className="block text-sm font-medium mb-2">Téléphone</label>
             <input
               type="tel"
+              name="telephone"
               defaultValue={client.telephone || ''}
               className="w-full p-2 border rounded"
               placeholder="Téléphone"
@@ -162,6 +166,7 @@ export default function ClientEditPage({ params }: PageProps) {
           <div>
             <label className="block text-sm font-medium mb-2">Adresse de facturation</label>
             <textarea
+              name="adresse_facturation"
               defaultValue={client.adresse_facturation || ''}
               className="w-full p-2 border rounded"
               placeholder="Adresse de facturation"
@@ -172,6 +177,7 @@ export default function ClientEditPage({ params }: PageProps) {
           <div>
             <label className="block text-sm font-medium mb-2">Adresse du chantier</label>
             <textarea
+              name="adresse_chantier"
               defaultValue={client.adresse_chantier || ''}
               className="w-full p-2 border rounded"
               placeholder="Adresse du chantier"
@@ -182,6 +188,7 @@ export default function ClientEditPage({ params }: PageProps) {
           <div>
             <label className="block text-sm font-medium mb-2">Type</label>
             <select
+              name="type"
               defaultValue={client.type}
               className="w-full p-2 border rounded"
             >
@@ -193,6 +200,7 @@ export default function ClientEditPage({ params }: PageProps) {
           <div>
             <label className="block text-sm font-medium mb-2">Notes</label>
             <textarea
+              name="notes"
               defaultValue={client.notes || ''}
               className="w-full p-2 border rounded"
               placeholder="Notes"
