@@ -207,10 +207,12 @@ export default function FactureDetailPage({ params }: PageProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-[#1A1A1A] text-white border border-gray-800">
-                  <DropdownMenuItem className="text-white hover:bg-[#262626] focus:bg-[#262626]">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Modifier la facture
-                  </DropdownMenuItem>
+                  <Link href={`/factures/${facture.id}/edit`}>
+                    <DropdownMenuItem className="text-white hover:bg-[#262626] focus:bg-[#262626]">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Modifier la facture
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuItem onClick={handleDupliquer} className="text-white hover:bg-[#262626] focus:bg-[#262626]">
                     <Copy className="h-4 w-4 mr-2" />
                     Dupliquer
