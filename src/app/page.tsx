@@ -69,6 +69,7 @@ export default function HomePage() {
   const [devisPerdus, setDevisPerdus] = useState(2)
   const [panierMoyen, setPanierMoyen] = useState(900)
   const [gainCharlie, setGainCharlie] = useState(75)
+  const [tauxRecuperation, setTauxRecuperation] = useState(50)
 
   const tempsAdminSemaine = (devisParSemaine * tempsMoyenDevis / 60) + autresTaches
   const coutSemaine = Math.round(tempsAdminSemaine * tauxHoraire)
@@ -82,10 +83,10 @@ export default function HomePage() {
   
   const economieSemaine = Math.round(tempsRecupere * tauxHoraire)
   const economieAn = economieSemaine * 48
-  const devisRecuperes = Math.round(devisPerdus * panierMoyen * 0.5)
+  const devisRecuperes = Math.round(devisPerdus * panierMoyen * tauxRecuperation / 100)
   const economieTotaleAn = economieAn + (devisRecuperes * 12)
 
-  const resetCalculator = () => { setTauxHoraire(45); setTempsMoyenDevis(45); setDevisParSemaine(5); setAutresTaches(3); setDevisPerdus(2); setPanierMoyen(900); setGainCharlie(75) }
+  const resetCalculator = () => { setTauxHoraire(45); setTempsMoyenDevis(45); setDevisParSemaine(5); setAutresTaches(3); setDevisPerdus(2); setPanierMoyen(900); setGainCharlie(75); setTauxRecuperation(50) }
 
   const faqs = [
     { question: "C'est vraiment par WhatsApp ?", answer: "Oui ! Charlie est accessible directement via WhatsApp. Tu lui parles comme à un collègue, et il gère tout pour toi." },
@@ -251,6 +252,10 @@ export default function HomePage() {
                   <div className="mt-4">
                     <SliderInput label="🛒 Panier moyen" value={panierMoyen} onChange={setPanierMoyen} min={200} max={5000} step={100} unit=" €" />
                   </div>
+                  <div className="mt-4">
+                    <SliderInput label="🎯 Taux de récupération" value={tauxRecuperation} onChange={setTauxRecuperation} min={10} max={90} step={5} unit="%" />
+                    <p className="text-xs text-gray-500 mt-2">% des devis perdus que Charlie récupère</p>
+                  </div>
                 </div>
                 <div className="pt-4 border-t border-gray-700">
                   <p className="text-xs text-gray-500 mb-4">⚡ Charlie fait tout en moins de 2 minutes</p>
@@ -342,7 +347,7 @@ export default function HomePage() {
                   <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm border border-dashed border-orange-500/30">
                     <p className="text-gray-400 text-sm mb-1">+ Devis récupérés / mois</p>
                     <p className="text-2xl font-bold text-orange-400">+{devisRecuperes}€</p>
-                    <p className="text-xs text-gray-500">(estimation prudente à 50%)</p>
+                    <p className="text-xs text-gray-500">(avec {tauxRecuperation}% de taux de récupération)</p>
                   </div>
                 </div>
               </div>
