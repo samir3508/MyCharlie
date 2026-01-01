@@ -569,7 +569,7 @@ export default function HomePage() {
               <div className="flex items-center gap-2 text-sm text-gray-400"><Phone className="w-4 h-4 text-green-500" /><span>Disponible sur WhatsApp</span></div>
             </div>
             <div><h4 className="font-semibold mb-4">Liens</h4><ul className="space-y-2 text-sm text-gray-400"><li><a href="#comment-ca-marche" className="hover:text-white">Comment ça marche</a></li><li><a href="#calculateur" className="hover:text-white">Calculateur ROI</a></li><li><a href="#avantages" className="hover:text-white">Avantages</a></li><li><a href="#faq" className="hover:text-white">FAQ</a></li></ul></div>
-            <div><h4 className="font-semibold mb-4">Légal</h4><ul className="space-y-2 text-sm text-gray-400"><li><a href="#" className="hover:text-white">Mentions légales</a></li><li><a href="#" className="hover:text-white">Politique de confidentialité</a></li><li><a href="#" className="hover:text-white">CGV</a></li></ul></div>
+            <div><h4 className="font-semibold mb-4">Légal</h4><ul className="space-y-2 text-sm text-gray-400"><li><Link href="/mentions-legales" className="hover:text-white">Mentions légales</Link></li><li><Link href="/politique-confidentialite" className="hover:text-white">Politique de confidentialité</Link></li><li><Link href="/cgv" className="hover:text-white">CGV</Link></li></ul></div>
           </div>
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400"><p>© 2025 CHARLIE. Tous droits réservés.</p><p className="mt-2 md:mt-0">Hébergé en France 🇫🇷 • Données sécurisées • Conforme RGPD</p></div>
         </div>
