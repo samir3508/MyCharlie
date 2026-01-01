@@ -134,7 +134,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center"><HardHat className="w-5 h-5 text-white" /></div>
+              <NextImage src="/logo-charlie.png" alt="Logo Charlie" width={40} height={40} className="h-8 w-auto object-contain" />
               <span className="text-xl font-bold">CHARLIE</span>
             </Link>
             <nav className="hidden md:flex items-center gap-6 text-sm">
