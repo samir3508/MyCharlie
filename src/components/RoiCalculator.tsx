@@ -2,37 +2,56 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Calculator, Clock, Euro, TrendingUp, Users, FileText, Send, ArrowRight } from 'lucide-react'
 
+const SliderInput = ({ label, value, onChange, min, max, step, unit, suffix }: { 
+  label: string; 
+  value: number; 
+  onChange: (value: number) => void; 
+  min: number; 
+  max: number; 
+  step: number; 
+  unit?: string; 
+  suffix?: string; 
+}) => (
+  <div className="space-y-2">
+    <div className="flex justify-between items-center">
+      <label className="text-gray-300 text-sm">{label}</label>
+      <span className="bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent font-bold">{value}{unit || ''} {suffix || ''}</span>
+    </div>
+    <input 
+      type="range" 
+      min={min} 
+      max={max} 
+      step={step} 
+      value={value} 
+      onChange={(e) => onChange(Number(e.target.value))} 
+      className="w-full h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500" 
+    />
+  </div>
+)
+
 export default function RoiCalculator() {
-  const [formData, setFormData] = useState({
-    nombreEmployes: '',
-    salaireMoyen: '',
-    heuresAdminParSemaine: '',
-    tempsFacturable: ''
-  })
+  const [nombreEmployes, setNombreEmployes] = useState(5)
+  const [salaireMoyen, setSalaireMoyen] = useState(3500)
+  const [heuresAdminParSemaine, setHeuresAdminParSemaine] = useState(10)
+  const [tempsFacturable, setTempsFacturable] = useState(60)
   const [results, setResults] = useState<any>(null)
   const [isCalculating, setIsCalculating] = useState(false)
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
-  }
 
   const calculateROI = () => {
     setIsCalculating(true)
     
     setTimeout(() => {
-      const employes = Number(formData.nombreEmployes) || 1
-      const salaire = Number(formData.salaireMoyen) || 3500
-      const heuresAdmin = Number(formData.heuresAdminParSemaine) || 10
-      const tempsFacturable = Number(formData.tempsFacturable) || 60
+      const employes = nombreEmployes
+      const salaire = salaireMoyen
+      const heuresAdmin = heuresAdminParSemaine
+      const tempsFact = tempsFacturable
 
       // Calculs
       const coutAdminMensuel = (employes * salaire * heuresAdmin / 35) * 4.33
       const tempsGagne = heuresAdmin * 0.7 // 70% de temps gagné
-      const nouveauTempsFacturable = tempsFacturable + (tempsGagne / 35 * 100)
+      const nouveauTempsFacturable = tempsFact + (tempsGagne / 35 * 100)
       const gainMensuel = (employes * salaire * tempsGagne / 35) * 4.33
       const gainAnnuel = gainMensuel * 12
 
@@ -63,77 +82,57 @@ export default function RoiCalculator() {
         <div className="max-w-4xl mx-auto">
           <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-3xl p-8 shadow-2xl">
             <div className="grid md:grid-cols-2 gap-8">
-              {/* Colonne gauche - Formulaire */}
+              {/* Colonne gauche - Formulaire avec sliders */}
               <div className="space-y-6">
                 <h3 className="text-2xl font-semibold text-white mb-6">
                   Vos données actuelles
                 </h3>
                 
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="nombreEmployes" className="text-gray-300 mb-2 block">
-                      Nombre d'employés
-                    </Label>
-                    <Input
-                      id="nombreEmployes"
-                      name="nombreEmployes"
-                      type="number"
-                      value={formData.nombreEmployes}
-                      onChange={handleChange}
-                      placeholder="5"
-                      className="bg-gray-800 border-gray-700 text-white"
-                    />
-                  </div>
+                <div className="space-y-6">
+                  <SliderInput 
+                    label="Nombre d'employés" 
+                    value={nombreEmployes} 
+                    onChange={setNombreEmployes} 
+                    min={1} 
+                    max={50} 
+                    step={1} 
+                    suffix="employés" 
+                  />
 
-                  <div>
-                    <Label htmlFor="salaireMoyen" className="text-gray-300 mb-2 block">
-                      Salaire moyen mensuel (€)
-                    </Label>
-                    <Input
-                      id="salaireMoyen"
-                      name="salaireMoyen"
-                      type="number"
-                      value={formData.salaireMoyen}
-                      onChange={handleChange}
-                      placeholder="3500"
-                      className="bg-gray-800 border-gray-700 text-white"
-                    />
-                  </div>
+                  <SliderInput 
+                    label="Salaire moyen mensuel" 
+                    value={salaireMoyen} 
+                    onChange={setSalaireMoyen} 
+                    min={1500} 
+                    max={8000} 
+                    step={100} 
+                    unit="€" 
+                  />
 
-                  <div>
-                    <Label htmlFor="heuresAdminParSemaine" className="text-gray-300 mb-2 block">
-                      Heures admin par semaine par employé
-                    </Label>
-                    <Input
-                      id="heuresAdminParSemaine"
-                      name="heuresAdminParSemaine"
-                      type="number"
-                      value={formData.heuresAdminParSemaine}
-                      onChange={handleChange}
-                      placeholder="10"
-                      className="bg-gray-800 border-gray-700 text-white"
-                    />
-                  </div>
+                  <SliderInput 
+                    label="Heures admin par semaine" 
+                    value={heuresAdminParSemaine} 
+                    onChange={setHeuresAdminParSemaine} 
+                    min={1} 
+                    max={40} 
+                    step={1} 
+                    suffix="h" 
+                  />
 
-                  <div>
-                    <Label htmlFor="tempsFacturable" className="text-gray-300 mb-2 block">
-                      Temps facturable actuel (%)
-                    </Label>
-                    <Input
-                      id="tempsFacturable"
-                      name="tempsFacturable"
-                      type="number"
-                      value={formData.tempsFacturable}
-                      onChange={handleChange}
-                      placeholder="60"
-                      className="bg-gray-800 border-gray-700 text-white"
-                    />
-                  </div>
+                  <SliderInput 
+                    label="Temps facturable actuel" 
+                    value={tempsFacturable} 
+                    onChange={setTempsFacturable} 
+                    min={20} 
+                    max={90} 
+                    step={5} 
+                    unit="%" 
+                  />
                 </div>
 
                 <Button 
                   onClick={calculateROI}
-                  disabled={isCalculating || !formData.nombreEmployes || !formData.salaireMoyen}
+                  disabled={isCalculating}
                   className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium py-4 text-lg"
                 >
                   {isCalculating ? (
@@ -193,7 +192,7 @@ export default function RoiCalculator() {
                         {results.nouveauTempsFacturable}%
                       </p>
                       <p className="text-gray-400 mt-2">
-                        Au lieu de {formData.tempsFacturable}%
+                        Au lieu de {tempsFacturable}%
                       </p>
                     </div>
                   </div>
