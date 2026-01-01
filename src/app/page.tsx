@@ -132,8 +132,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2">
-              <NextImage src="/logo-charlie.png" alt="Logo Charlie" width={40} height={40} className="h-8 w-auto object-contain" />
-              <span className="text-xl font-bold">CHARLIE</span>
+              <NextImage src="/logo-charlie.png" alt="Logo Charlie" width={160} height={40} className="h-8 w-auto object-contain" priority />
             </Link>
             <nav className="hidden md:flex items-center gap-6 text-sm">
               <a href="#comment-ca-marche" className="text-gray-400 hover:text-white">Comment ça marche</a>
