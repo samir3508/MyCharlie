@@ -435,6 +435,7 @@ export default function HomePage() {
             </div>
           </motion.div>
         </div>
+      </div>
       </section>
 
       <section id="comment-ca-marche" className="py-20 px-4 bg-gray-900">
