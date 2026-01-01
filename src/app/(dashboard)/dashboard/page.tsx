@@ -4,8 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { StatsCards } from '@/components/dashboard/stats-cards'
-import { RevenueChart } from '@/components/dashboard/revenue-chart'
-import { DevisStatusChart } from '@/components/dashboard/devis-status-chart'
+import { RevenueChartSimple } from '@/components/dashboard/revenue-chart-simple'
+import { DevisStatusChartSimple } from '@/components/dashboard/devis-status-chart-simple'
 import { RecentDevisTable } from '@/components/dashboard/recent-devis-table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card } from '@/components/ui/card'
@@ -311,7 +311,7 @@ export default function DashboardPage() {
             <Skeleton className="h-[300px] w-full" />
           </Card>
         ) : (
-          <RevenueChart data={revenueData || []} />
+          <RevenueChartSimple data={revenueData || []} />
         )}
         {devisStatusLoading ? (
           <Card className="col-span-1 p-6">
@@ -319,7 +319,7 @@ export default function DashboardPage() {
             <Skeleton className="h-[300px] w-full" />
           </Card>
         ) : (
-          <DevisStatusChart data={devisStatusData || []} />
+          <DevisStatusChartSimple data={devisStatusData || []} />
         )}
       </div>
 
