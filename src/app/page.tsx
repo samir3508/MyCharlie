@@ -90,6 +90,7 @@ export default function HomePage() {
   const tempsAdminSemaine = tempsDevisSemaine + tempsFacturesSemaine + tempsRelancesSemaine + tempsEnvoisSemaine + autresTachesSemaine
   const coutSemaine = Math.round(tempsAdminSemaine * tauxHoraire)
   const tempsAdminMois = Math.round((tempsAdminSemaine * semainesParMois) * 10) / 10
+  const tempsAdminAn = Math.round((tempsAdminMois * 12) * 10) / 10
   const coutMois = Math.round(coutSemaine * semainesParMois)
   const coutAn = coutMois * 12
   const devisPerdusParMois = devisPerdus * panierMoyen
@@ -110,6 +111,7 @@ export default function HomePage() {
   
   const economieSemaine = Math.round(tempsRecupere * tauxHoraire)
   const tempsRecupereMois = Math.round((tempsRecupere * semainesParMois) * 10) / 10
+  const tempsRecupereAn = Math.round((tempsRecupereMois * 12) * 10) / 10
   const economieMois = Math.round(economieSemaine * semainesParMois)
   const economieAn = economieMois * 12
   const devisRecuperes = Math.round(devisPerdus * panierMoyen * tauxRecuperation / 100)
@@ -335,6 +337,7 @@ export default function HomePage() {
                       <p className="text-gray-400 text-sm">Temps admin / mois</p>
                     </div>
                     <p className="text-4xl font-bold text-white">{tempsAdminMois.toFixed(1)}<span className="text-xl text-gray-400">h</span></p>
+                    <p className="text-xs text-gray-500 mt-1">≈ {tempsAdminAn.toFixed(1)}h / an</p>
                   </div>
                   <div className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
                     <div className="flex items-center gap-3 mb-2">
@@ -378,6 +381,7 @@ export default function HomePage() {
                       <p className="text-gray-300 text-sm">Temps récupéré / mois</p>
                     </div>
                     <p className="text-4xl font-bold text-orange-400">+{tempsRecupereMois}<span className="text-xl">h</span></p>
+                    <p className="text-xs text-gray-500 mt-1">≈ +{tempsRecupereAn.toFixed(1)}h / an</p>
                   </div>
                   <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-2">
