@@ -7,10 +7,13 @@ import { Badge } from '@/components/ui/badge'
 import { CheckCircle, MessageSquare, FileText, Send, Bell, Smartphone, Users, TrendingUp, Shield, Clock } from 'lucide-react'
 import Link from 'next/link'
 import NextImage from 'next/image'
+import DemoModal from '@/components/DemoModal'
 
 export default function LandingPage() {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [demoModalOpen, setDemoModalOpen] = useState(false)
+  const [demoSource, setDemoSource] = useState<'demo' | 'signup'>('demo')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,7 +43,7 @@ export default function LandingPage() {
               <Link href="#pricing" className="text-gray-600 hover:text-blue-600 transition-colors">
                 Tarifs
               </Link>
-              <Button className="bg-gradient-to-r from-blue-600 to-orange-600 hover:from-blue-700 hover:to-orange-700">
+              <Button className="bg-gradient-to-r from-blue-600 to-orange-600 hover:from-blue-700 hover:to-orange-700" onClick={() => { setDemoSource('signup'); setDemoModalOpen(true); }}>
                 Essayer Gratuitement
               </Button>
             </nav>
@@ -66,10 +69,10 @@ export default function LandingPage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg" onClick={() => { setDemoSource('signup'); setDemoModalOpen(true); }}>
               Essayer Charlie Gratuitement
             </Button>
-            <Button variant="outline" size="lg" className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg">
+            <Button variant="outline" size="lg" className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg" onClick={() => { setDemoSource('demo'); setDemoModalOpen(true); }}>
               Voir la démo
             </Button>
           </div>
@@ -319,6 +322,8 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      <DemoModal isOpen={demoModalOpen} onClose={() => setDemoModalOpen(false)} source={demoSource} />
     </div>
   )
 }

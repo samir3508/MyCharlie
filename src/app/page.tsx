@@ -6,6 +6,7 @@ import NextImage from 'next/image'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, CheckCircle2, MessageSquare, FileText, Clock, Bell, Sparkles, ChevronDown, ChevronUp, Users, ShieldCheck, Phone, Send, FileSignature, Smartphone, TrendingUp, Zap, Target, Heart, Calendar, Check, AlertCircle, Timer, DollarSign, Briefcase, Building2, HardHat, Calculator, RotateCcw, Euro } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import DemoModal from '@/components/DemoModal'
 
 const FAQItem = ({ question, answer, isOpen, onClick }: { question: string; answer: string; isOpen: boolean; onClick: () => void }) => (
   <div className="border-b border-gray-800">
@@ -62,6 +63,8 @@ const SliderInput = ({ label, value, onChange, min, max, step, unit, suffix }: {
 
 export default function HomePage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
+  const [demoModalOpen, setDemoModalOpen] = useState(false)
+  const [demoSource, setDemoSource] = useState<'demo' | 'signup'>('demo')
   const [tauxHoraire, setTauxHoraire] = useState(45)
   const [tempsMoyenDevis, setTempsMoyenDevis] = useState(45)
   const [devisParMois, setDevisParMois] = useState(20)
@@ -142,7 +145,7 @@ export default function HomePage() {
             </nav>
             <div className="flex items-center gap-3">
               <Link href="/login"><Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">Connexion</Button></Link>
-              <Link href="/signup"><Button size="sm" className="bg-gradient-to-r from-orange-500 to-orange-600">Essayer gratuitement</Button></Link>
+              <Button size="sm" className="bg-gradient-to-r from-orange-500 to-orange-600" onClick={() => { setDemoSource('signup'); setDemoModalOpen(true); }}>Essayer gratuitement</Button>
             </div>
           </div>
         </div>
@@ -161,7 +164,9 @@ export default function HomePage() {
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">Le secrétaire <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">IA</span> des pros du bâtiment</h1>
               <p className="text-xl text-gray-300">Charlie gère tes clients, devis, factures et relances. Par WhatsApp et via ton logiciel de suivi.</p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Link href="/signup"><Button size="lg" className="w-full sm:w-auto h-14 px-8 text-lg bg-gradient-to-r from-orange-500 to-orange-600">Demander une démo gratuite<ArrowRight className="ml-2 w-5 h-5" /></Button></Link>
+                <Button size="lg" className="w-full sm:w-auto h-14 px-8 text-lg bg-gradient-to-r from-orange-500 to-orange-600" onClick={() => { setDemoSource('demo'); setDemoModalOpen(true); }}>
+                  Demander une démo gratuite<ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
                 <a href="#comment-ca-marche"><Button variant="outline" size="lg" className="w-full sm:w-auto h-14 px-8 text-lg border-gray-700 text-gray-300">Comment ça marche ?</Button></a>
               </div>
               <div className="flex flex-wrap gap-6 pt-6">
@@ -569,6 +574,8 @@ export default function HomePage() {
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400"><p>© 2025 CHARLIE. Tous droits réservés.</p><p className="mt-2 md:mt-0">Hébergé en France 🇫🇷 • Données sécurisées • Conforme RGPD</p></div>
         </div>
       </footer>
+
+      <DemoModal isOpen={demoModalOpen} onClose={() => setDemoModalOpen(false)} source={demoSource} />
     </div>
   )
 }
