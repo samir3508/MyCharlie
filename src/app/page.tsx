@@ -73,12 +73,15 @@ export default function HomePage() {
   const [facturesParMois, setFacturesParMois] = useState(8)
   const [relancesParMois, setRelancesParMois] = useState(12)
   const [envoisDocsParMois, setEnvoisDocsParMois] = useState(6)
+  const [tempsFacture, setTempsFacture] = useState(15)
+  const [tempsRelance, setTempsRelance] = useState(5)
+  const [tempsEnvoi, setTempsEnvoi] = useState(10)
 
   // Calcul du temps admin total (tâches par semaine + tâches mensuelles converties)
   const tempsDevisSemaine = devisParSemaine * tempsMoyenDevis / 60
-  const tempsFacturesSemaine = (facturesParMois * 15 / 60) / 4 // 15min par facture
-  const tempsRelancesSemaine = (relancesParMois * 5 / 60) / 4 // 5min par relance
-  const tempsEnvoisSemaine = (envoisDocsParMois * 10 / 60) / 4 // 10min par envoi
+  const tempsFacturesSemaine = (facturesParMois * tempsFacture / 60) / 4 // temps personnalisé par facture
+  const tempsRelancesSemaine = (relancesParMois * tempsRelance / 60) / 4 // temps personnalisé par relance
+  const tempsEnvoisSemaine = (envoisDocsParMois * tempsEnvoi / 60) / 4 // temps personnalisé par envoi
   
   const tempsAdminSemaine = tempsDevisSemaine + tempsFacturesSemaine + tempsRelancesSemaine + tempsEnvoisSemaine + autresTaches
   const coutSemaine = Math.round(tempsAdminSemaine * tauxHoraire)
@@ -104,7 +107,7 @@ export default function HomePage() {
   const devisRecuperes = Math.round(devisPerdus * panierMoyen * tauxRecuperation / 100)
   const economieTotaleAn = economieAn + (devisRecuperes * 12)
 
-  const resetCalculator = () => { setTauxHoraire(45); setTempsMoyenDevis(45); setDevisParSemaine(5); setAutresTaches(3); setDevisPerdus(2); setPanierMoyen(900); setGainCharlie(75); setTauxRecuperation(50); setFacturesParMois(8); setRelancesParMois(12); setEnvoisDocsParMois(6) }
+  const resetCalculator = () => { setTauxHoraire(45); setTempsMoyenDevis(45); setDevisParSemaine(5); setAutresTaches(3); setDevisPerdus(2); setPanierMoyen(900); setGainCharlie(75); setTauxRecuperation(50); setFacturesParMois(8); setRelancesParMois(12); setEnvoisDocsParMois(6); setTempsFacture(15); setTempsRelance(5); setTempsEnvoi(10) }
 
   const faqs = [
     { question: "C'est vraiment par WhatsApp ?", answer: "Oui ! Charlie est accessible directement via WhatsApp. Tu lui parles comme à un collègue, et il gère tout pour toi." },
@@ -268,10 +271,19 @@ export default function HomePage() {
                   <p className="text-xs text-gray-500 mb-4">Autres tâches administratives</p>
                   <SliderInput label="🧾 Factures / mois" value={facturesParMois} onChange={setFacturesParMois} min={0} max={20} step={1} suffix="factures" />
                   <div className="mt-4">
+                    <SliderInput label="⏱️ Temps par facture" value={tempsFacture} onChange={setTempsFacture} min={5} max={30} step={5} unit=" min" />
+                  </div>
+                  <div className="mt-4">
                     <SliderInput label="📞 Relances / mois" value={relancesParMois} onChange={setRelancesParMois} min={0} max={30} step={1} suffix="relances" />
                   </div>
                   <div className="mt-4">
+                    <SliderInput label="⏱️ Temps par relance" value={tempsRelance} onChange={setTempsRelance} min={2} max={15} step={1} unit=" min" />
+                  </div>
+                  <div className="mt-4">
                     <SliderInput label="📤 Envois documents / mois" value={envoisDocsParMois} onChange={setEnvoisDocsParMois} min={0} max={15} step={1} suffix="envois" />
+                  </div>
+                  <div className="mt-4">
+                    <SliderInput label="⏱️ Temps par envoi" value={tempsEnvoi} onChange={setTempsEnvoi} min={5} max={20} step={5} unit=" min" />
                   </div>
                 </div>
                 <div className="pt-4 border-t border-gray-700">
