@@ -65,7 +65,6 @@ export default function HomePage() {
   const [tauxHoraire, setTauxHoraire] = useState(45)
   const [tempsMoyenDevis, setTempsMoyenDevis] = useState(45)
   const [devisParMois, setDevisParMois] = useState(20)
-  const [autresTaches, setAutresTaches] = useState(12)
   const [devisPerdus, setDevisPerdus] = useState(2)
   const [panierMoyen, setPanierMoyen] = useState(900)
   const [gainCharlie, setGainCharlie] = useState(75)
@@ -80,14 +79,13 @@ export default function HomePage() {
   // Calcul mensuel (conversion mensuel -> hebdo pour uniformiser les calculs)
   const semainesParMois = 4
   const devisParSemaine = devisParMois / semainesParMois
-  const autresTachesSemaine = autresTaches / semainesParMois
 
   const tempsDevisSemaine = devisParSemaine * tempsMoyenDevis / 60
   const tempsFacturesSemaine = (facturesParMois * tempsFacture / 60) / semainesParMois // temps personnalisé par facture
   const tempsRelancesSemaine = (relancesParMois * tempsRelance / 60) / semainesParMois // temps personnalisé par relance
   const tempsEnvoisSemaine = (envoisDocsParMois * tempsEnvoi / 60) / semainesParMois // temps personnalisé par envoi
   
-  const tempsAdminSemaine = tempsDevisSemaine + tempsFacturesSemaine + tempsRelancesSemaine + tempsEnvoisSemaine + autresTachesSemaine
+  const tempsAdminSemaine = tempsDevisSemaine + tempsFacturesSemaine + tempsRelancesSemaine + tempsEnvoisSemaine
   const coutSemaine = Math.round(tempsAdminSemaine * tauxHoraire)
   const tempsAdminMois = Math.round((tempsAdminSemaine * semainesParMois) * 10) / 10
   const tempsAdminAn = Math.round((tempsAdminMois * 12) * 10) / 10
@@ -106,7 +104,7 @@ export default function HomePage() {
   const tempsCharlieRelancesSemaine = (relancesParMois * tempsCharlieRelance / 60) / semainesParMois
   const tempsCharlieEnvoisSemaine = (envoisDocsParMois * tempsCharlieEnvoi / 60) / semainesParMois
   
-  const tempsCharlieSemaine = tempsCharlieDevisSemaine + tempsCharlieFacturesSemaine + tempsCharlieRelancesSemaine + tempsCharlieEnvoisSemaine + autresTachesSemaine
+  const tempsCharlieSemaine = tempsCharlieDevisSemaine + tempsCharlieFacturesSemaine + tempsCharlieRelancesSemaine + tempsCharlieEnvoisSemaine
   const tempsRecupere = Math.round((tempsAdminSemaine - tempsCharlieSemaine) * 10) / 10
   
   const economieSemaine = Math.round(tempsRecupere * tauxHoraire)
@@ -117,7 +115,7 @@ export default function HomePage() {
   const devisRecuperes = Math.round(devisPerdus * panierMoyen * tauxRecuperation / 100)
   const economieTotaleAn = economieAn + (devisRecuperes * 12)
 
-  const resetCalculator = () => { setTauxHoraire(45); setTempsMoyenDevis(45); setDevisParMois(20); setAutresTaches(12); setDevisPerdus(2); setPanierMoyen(900); setGainCharlie(75); setTauxRecuperation(50); setFacturesParMois(8); setRelancesParMois(12); setEnvoisDocsParMois(6); setTempsFacture(15); setTempsRelance(5); setTempsEnvoi(10) }
+  const resetCalculator = () => { setTauxHoraire(45); setTempsMoyenDevis(45); setDevisParMois(20); setDevisPerdus(2); setPanierMoyen(900); setGainCharlie(75); setTauxRecuperation(50); setFacturesParMois(8); setRelancesParMois(12); setEnvoisDocsParMois(6); setTempsFacture(15); setTempsRelance(5); setTempsEnvoi(10) }
 
   const faqs = [
     { question: "C'est vraiment par WhatsApp ?", answer: "Oui ! Charlie est accessible directement via WhatsApp. Tu lui parles comme à un collègue, et il gère tout pour toi." },
@@ -276,7 +274,6 @@ export default function HomePage() {
                 <SliderInput label="💰 Taux horaire" value={tauxHoraire} onChange={setTauxHoraire} min={20} max={100} step={5} unit="€" suffix="/h" />
                 <SliderInput label="⏱️ Temps par devis" value={tempsMoyenDevis} onChange={setTempsMoyenDevis} min={15} max={120} step={5} unit=" min" />
                 <SliderInput label="📄 Devis / mois" value={devisParMois} onChange={setDevisParMois} min={0} max={80} step={1} suffix="devis" />
-                <SliderInput label="📋 Autres tâches admin" value={autresTaches} onChange={setAutresTaches} min={0} max={60} step={1} unit="h" suffix="/mois" />
                 <div className="pt-4 border-t border-gray-700">
                   <p className="text-xs text-gray-500 mb-4">Autres tâches administratives</p>
                   <SliderInput label="🧾 Factures / mois" value={facturesParMois} onChange={setFacturesParMois} min={0} max={20} step={1} suffix="factures" />
