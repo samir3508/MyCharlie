@@ -276,9 +276,13 @@ export default function RoiCalculator() {
             <div className="mt-12 text-center">
               <div className="bg-gradient-to-r from-orange-500/10 to-orange-600/10 border border-orange-500/20 rounded-2xl p-8">
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  Prêt à gagner {tempsEconomiseAnnuel.toFixed(0)}h par an ?
+                  Le vrai coût, ce n'est pas Charlie.
                 </h3>
-                <p className="text-xl text-gray-300 mb-8">
+                <p className="text-xl text-gray-300 mb-4">
+                  C'est de continuer comme avant.
+                </p>
+                <p className="text-lg text-gray-400 mb-8">
+                  Prêt à gagner {tempsEconomiseAnnuel.toFixed(0)}h par an ?<br />
                   Charly automatise vos devis, factures et relances en moins de 2 minutes chacun.<br />
                   C'est {argentEconomiseAnnuel.toLocaleString()} € d'économies annuelles.
                 </p>
