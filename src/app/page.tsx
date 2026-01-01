@@ -70,19 +70,15 @@ export default function HomePage() {
   const [panierMoyen, setPanierMoyen] = useState(900)
   const [gainCharlie, setGainCharlie] = useState(75)
 
-  const tempsManuelParDevis = 30 // minutes
-  const tempsCharlieParDevis = 2 // minutes
-  const tempsEconomiseParDevis = tempsManuelParDevis - tempsCharlieParDevis
-  
-  const tempsAdminSemaine = devisParSemaine * tempsManuelParDevis / 60
-  const tempsCharlieSemaine = devisParSemaine * tempsCharlieParDevis / 60
-  const tempsRecupere = tempsAdminSemaine - tempsCharlieSemaine
-  
+  const tempsAdminSemaine = (devisParSemaine * tempsMoyenDevis / 60) + autresTaches
   const coutSemaine = Math.round(tempsAdminSemaine * tauxHoraire)
   const coutAn = coutSemaine * 48
+  const devisPerdusParMois = devisPerdus * panierMoyen
+  const tempsRecupere = Math.round(tempsAdminSemaine * gainCharlie / 100 * 10) / 10
   const economieSemaine = Math.round(tempsRecupere * tauxHoraire)
   const economieAn = economieSemaine * 48
-  const economieTotaleAn = economieAn
+  const devisRecuperes = Math.round(devisPerdus * panierMoyen * 0.5)
+  const economieTotaleAn = economieAn + (devisRecuperes * 12)
 
   const resetCalculator = () => { setTauxHoraire(45); setTempsMoyenDevis(45); setDevisParSemaine(5); setAutresTaches(3); setDevisPerdus(2); setPanierMoyen(900); setGainCharlie(75) }
 
@@ -241,14 +237,19 @@ export default function HomePage() {
               </div>
               <div className="space-y-5">
                 <SliderInput label="💰 Taux horaire" value={tauxHoraire} onChange={setTauxHoraire} min={20} max={100} step={5} unit="€" suffix="/h" />
-                <SliderInput label="📄 Devis par semaine" value={devisParSemaine} onChange={setDevisParSemaine} min={1} max={20} step={1} suffix="devis" />
-                <SliderInput label="🛒 Panier moyen par devis" value={panierMoyen} onChange={setPanierMoyen} min={200} max={5000} step={100} unit=" €" />
+                <SliderInput label="⏱️ Temps par devis" value={tempsMoyenDevis} onChange={setTempsMoyenDevis} min={15} max={120} step={5} unit=" min" />
+                <SliderInput label="📄 Devis / semaine" value={devisParSemaine} onChange={setDevisParSemaine} min={1} max={20} step={1} suffix="devis" />
+                <SliderInput label="📋 Autres tâches admin" value={autresTaches} onChange={setAutresTaches} min={0} max={15} step={1} unit="h" suffix="/sem" />
                 <div className="pt-4 border-t border-gray-700">
-                  <p className="text-xs text-gray-500 mb-4">Charlie économise 75% de ton temps admin</p>
-                  <div className="bg-orange-500/10 rounded-xl p-4 border border-orange-500/30">
-                    <p className="text-sm text-orange-300 font-medium">⚡ Moins de 2 min par devis</p>
-                    <p className="text-xs text-gray-400 mt-1">Au lieu de 30-45 minutes manuellement</p>
+                  <p className="text-xs text-gray-500 mb-4">Opportunités manquées</p>
+                  <SliderInput label="❌ Devis perdus" value={devisPerdus} onChange={setDevisPerdus} min={0} max={10} step={1} suffix="/mois" />
+                  <div className="mt-4">
+                    <SliderInput label="🛒 Panier moyen" value={panierMoyen} onChange={setPanierMoyen} min={200} max={5000} step={100} unit=" €" />
                   </div>
+                </div>
+                <div className="pt-4 border-t border-gray-700">
+                  <SliderInput label="🎯 Gain avec Charlie" value={gainCharlie} onChange={setGainCharlie} min={50} max={90} step={5} unit="%" />
+                  <p className="text-xs text-gray-500 mt-2">% du temps admin économisé</p>
                 </div>
               </div>
             </motion.div>
@@ -288,8 +289,8 @@ export default function HomePage() {
                     <p className="text-4xl font-bold text-orange-400">{coutAn.toLocaleString()}<span className="text-xl">€</span></p>
                   </div>
                   <div className="bg-gradient-to-r from-gray-900/30 to-gray-800/30 rounded-2xl p-4 border border-dashed border-orange-500/30">
-                    <p className="text-gray-500 text-sm mb-1">⚡ Gain de temps par semaine</p>
-                    <p className="text-2xl font-bold text-orange-400/80">-{tempsRecupere.toFixed(1)}h économisées</p>
+                    <p className="text-gray-500 text-sm mb-1">+ Devis non relancés / mois</p>
+                    <p className="text-2xl font-bold text-orange-400/80">-{devisPerdusParMois.toLocaleString()}€</p>
                   </div>
                 </div>
               </div>
@@ -331,9 +332,9 @@ export default function HomePage() {
                     <p className="text-4xl font-bold text-orange-400">+{economieAn.toLocaleString()}<span className="text-xl">€</span></p>
                   </div>
                   <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm border border-dashed border-orange-500/30">
-                    <p className="text-gray-400 text-sm mb-1">⏱️ Temps par devis avec Charlie</p>
-                    <p className="text-2xl font-bold text-orange-400">2 minutes</p>
-                    <p className="text-xs text-gray-500">Au lieu de 30 minutes</p>
+                    <p className="text-gray-400 text-sm mb-1">+ Devis récupérés / mois</p>
+                    <p className="text-2xl font-bold text-orange-400">+{devisRecuperes}€</p>
+                    <p className="text-xs text-gray-500">(estimation prudente à 50%)</p>
                   </div>
                 </div>
               </div>
