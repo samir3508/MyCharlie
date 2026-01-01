@@ -30,7 +30,10 @@ export default function DemoModal({ isOpen, onClose, source }: DemoModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.nom || !formData.email || !formData.telephone) return
+    if (!formData.nom || !formData.email || !formData.telephone) {
+      alert('Veuillez remplir les champs obligatoires (nom, email, téléphone).')
+      return
+    }
 
     setIsSubmitting(true)
     try {
@@ -39,7 +42,8 @@ export default function DemoModal({ isOpen, onClose, source }: DemoModalProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, source })
       })
-      if (res.ok) {
+      const data = await res.json()
+      if (res.ok && data.success) {
         setSubmitted(true)
         setTimeout(() => {
           setSubmitted(false)
@@ -47,9 +51,11 @@ export default function DemoModal({ isOpen, onClose, source }: DemoModalProps) {
           onClose()
         }, 3000)
       } else {
-        alert('Erreur lors de l\'envoi. Réessayez.')
+        console.error('Submit error:', data)
+        alert(`Erreur lors de l'envoi : ${data.error || 'Réessayez.'}`)
       }
     } catch (err) {
+      console.error('Network error:', err)
       alert('Erreur réseau. Réessayez.')
     } finally {
       setIsSubmitting(false)

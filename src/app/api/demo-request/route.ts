@@ -8,6 +8,20 @@ export async function POST(req: NextRequest) {
   try {
     const { nom, email, telephone, entreprise, message, source } = await req.json()
 
+    // Validation basique
+    if (!nom || !email || !telephone) {
+      console.error('Demo request validation: missing required fields', { nom, email, telephone })
+      return NextResponse.json({ error: 'Champs obligatoires manquants' }, { status: 400 })
+    }
+
+    console.log('Demo request received:', { nom, email, telephone, entreprise, message, source })
+
+    // Vérifier que Resend est configuré
+    if (!process.env.RESEND_API_KEY) {
+      console.error('RESEND_API_KEY is not configured')
+      return NextResponse.json({ error: 'Configuration email manquante' }, { status: 500 })
+    }
+
     const subject = source === 'demo' ? '🚀 Nouvelle demande de démo' : '✨ Nouvelle inscription gratuite'
 
     const html = `
@@ -59,12 +73,13 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error('Resend error:', error)
-      return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to send email', details: error }, { status: 500 })
     }
 
+    console.log('Email sent successfully:', data?.id)
     return NextResponse.json({ success: true, messageId: data?.id })
   } catch (err) {
     console.error('Demo request error:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error', details: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 })
   }
 }
