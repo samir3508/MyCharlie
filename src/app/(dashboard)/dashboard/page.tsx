@@ -273,6 +273,10 @@ export default function DashboardPage() {
     enabled: !!tenant?.id,
   })
 
+  // Debug logs pour vérifier les données
+  console.log('Revenue data:', revenueData)
+  console.log('Devis status data:', devisStatusData)
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}

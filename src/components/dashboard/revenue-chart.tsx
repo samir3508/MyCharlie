@@ -9,12 +9,25 @@ interface RevenueChartProps {
 }
 
 export function RevenueChart({ data = [] }: RevenueChartProps) {
+  // Données de démonstration si aucune donnée réelle
+  const demoData = [
+    { month: 'Jan', revenue: 4500 },
+    { month: 'Fév', revenue: 5200 },
+    { month: 'Mar', revenue: 4800 },
+    { month: 'Avr', revenue: 6100 },
+    { month: 'Mai', revenue: 5500 },
+    { month: 'Jun', revenue: 7200 },
+    { month: 'Jul', revenue: 6800 },
+    { month: 'Aoû', revenue: 5900 },
+    { month: 'Sep', revenue: 6300 },
+    { month: 'Oct', revenue: 7100 },
+    { month: 'Nov', revenue: 6500 },
+    { month: 'Déc', revenue: 8000 },
+  ]
+
   const chartData = data.length > 0 
     ? data 
-    : [
-        'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun',
-        'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'
-      ].map((month) => ({ month, revenue: 0 }))
+    : demoData
 
   return (
     <Card className="col-span-1 overflow-hidden border border-[#FF4D00]/15 bg-[#0B0B0C]/70 shadow-[0_18px_60px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,77,0,0.10),0_0_40px_rgba(255,77,0,0.06)] backdrop-blur supports-[backdrop-filter]:bg-[#0B0B0C]/55 transition-all hover:-translate-y-0.5 hover:border-[#FF4D00]/25 hover:shadow-[0_26px_90px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,77,0,0.14),0_0_55px_rgba(255,77,0,0.09)]">
@@ -27,8 +40,8 @@ export function RevenueChart({ data = [] }: RevenueChartProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 bg-gradient-to-b from-transparent via-transparent to-[#FF4D00]/5">
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width={400} height={300}>
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">

@@ -8,8 +8,18 @@ interface DevisStatusChartProps {
 }
 
 export function DevisStatusChart({ data = [] }: DevisStatusChartProps) {
+  // Données de démonstration si aucune donnée réelle
+  const demoData = [
+    { name: 'Acceptés', value: 8, color: '#27AE60' },
+    { name: 'En attente', value: 5, color: '#3498DB' },
+    { name: 'Refusés', value: 2, color: '#E74C3C' },
+    { name: 'Brouillons', value: 3, color: '#9CA3AF' },
+  ]
+  
   // Filtrer les données avec valeur > 0 pour n'afficher que les statuts présents
-  const chartData = data.filter(item => item.value > 0)
+  const chartData = data.length > 0 
+    ? data.filter(item => item.value > 0)
+    : demoData
   
   // Si pas de données, afficher un message
   if (chartData.length === 0) {
@@ -44,8 +54,8 @@ export function DevisStatusChart({ data = [] }: DevisStatusChartProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 bg-gradient-to-b from-transparent via-transparent to-[#FF4D00]/5">
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width={400} height={300}>
             <PieChart>
               <Pie
                 data={chartData}
