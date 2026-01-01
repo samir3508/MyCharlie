@@ -246,7 +246,7 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="space-y-6 lg:space-y-8 max-w-4xl mx-auto">
             <motion.div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 lg:p-8 border border-gray-700 shadow-2xl" initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
@@ -295,7 +295,8 @@ export default function HomePage() {
               </div>
             </motion.div>
 
-            <motion.div className="bg-gradient-to-br from-gray-900/50 to-gray-800 rounded-3xl p-6 lg:p-8 border border-orange-500/30 shadow-2xl relative overflow-hidden" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+            <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
+              <motion.div className="bg-gradient-to-br from-gray-900/50 to-gray-800 rounded-3xl p-6 lg:p-8 border border-orange-500/30 shadow-2xl relative overflow-hidden" initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
               <div className="absolute top-0 right-0 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl"></div>
               <div className="relative">
                 <div className="flex items-center gap-3 mb-8">
