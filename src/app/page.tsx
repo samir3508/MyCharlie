@@ -132,7 +132,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2">
-              <NextImage src="/logo-charlie.png" alt="Logo Charlie" width={160} height={40} className="h-8 w-auto object-contain" priority />
+              <NextImage src="/logo-charlie.png" alt="Logo Charlie" width={400} height={96} className="h-14 w-64 object-contain" priority />
             </Link>
             <nav className="hidden md:flex items-center gap-6 text-sm">
               <a href="#comment-ca-marche" className="text-gray-400 hover:text-white">Comment ça marche</a>
@@ -147,6 +147,8 @@ export default function HomePage() {
           </div>
         </div>
       </header>
+
+      <main className="flex flex-col">
 
       <section className="pt-32 pb-20 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-orange-600/5"></div>
@@ -240,7 +242,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="calculateur" className="py-24 px-4 bg-gradient-to-b from-black via-gray-900/50 to-black relative overflow-hidden">
+      <section id="calculateur" className="order-[90] py-24 px-4 bg-gradient-to-b from-black via-gray-900/50 to-black relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-500/5 via-transparent to-transparent"></div>
         <div className="max-w-7xl mx-auto relative">
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -514,7 +516,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="avantages" className="py-20 px-4 bg-gray-900">
+      <section id="avantages" className="order-[80] py-20 px-4 bg-gray-900">
         <div className="max-w-7xl mx-auto">
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6"><TrendingUp className="w-4 h-4" /><span>Les avantages</span></div>
@@ -531,7 +533,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="faq" className="py-20 px-4 bg-black">
+      <section id="faq" className="order-[100] py-20 px-4 bg-black">
         <div className="max-w-3xl mx-auto">
           <motion.div className="text-center mb-12" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">Questions fréquentes</h2>
@@ -550,6 +552,8 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      </main>
 
       <footer className="bg-black border-t border-gray-800 py-12 px-4">
         <div className="max-w-7xl mx-auto">
