@@ -296,7 +296,7 @@ export default function HomePage() {
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm"><Sparkles className="w-4 h-4" /><span>Libère-toi de l&apos;administratif</span></div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">Et si tu n&apos;avais plus jamais à gérer l&apos;administratif ?</h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">Rejoins les artisans qui ont choisi de se concentrer sur ce qu&apos;ils font de mieux : leur métier.</p>
-            <div className="pt-6"><Link href="/signup"><Button size="lg" className="h-16 px-10 text-lg bg-gradient-to-r from-orange-500 to-orange-600">Demander une démo gratuite<ArrowRight className="ml-2 w-5 h-5" /></Button></Link><p className="text-sm text-gray-400 mt-4">Démo gratuite • Sans engagement • Réponse en 24h</p></div>
+            <div className="pt-6"><Button size="lg" className="h-16 px-10 text-lg bg-gradient-to-r from-orange-500 to-orange-600" onClick={() => { setDemoSource('demo'); setDemoModalOpen(true); }}>Demander une démo gratuite<ArrowRight className="ml-2 w-5 h-5" /></Button><p className="text-sm text-gray-400 mt-4">Démo gratuite • Sans engagement • Réponse en 24h</p></div>
           </motion.div>
         </div>
       </section>
