@@ -194,8 +194,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <RoiCalculator />
-
       <section id="comment-ca-marche" className="py-20 px-4 bg-gray-900">
         <div className="max-w-4xl mx-auto">
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -263,6 +261,8 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      <RoiCalculator />
 
       <section id="avantages" className="order-[80] py-20 px-4 bg-gray-900">
         <div className="max-w-7xl mx-auto">
