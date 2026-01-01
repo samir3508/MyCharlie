@@ -130,9 +130,9 @@ export default function HomePage() {
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       <header className="fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-20">
             <Link href="/" className="flex items-center gap-2">
-              <NextImage src="/logo-charlie.png" alt="Logo Charlie" width={400} height={96} className="h-14 w-64 object-contain" priority />
+              <NextImage src="/logo-charlie.png" alt="Logo Charlie" width={640} height={160} className="h-16 w-[28rem] object-contain scale-125 origin-left" priority />
             </Link>
             <nav className="hidden md:flex items-center gap-6 text-sm">
               <a href="#comment-ca-marche" className="text-gray-400 hover:text-white">Comment ça marche</a>
@@ -150,7 +150,7 @@ export default function HomePage() {
 
       <main className="flex flex-col">
 
-      <section className="pt-32 pb-20 px-4 relative overflow-hidden">
+      <section className="pt-36 pb-20 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-orange-600/5"></div>
         <div className="max-w-7xl mx-auto relative">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
