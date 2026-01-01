@@ -74,7 +74,12 @@ export default function HomePage() {
   const coutSemaine = Math.round(tempsAdminSemaine * tauxHoraire)
   const coutAn = coutSemaine * 48
   const devisPerdusParMois = devisPerdus * panierMoyen
-  const tempsRecupere = Math.round(tempsAdminSemaine * gainCharlie / 100 * 10) / 10
+  
+  // Charlie fait tout en 2 minutes par devis
+  const tempsCharlieParDevis = 2
+  const tempsCharlieSemaine = (devisParSemaine * tempsCharlieParDevis / 60) + autresTaches
+  const tempsRecupere = Math.round((tempsAdminSemaine - tempsCharlieSemaine) * 10) / 10
+  
   const economieSemaine = Math.round(tempsRecupere * tauxHoraire)
   const economieAn = economieSemaine * 48
   const devisRecuperes = Math.round(devisPerdus * panierMoyen * 0.5)
@@ -248,8 +253,11 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="pt-4 border-t border-gray-700">
-                  <SliderInput label="🎯 Gain avec Charlie" value={gainCharlie} onChange={setGainCharlie} min={50} max={90} step={5} unit="%" />
-                  <p className="text-xs text-gray-500 mt-2">% du temps admin économisé</p>
+                  <p className="text-xs text-gray-500 mb-4">⚡ Charlie fait tout en moins de 2 minutes</p>
+                  <div className="bg-orange-500/10 rounded-xl p-4 border border-orange-500/30">
+                    <p className="text-sm text-orange-300 font-medium">Devis, factures, relances en 2 min max</p>
+                    <p className="text-xs text-gray-400 mt-1">Au lieu de 30-45 minutes manuellement</p>
+                  </div>
                 </div>
               </div>
             </motion.div>
