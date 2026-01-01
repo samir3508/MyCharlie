@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'contact@mycharlie.fr'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'samir3508@gmail.com'
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     `
 
     const { data, error } = await resend.emails.send({
-      from: 'MyCharlie <contact@mycharlie.fr>',
+      from: 'MyCharlie <onboarding@resend.dev>',
       to: ADMIN_EMAIL,
       subject,
       html
