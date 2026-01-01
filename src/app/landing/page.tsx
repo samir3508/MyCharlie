@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, MessageSquare, FileText, Send, Bell, Smartphone, Users, TrendingUp, Shield, Clock } from 'lucide-react'
 import Link from 'next/link'
+import NextImage from 'next/image'
 
 export default function LandingPage() {
   const [email, setEmail] = useState('')
@@ -26,14 +27,9 @@ export default function LandingPage() {
       <header className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-orange-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">C</span>
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
-                Charlie
-              </span>
-            </div>
+            <Link href="/" className="flex items-center">
+              <NextImage src="/logo-charlie.png" alt="Logo Charlie" width={420} height={110} className="h-12 w-64 object-contain" priority />
+            </Link>
             <nav className="hidden md:flex space-x-6">
               <Link href="#features" className="text-gray-600 hover:text-blue-600 transition-colors">
                 Fonctionnalités
