@@ -64,8 +64,8 @@ export default function HomePage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
   const [tauxHoraire, setTauxHoraire] = useState(45)
   const [tempsMoyenDevis, setTempsMoyenDevis] = useState(45)
-  const [devisParSemaine, setDevisParSemaine] = useState(5)
-  const [autresTaches, setAutresTaches] = useState(3)
+  const [devisParMois, setDevisParMois] = useState(20)
+  const [autresTaches, setAutresTaches] = useState(12)
   const [devisPerdus, setDevisPerdus] = useState(2)
   const [panierMoyen, setPanierMoyen] = useState(900)
   const [gainCharlie, setGainCharlie] = useState(75)
@@ -77,15 +77,21 @@ export default function HomePage() {
   const [tempsRelance, setTempsRelance] = useState(5)
   const [tempsEnvoi, setTempsEnvoi] = useState(10)
 
-  // Calcul du temps admin total (tâches par semaine + tâches mensuelles converties)
+  // Calcul mensuel (conversion mensuel -> hebdo pour uniformiser les calculs)
+  const semainesParMois = 4
+  const devisParSemaine = devisParMois / semainesParMois
+  const autresTachesSemaine = autresTaches / semainesParMois
+
   const tempsDevisSemaine = devisParSemaine * tempsMoyenDevis / 60
-  const tempsFacturesSemaine = (facturesParMois * tempsFacture / 60) / 4 // temps personnalisé par facture
-  const tempsRelancesSemaine = (relancesParMois * tempsRelance / 60) / 4 // temps personnalisé par relance
-  const tempsEnvoisSemaine = (envoisDocsParMois * tempsEnvoi / 60) / 4 // temps personnalisé par envoi
+  const tempsFacturesSemaine = (facturesParMois * tempsFacture / 60) / semainesParMois // temps personnalisé par facture
+  const tempsRelancesSemaine = (relancesParMois * tempsRelance / 60) / semainesParMois // temps personnalisé par relance
+  const tempsEnvoisSemaine = (envoisDocsParMois * tempsEnvoi / 60) / semainesParMois // temps personnalisé par envoi
   
-  const tempsAdminSemaine = tempsDevisSemaine + tempsFacturesSemaine + tempsRelancesSemaine + tempsEnvoisSemaine + autresTaches
+  const tempsAdminSemaine = tempsDevisSemaine + tempsFacturesSemaine + tempsRelancesSemaine + tempsEnvoisSemaine + autresTachesSemaine
   const coutSemaine = Math.round(tempsAdminSemaine * tauxHoraire)
-  const coutAn = coutSemaine * 48
+  const tempsAdminMois = Math.round((tempsAdminSemaine * semainesParMois) * 10) / 10
+  const coutMois = Math.round(coutSemaine * semainesParMois)
+  const coutAn = coutMois * 12
   const devisPerdusParMois = devisPerdus * panierMoyen
   
   // Charlie fait tout en 2 minutes maximum
@@ -95,19 +101,21 @@ export default function HomePage() {
   const tempsCharlieEnvoi = 1
   
   const tempsCharlieDevisSemaine = devisParSemaine * tempsCharlieParDevis / 60
-  const tempsCharlieFacturesSemaine = (facturesParMois * tempsCharlieFacture / 60) / 4
-  const tempsCharlieRelancesSemaine = (relancesParMois * tempsCharlieRelance / 60) / 4
-  const tempsCharlieEnvoisSemaine = (envoisDocsParMois * tempsCharlieEnvoi / 60) / 4
+  const tempsCharlieFacturesSemaine = (facturesParMois * tempsCharlieFacture / 60) / semainesParMois
+  const tempsCharlieRelancesSemaine = (relancesParMois * tempsCharlieRelance / 60) / semainesParMois
+  const tempsCharlieEnvoisSemaine = (envoisDocsParMois * tempsCharlieEnvoi / 60) / semainesParMois
   
-  const tempsCharlieSemaine = tempsCharlieDevisSemaine + tempsCharlieFacturesSemaine + tempsCharlieRelancesSemaine + tempsCharlieEnvoisSemaine + autresTaches
+  const tempsCharlieSemaine = tempsCharlieDevisSemaine + tempsCharlieFacturesSemaine + tempsCharlieRelancesSemaine + tempsCharlieEnvoisSemaine + autresTachesSemaine
   const tempsRecupere = Math.round((tempsAdminSemaine - tempsCharlieSemaine) * 10) / 10
   
   const economieSemaine = Math.round(tempsRecupere * tauxHoraire)
-  const economieAn = economieSemaine * 48
+  const tempsRecupereMois = Math.round((tempsRecupere * semainesParMois) * 10) / 10
+  const economieMois = Math.round(economieSemaine * semainesParMois)
+  const economieAn = economieMois * 12
   const devisRecuperes = Math.round(devisPerdus * panierMoyen * tauxRecuperation / 100)
   const economieTotaleAn = economieAn + (devisRecuperes * 12)
 
-  const resetCalculator = () => { setTauxHoraire(45); setTempsMoyenDevis(45); setDevisParSemaine(5); setAutresTaches(3); setDevisPerdus(2); setPanierMoyen(900); setGainCharlie(75); setTauxRecuperation(50); setFacturesParMois(8); setRelancesParMois(12); setEnvoisDocsParMois(6); setTempsFacture(15); setTempsRelance(5); setTempsEnvoi(10) }
+  const resetCalculator = () => { setTauxHoraire(45); setTempsMoyenDevis(45); setDevisParMois(20); setAutresTaches(12); setDevisPerdus(2); setPanierMoyen(900); setGainCharlie(75); setTauxRecuperation(50); setFacturesParMois(8); setRelancesParMois(12); setEnvoisDocsParMois(6); setTempsFacture(15); setTempsRelance(5); setTempsEnvoi(10) }
 
   const faqs = [
     { question: "C'est vraiment par WhatsApp ?", answer: "Oui ! Charlie est accessible directement via WhatsApp. Tu lui parles comme à un collègue, et il gère tout pour toi." },
@@ -265,8 +273,8 @@ export default function HomePage() {
               <div className="space-y-5">
                 <SliderInput label="💰 Taux horaire" value={tauxHoraire} onChange={setTauxHoraire} min={20} max={100} step={5} unit="€" suffix="/h" />
                 <SliderInput label="⏱️ Temps par devis" value={tempsMoyenDevis} onChange={setTempsMoyenDevis} min={15} max={120} step={5} unit=" min" />
-                <SliderInput label="📄 Devis / semaine" value={devisParSemaine} onChange={setDevisParSemaine} min={1} max={20} step={1} suffix="devis" />
-                <SliderInput label="📋 Autres tâches admin" value={autresTaches} onChange={setAutresTaches} min={0} max={15} step={1} unit="h" suffix="/sem" />
+                <SliderInput label="📄 Devis / mois" value={devisParMois} onChange={setDevisParMois} min={0} max={80} step={1} suffix="devis" />
+                <SliderInput label="📋 Autres tâches admin" value={autresTaches} onChange={setAutresTaches} min={0} max={60} step={1} unit="h" suffix="/mois" />
                 <div className="pt-4 border-t border-gray-700">
                   <p className="text-xs text-gray-500 mb-4">Autres tâches administratives</p>
                   <SliderInput label="🧾 Factures / mois" value={facturesParMois} onChange={setFacturesParMois} min={0} max={20} step={1} suffix="factures" />
@@ -324,16 +332,16 @@ export default function HomePage() {
                   <div className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
                     <div className="flex items-center gap-3 mb-2">
                       <Clock className="w-5 h-5 text-gray-400" />
-                      <p className="text-gray-400 text-sm">Temps admin / semaine</p>
+                      <p className="text-gray-400 text-sm">Temps admin / mois</p>
                     </div>
-                    <p className="text-4xl font-bold text-white">{tempsAdminSemaine.toFixed(1)}<span className="text-xl text-gray-400">h</span></p>
+                    <p className="text-4xl font-bold text-white">{tempsAdminMois.toFixed(1)}<span className="text-xl text-gray-400">h</span></p>
                   </div>
                   <div className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
                     <div className="flex items-center gap-3 mb-2">
                       <Euro className="w-5 h-5 text-gray-400" />
-                      <p className="text-gray-400 text-sm">Coût hebdomadaire</p>
+                      <p className="text-gray-400 text-sm">Coût mensuel</p>
                     </div>
-                    <p className="text-4xl font-bold text-white">{coutSemaine}<span className="text-xl text-gray-400">€</span></p>
+                    <p className="text-4xl font-bold text-white">{coutMois}<span className="text-xl text-gray-400">€</span></p>
                   </div>
                   <div className="bg-orange-500/10 rounded-2xl p-4 border border-orange-500/30">
                     <div className="flex items-center gap-3 mb-2">
@@ -367,16 +375,16 @@ export default function HomePage() {
                   <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-2">
                       <Clock className="w-5 h-5 text-orange-400" />
-                      <p className="text-gray-300 text-sm">Temps récupéré / sem</p>
+                      <p className="text-gray-300 text-sm">Temps récupéré / mois</p>
                     </div>
-                    <p className="text-4xl font-bold text-orange-400">+{tempsRecupere}<span className="text-xl">h</span></p>
+                    <p className="text-4xl font-bold text-orange-400">+{tempsRecupereMois}<span className="text-xl">h</span></p>
                   </div>
                   <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-2">
                       <Euro className="w-5 h-5 text-orange-400" />
-                      <p className="text-gray-300 text-sm">Économie / semaine</p>
+                      <p className="text-gray-300 text-sm">Économie / mois</p>
                     </div>
-                    <p className="text-4xl font-bold text-orange-400">+{economieSemaine}<span className="text-xl">€</span></p>
+                    <p className="text-4xl font-bold text-orange-400">+{economieMois}<span className="text-xl">€</span></p>
                   </div>
                   <div className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 rounded-2xl p-4 border border-orange-500/40">
                     <div className="flex items-center gap-3 mb-2">
@@ -402,8 +410,8 @@ export default function HomePage() {
               </div>
               <div>
                 <p className="text-gray-400 text-sm mb-1">Temps récupéré chaque mois</p>
-                <p className="text-4xl font-bold text-white">{Math.round(tempsRecupere * 4)}<span className="text-xl text-gray-400">h</span></p>
-                <p className="text-xs text-orange-400 mt-1">→ {Math.round(tempsRecupere * 4 / 8)} jours de travail en plus</p>
+                <p className="text-4xl font-bold text-white">{tempsRecupereMois}<span className="text-xl text-gray-400">h</span></p>
+                <p className="text-xs text-orange-400 mt-1">→ {Math.round(tempsRecupereMois / 8)} jours de travail en plus</p>
               </div>
             </div>
             <div className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 rounded-2xl p-6 border border-orange-500/40 flex items-center gap-5">
@@ -513,7 +521,7 @@ export default function HomePage() {
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ce que tu gagnes avec Charlie</h2>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <BenefitCard icon={Clock} title="Gagne 10h par semaine" description="Plus de temps pour tes chantiers et ta vie perso." delay={0} />
+            <BenefitCard icon={Clock} title="Gagne 10h par mois" description="Plus de temps pour tes chantiers et ta vie perso." delay={0} />
             <BenefitCard icon={DollarSign} title="Moins d'impayés" description="Relances automatiques = plus de paiements à temps." delay={0.1} />
             <BenefitCard icon={Building2} title="Image plus pro" description="Devis soignés + signature électronique = sérieux." delay={0.2} />
             <BenefitCard icon={Smartphone} title="Tout depuis le téléphone" description="Entre deux chantiers, dans le camion, partout." delay={0.3} />
