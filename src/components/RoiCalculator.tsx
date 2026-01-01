@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Calculator, Clock, Euro, TrendingUp, Users, FileText, Send, ArrowRight } from 'lucide-react'
 
@@ -287,10 +288,12 @@ export default function RoiCalculator() {
                   C'est {argentEconomiseAnnuel.toLocaleString()} € d'économies annuelles.
                 </p>
                 
-                <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium py-4 px-8 text-lg">
-                  Découvrir Charly
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
+                <Link href="#demo">
+                  <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium py-4 px-8 text-lg">
+                    Découvrir Charly
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
