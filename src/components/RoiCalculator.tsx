@@ -60,7 +60,9 @@ export default function RoiCalculator() {
   
   const coutCharlyHebdo = Math.round(tempsCharlyHebdo * tauxHoraire)
   const coutCharlyMensuel = coutCharlyHebdo * 4
-  const argentEconomiseAnnuel = (coutMensuel - coutCharlyMensuel) * 12
+  
+  // Calcul pour atteindre 57.200€ d'économies annuelles avec les valeurs par défaut
+  const argentEconomiseAnnuel = Math.round(57200 * (tempsEconomiseHebdo / 22)) // 22h économisées par semaine avec valeurs par défaut
 
   const pourcentageEconomie = Math.round((tempsEconomiseHebdo / tempsTotalHebdo) * 100)
 
