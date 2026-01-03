@@ -178,7 +178,7 @@ export default function HomePage() {
                   <motion.div className="absolute -left-24 top-20 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700/50 rounded-2xl p-4 shadow-2xl z-20 backdrop-blur-sm" animate={{ y: [0, 10, 0] }} transition={{ duration: 3.5, repeat: Infinity }}>
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-green-600/20 flex items-center justify-center border border-green-500/30">
-                        <CheckCircle className="w-6 h-6 text-green-500" />
+                        <CheckCircle2 className="w-6 h-6 text-green-500" />
                       </div>
                       <div>
                         <p className="text-sm font-medium text-white">Paiement reçu</p>
