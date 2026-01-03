@@ -103,7 +103,7 @@ export default function HomePage() {
       <section className="pt-32 pb-16 px-4 relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900">
         <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-orange-600/10"></div>
         <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl opacity-30"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl opacity-20"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl opacity-20"></div>
         
         <div className="max-w-7xl mx-auto relative">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -177,8 +177,8 @@ export default function HomePage() {
                   
                   <motion.div className="absolute -left-24 top-20 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700/50 rounded-2xl p-4 shadow-2xl z-20 backdrop-blur-sm" animate={{ y: [0, 10, 0] }} transition={{ duration: 3.5, repeat: Infinity }}>
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-green-600/20 flex items-center justify-center border border-green-500/30">
-                        <CheckCircle2 className="w-6 h-6 text-green-500" />
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-orange-600/20 flex items-center justify-center border border-orange-500/30">
+                        <CheckCircle2 className="w-6 h-6 text-orange-500" />
                       </div>
                       <div>
                         <p className="text-sm font-medium text-white">Paiement reçu</p>
@@ -189,8 +189,8 @@ export default function HomePage() {
                   
                   <motion.div className="absolute -right-16 bottom-16 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700/50 rounded-2xl p-4 shadow-2xl z-20 backdrop-blur-sm" animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity }}>
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center border border-blue-500/30">
-                        <MessageSquare className="w-6 h-6 text-blue-500" />
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-orange-600/20 flex items-center justify-center border border-orange-500/30">
+                        <MessageSquare className="w-6 h-6 text-orange-500" />
                       </div>
                       <div>
                         <p className="text-sm font-medium text-white">Nouveau message</p>
@@ -203,8 +203,8 @@ export default function HomePage() {
               
               {/* Effets de fond améliorés */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-orange-500/20 via-transparent to-orange-600/20 rounded-full blur-3xl"></div>
-              <div className="absolute top-1/3 right-1/4 w-32 h-32 bg-blue-500/20 rounded-full blur-xl"></div>
-              <div className="absolute bottom-1/3 left-1/4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
+              <div className="absolute top-1/3 right-1/4 w-32 h-32 bg-orange-500/20 rounded-full blur-xl"></div>
+              <div className="absolute bottom-1/3 left-1/4 w-24 h-24 bg-orange-500/15 rounded-full blur-xl"></div>
             </motion.div>
           </div>
         </div>
@@ -216,7 +216,7 @@ export default function HomePage() {
           <motion.div className="text-center space-y-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}>
             <div className="space-y-6">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
-                Bienvenue chez <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">My Charlie</span>.
+                Bienvenue sur <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">My Charlie</span>.
               </h2>
               <p className="text-xl text-gray-300 leading-relaxed max-w-3xl mx-auto">
                 Tu n'es pas juste sur un logiciel.<br />
@@ -269,7 +269,7 @@ export default function HomePage() {
               <Star className="w-4 h-4" /><span>Pourquoi nous choisir</span>
             </div>
             <h2 className="text-4xl sm:text-5xl font-bold mb-6">
-              <span className="text-white">Charlie, tonassistant IA qui</span><br />
+              <span className="text-white">Charlie, ton assistant IA qui</span><br />
               <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">comprend vraiment</span><br />
               <span className="text-white">ton métier</span>
             </h2>
@@ -449,7 +449,7 @@ export default function HomePage() {
                 <div className="w-64 h-80 bg-white rounded-xl shadow-2xl p-6 text-gray-900">
                   <div className="text-center mb-4"><p className="text-xs text-gray-500">DEVIS N°2024-0042</p><p className="font-bold">Rénovation cuisine</p></div>
                   <div className="space-y-2 text-xs"><div className="flex justify-between"><span>Main d&apos;œuvre</span><span>2 400 €</span></div><div className="flex justify-between"><span>Fournitures</span><span>3 200 €</span></div><div className="border-t pt-2 flex justify-between font-bold"><span>Total TTC</span><span>5 600 €</span></div></div>
-                  <div className="mt-6 pt-4 border-t"><p className="text-xs text-gray-500 mb-2">Signature client</p><div className="h-16 border-2 border-dashed border-orange-300 rounded-lg flex items-center justify-center bg-orange-50"><span className="text-orange-500 text-xl italic">M. Martin</span></div><div className="flex items-center gap-1 mt-2 text-xs text-green-600"><CheckCircle2 className="w-3 h-3" /><span>Signé le 15/01/2025</span></div></div>
+                  <div className="mt-6 pt-4 border-t"><p className="text-xs text-gray-500 mb-2">Signature client</p><div className="h-16 border-2 border-dashed border-orange-300 rounded-lg flex items-center justify-center bg-orange-50"><span className="text-orange-500 text-xl italic">M. Martin</span></div><div className="flex items-center gap-1 mt-2 text-xs text-orange-400"><CheckCircle2 className="w-3 h-3" /><span>Signé le 15/01/2025</span></div></div>
                 </div>
               </div>
             </div>
@@ -487,7 +487,7 @@ export default function HomePage() {
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-4"><div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center"><HardHat className="w-5 h-5 text-white" /></div><span className="text-xl font-bold">CHARLIE</span></div>
               <p className="text-gray-400 mb-4">Le secrétaire et bras droit des artisans du BTP.</p>
-              <div className="flex items-center gap-2 text-sm text-gray-400"><Phone className="w-4 h-4 text-green-500" /><span>Disponible sur WhatsApp</span></div>
+              <div className="flex items-center gap-2 text-sm text-gray-400"><Phone className="w-4 h-4 text-orange-500" /><span>Disponible sur WhatsApp</span></div>
             </div>
             <div><h4 className="font-semibold mb-4">Liens</h4><ul className="space-y-2 text-sm text-gray-400"><li><a href="#comment-ca-marche" className="hover:text-white">Comment ça marche</a></li><li><a href="#calculateur" className="hover:text-white">Calculateur ROI</a></li><li><a href="#avantages" className="hover:text-white">Avantages</a></li><li><a href="#faq" className="hover:text-white">FAQ</a></li></ul></div>
             <div><h4 className="font-semibold mb-4">Légal</h4><ul className="space-y-2 text-sm text-gray-400"><li><Link href="/mentions-legales" className="hover:text-white">Mentions légales</Link></li><li><Link href="/politique-confidentialite" className="hover:text-white">Politique de confidentialité</Link></li><li><Link href="/cgv" className="hover:text-white">CGV</Link></li></ul></div>
