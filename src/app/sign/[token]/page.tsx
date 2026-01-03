@@ -310,7 +310,16 @@ export default function SignaturePage({ params }: PageProps) {
               <div>
                 <h4 className="font-medium text-sm text-gray-500 mb-1">Validité</h4>
                 <p className="font-medium">
-                  {devis.date_expiration ? `Jusqu'au ${formatDate(devis.date_expiration)}` : 'Non spécifiée'}
+                  {(() => {
+                    const dateExpiration = devis.date_expiration || 
+                      (() => {
+                        // Si pas de date d'expiration, calculer 30 jours après la création
+                        const creationDate = new Date(devis.date_creation)
+                        const expirationDate = new Date(creationDate.getTime() + 30 * 24 * 60 * 60 * 1000)
+                        return expirationDate.toISOString().split('T')[0]
+                      })()
+                    return `Jusqu'au ${formatDate(dateExpiration)}`
+                  })()}
                 </p>
               </div>
             </div>

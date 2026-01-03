@@ -283,32 +283,32 @@ export default function HomePage() {
             {[
               { 
                 icon: Zap, 
-                title: "⚡ Ultra-rapide", 
+                title: "Ultra-rapide", 
                 description: "Devis et factures en moins de 2 minutes. Plus besoin de passer des heures sur l'administratif."
               },
               { 
                 icon: MessageSquare, 
-                title: "💬 WhatsApp intégré", 
+                title: "WhatsApp intégré", 
                 description: "Gère tout par WhatsApp comme tu le fais déjà. Aucune nouvelle application à apprendre."
               },
               { 
                 icon: ShieldCheck, 
-                title: "🛡️ 100% fiable", 
+                title: "100% fiable", 
                 description: "Relances automatiques, suivi des paiements, archivage. Plus rien n'oublie, jamais."
               },
               { 
                 icon: TrendingUp, 
-                title: "📈 +10h/mois gagnées", 
+                title: "+10h/mois gagnées", 
                 description: "En moyenne, nos artisans gagnent 10 heures par mois. C'est 120 heures par an de liberté."
               },
               { 
                 icon: Users, 
-                title: "👥 Clients satisfaits", 
+                title: "Clients satisfaits", 
                 description: "Communication pro, devis soignés, suivi impeccable. Tes clients te remarquent."
               },
               { 
                 icon: Heart, 
-                title: "❤️ Moins de stress", 
+                title: "Moins de stress", 
                 description: "La charge mentale, c'est Charlie qui la prend. Tu te concentres sur ce que tu aimes."
               }
             ].map((item, index) => (

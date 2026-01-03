@@ -107,7 +107,7 @@ export default function DemoModal({ isOpen, onClose, source }: DemoModalProps) {
                   onChange={handleChange}
                   placeholder="Jean Dupont"
                   required
-                  className="w-full"
+                  className="w-full text-gray-900 border-gray-300"
                 />
               </div>
 
@@ -123,7 +123,7 @@ export default function DemoModal({ isOpen, onClose, source }: DemoModalProps) {
                   onChange={handleChange}
                   placeholder="jean@exemple.com"
                   required
-                  className="w-full"
+                  className="w-full text-gray-900 border-gray-300"
                 />
               </div>
 
@@ -138,7 +138,7 @@ export default function DemoModal({ isOpen, onClose, source }: DemoModalProps) {
                   onChange={handleChange}
                   placeholder="06 12 34 56 78"
                   required
-                  className="w-full"
+                  className="w-full text-gray-900 border-gray-300"
                 />
               </div>
 
@@ -152,7 +152,7 @@ export default function DemoModal({ isOpen, onClose, source }: DemoModalProps) {
                   value={formData.entreprise}
                   onChange={handleChange}
                   placeholder="BTP SARL"
-                  className="w-full"
+                  className="w-full text-gray-900 border-gray-300"
                 />
               </div>
 
@@ -167,7 +167,7 @@ export default function DemoModal({ isOpen, onClose, source }: DemoModalProps) {
                   onChange={handleChange}
                   placeholder="Dites-nous en plus sur votre besoin..."
                   rows={3}
-                  className="w-full"
+                  className="w-full text-gray-900 border-gray-300"
                 />
               </div>
 
