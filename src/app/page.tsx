@@ -262,15 +262,15 @@ export default function HomePage() {
       </section>
 
       <section className="py-24 px-4 bg-gradient-to-b from-black to-gray-900 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-purple-500/5"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-orange-600/5"></div>
         <div className="max-w-7xl mx-auto relative">
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-400 text-sm border border-blue-500/30 backdrop-blur-sm mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 text-orange-400 text-sm border border-orange-500/30 backdrop-blur-sm mb-6">
               <Star className="w-4 h-4" /><span>Pourquoi nous choisir</span>
             </div>
             <h2 className="text-4xl sm:text-5xl font-bold mb-6">
-              <span className="text-white">L'assistant IA qui</span><br />
-              <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">comprend vraiment</span><br />
+              <span className="text-white">Charlie, tonassistant IA qui</span><br />
+              <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">comprend vraiment</span><br />
               <span className="text-white">ton métier</span>
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -284,50 +284,32 @@ export default function HomePage() {
               { 
                 icon: Zap, 
                 title: "⚡ Ultra-rapide", 
-                description: "Devis et factures en moins de 2 minutes. Plus besoin de passer des heures sur l'administratif.",
-                color: "from-yellow-500/20 to-orange-500/20",
-                borderColor: "border-yellow-500/30",
-                iconColor: "text-yellow-500"
+                description: "Devis et factures en moins de 2 minutes. Plus besoin de passer des heures sur l'administratif."
               },
               { 
                 icon: MessageSquare, 
                 title: "💬 WhatsApp intégré", 
-                description: "Gère tout par WhatsApp comme tu le fais déjà. Aucune nouvelle application à apprendre.",
-                color: "from-green-500/20 to-emerald-500/20",
-                borderColor: "border-green-500/30",
-                iconColor: "text-green-500"
+                description: "Gère tout par WhatsApp comme tu le fais déjà. Aucune nouvelle application à apprendre."
               },
               { 
                 icon: ShieldCheck, 
                 title: "🛡️ 100% fiable", 
-                description: "Relances automatiques, suivi des paiements, archivage. Plus rien n'oublie, jamais.",
-                color: "from-blue-500/20 to-cyan-500/20",
-                borderColor: "border-blue-500/30",
-                iconColor: "text-blue-500"
+                description: "Relances automatiques, suivi des paiements, archivage. Plus rien n'oublie, jamais."
               },
               { 
                 icon: TrendingUp, 
                 title: "📈 +10h/mois gagnées", 
-                description: "En moyenne, nos artisans gagnent 10 heures par mois. C'est 120 heures par an de liberté.",
-                color: "from-purple-500/20 to-pink-500/20",
-                borderColor: "border-purple-500/30",
-                iconColor: "text-purple-500"
+                description: "En moyenne, nos artisans gagnent 10 heures par mois. C'est 120 heures par an de liberté."
               },
               { 
                 icon: Users, 
                 title: "👥 Clients satisfaits", 
-                description: "Communication pro, devis soignés, suivi impeccable. Tes clients te remarquent.",
-                color: "from-orange-500/20 to-red-500/20",
-                borderColor: "border-orange-500/30",
-                iconColor: "text-orange-500"
+                description: "Communication pro, devis soignés, suivi impeccable. Tes clients te remarquent."
               },
               { 
                 icon: Heart, 
                 title: "❤️ Moins de stress", 
-                description: "La charge mentale, c'est Charlie qui la prend. Tu te concentres sur ce que tu aimes.",
-                color: "from-red-500/20 to-pink-500/20",
-                borderColor: "border-red-500/30",
-                iconColor: "text-red-500"
+                description: "La charge mentale, c'est Charlie qui la prend. Tu te concentres sur ce que tu aimes."
               }
             ].map((item, index) => (
               <motion.div 
@@ -338,9 +320,9 @@ export default function HomePage() {
                 viewport={{ once: true }} 
                 transition={{ delay: index * 0.1 }}
               >
-                <div className={`h-full p-8 rounded-2xl bg-gradient-to-br ${item.color} border ${item.borderColor} backdrop-blur-sm hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer`}>
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${item.color} border ${item.borderColor} flex items-center justify-center mb-6`}>
-                    <item.icon className={`w-8 h-8 ${item.iconColor}`} />
+                <div className="h-full p-8 rounded-2xl bg-gradient-to-br from-gray-900/50 to-gray-800/50 border border-gray-700/50 backdrop-blur-sm hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer hover:border-orange-500/50">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/20 border border-orange-500/30 flex items-center justify-center mb-6">
+                    <item.icon className="w-8 h-8 text-orange-500" />
                   </div>
                   <h3 className="text-xl font-bold text-white mb-4 group-hover:text-orange-400 transition-colors">
                     {item.title}
@@ -350,8 +332,8 @@ export default function HomePage() {
                   </p>
                 </div>
                 
-                {/* Effet de glow au hover */}
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300 -z-10`}></div>
+                {/* Effet de glow orange au hover */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-orange-500/20 via-transparent to-orange-600/20 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-300 -z-10"></div>
               </motion.div>
             ))}
           </div>
@@ -476,23 +458,6 @@ export default function HomePage() {
       </section>
 
       <RoiCalculator />
-
-      <section id="avantages" className="order-[80] py-20 px-4 bg-gray-900">
-        <div className="max-w-7xl mx-auto">
-          <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6"><TrendingUp className="w-4 h-4" /><span>Les avantages</span></div>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ce que tu gagnes avec Charlie</h2>
-          </motion.div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <BenefitCard icon={Clock} title="Gagne 10h par mois" description="Plus de temps pour tes chantiers et ta vie perso." delay={0} />
-            <BenefitCard icon={DollarSign} title="Moins d'impayés" description="Relances automatiques = plus de paiements à temps." delay={0.1} />
-            <BenefitCard icon={Building2} title="Image plus pro" description="Devis soignés + signature électronique = sérieux." delay={0.2} />
-            <BenefitCard icon={Smartphone} title="Tout depuis le téléphone" description="Entre deux chantiers, dans le camion, partout." delay={0.3} />
-            <BenefitCard icon={Users} title="Suivi client complet" description="Historique, documents, paiements : tout est centralisé." delay={0.4} />
-            <BenefitCard icon={Heart} title="Moins de stress" description="La charge mentale, c'est Charlie qui la prend." delay={0.5} />
-          </div>
-        </div>
-      </section>
 
       <section id="faq" className="order-[100] py-20 px-4 bg-black">
         <div className="max-w-3xl mx-auto">
