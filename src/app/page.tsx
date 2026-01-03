@@ -145,6 +145,57 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="py-24 px-4 bg-gradient-to-b from-gray-900 to-black relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-orange-600/5"></div>
+        <div className="max-w-4xl mx-auto relative">
+          <motion.div className="text-center space-y-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}>
+            <div className="space-y-6">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+                Bienvenue chez <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">My Charlie</span>.
+              </h2>
+              <p className="text-xl text-gray-300 leading-relaxed max-w-3xl mx-auto">
+                Tu n'es pas juste sur un logiciel.<br />
+                Tu es au début d'une aventure.
+              </p>
+            </div>
+            
+            <div className="space-y-6 max-w-3xl mx-auto">
+              <p className="text-lg text-gray-400 leading-relaxed">
+                My Charlie est né d'un constat simple :<br />
+                les pros du bâtiment méritent mieux qu'un outil compliqué<br />
+                pour gérer leur quotidien.
+              </p>
+              
+              <p className="text-lg text-gray-400 leading-relaxed">
+                Aujourd'hui, Charlie est déjà là pour t'aider.<br />
+                Et dans les prochains mois, il va évoluer, grandir,<br />
+                et devenir le produit que beaucoup ont toujours rêvé d'avoir.
+              </p>
+              
+              <div className="space-y-4 pt-4">
+                <p className="text-lg text-gray-300 font-medium">
+                  Un assistant qui comprend ton métier.<br />
+                  Un secrétaire qui pense à ta place.<br />
+                  Un outil qui te fait gagner du temps, vraiment.
+                </p>
+                
+                <p className="text-lg text-orange-400 font-medium pt-4">
+                  Tu fais partie des premiers.<br />
+                  Et ce que tu vas utiliser demain<br />
+                  sera encore meilleur qu'aujourd'hui.
+                </p>
+              </div>
+            </div>
+            
+            <div className="pt-8 border-t border-gray-800">
+              <p className="text-sm text-gray-500 italic">
+                My Charlie — une aventure qui commence avec toi.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
         <div className="max-w-7xl mx-auto">
           <motion.div className="text-center max-w-3xl mx-auto mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
