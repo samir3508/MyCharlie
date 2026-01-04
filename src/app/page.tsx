@@ -374,6 +374,32 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="py-20 px-4 bg-black">
+        <div className="max-w-7xl mx-auto">
+          <motion.div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-3xl p-8 md:p-12 border border-orange-500/20" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm"><FileSignature className="w-4 h-4" /><span>Signature électronique</span></div>
+                <h2 className="text-3xl font-bold text-white">Devis et factures signés électroniquement</h2>
+                <p className="text-gray-300">Charlie peut envoyer tes devis à signer, suivre la signature, te prévenir, et archiver automatiquement.</p>
+                <div className="grid grid-cols-2 gap-4">
+                  {[{ icon: Send, text: "Envoi automatique" }, { icon: Target, text: "Suivi en temps réel" }, { icon: ShieldCheck, text: "Légalement valide" }, { icon: Briefcase, text: "Archivage sécurisé" }].map((item, index) => (
+                    <div key={index} className="flex items-center gap-2"><item.icon className="w-5 h-5 text-orange-500" /><span className="text-sm text-gray-300">{item.text}</span></div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-center">
+                <div className="w-64 h-80 bg-white rounded-xl shadow-2xl p-6 text-gray-900">
+                  <div className="text-center mb-4"><p className="text-xs text-gray-500">DEVIS N°2024-0042</p><p className="font-bold">Rénovation cuisine</p></div>
+                  <div className="space-y-2 text-xs"><div className="flex justify-between"><span>Main d&apos;œuvre</span><span>2 400 €</span></div><div className="flex justify-between"><span>Fournitures</span><span>3 200 €</span></div><div className="border-t pt-2 flex justify-between font-bold"><span>Total TTC</span><span>5 600 €</span></div></div>
+                  <div className="mt-6 pt-4 border-t"><p className="text-xs text-gray-500 mb-2">Signature client</p><div className="h-16 border-2 border-dashed border-orange-300 rounded-lg flex items-center justify-center bg-orange-50"><span className="text-orange-500 text-xl italic">M. Martin</span></div><div className="flex items-center gap-1 mt-2 text-xs text-orange-400"><CheckCircle2 className="w-3 h-3" /><span>Signé le 15/01/2025</span></div></div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       <section id="comment-ca-marche" className="py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black">
         <div className="max-w-4xl mx-auto">
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -535,32 +561,6 @@ export default function HomePage() {
               </div>
             </motion.div>
           </div>
-        </div>
-      </section>
-
-      <section className="py-20 px-4 bg-black">
-        <div className="max-w-7xl mx-auto">
-          <motion.div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-3xl p-8 md:p-12 border border-orange-500/20" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="space-y-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm"><FileSignature className="w-4 h-4" /><span>Signature électronique</span></div>
-                <h2 className="text-3xl font-bold">Devis et factures signés électroniquement</h2>
-                <p className="text-gray-400">Charlie peut envoyer tes devis à signer, suivre la signature, te prévenir, et archiver automatiquement.</p>
-                <div className="grid grid-cols-2 gap-4">
-                  {[{ icon: Send, text: "Envoi automatique" }, { icon: Target, text: "Suivi en temps réel" }, { icon: ShieldCheck, text: "Légalement valide" }, { icon: Briefcase, text: "Archivage sécurisé" }].map((item, index) => (
-                    <div key={index} className="flex items-center gap-2"><item.icon className="w-5 h-5 text-orange-500" /><span className="text-sm">{item.text}</span></div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex justify-center">
-                <div className="w-64 h-80 bg-white rounded-xl shadow-2xl p-6 text-gray-900">
-                  <div className="text-center mb-4"><p className="text-xs text-gray-500">DEVIS N°2024-0042</p><p className="font-bold">Rénovation cuisine</p></div>
-                  <div className="space-y-2 text-xs"><div className="flex justify-between"><span>Main d&apos;œuvre</span><span>2 400 €</span></div><div className="flex justify-between"><span>Fournitures</span><span>3 200 €</span></div><div className="border-t pt-2 flex justify-between font-bold"><span>Total TTC</span><span>5 600 €</span></div></div>
-                  <div className="mt-6 pt-4 border-t"><p className="text-xs text-gray-500 mb-2">Signature client</p><div className="h-16 border-2 border-dashed border-orange-300 rounded-lg flex items-center justify-center bg-orange-50"><span className="text-orange-500 text-xl italic">M. Martin</span></div><div className="flex items-center gap-1 mt-2 text-xs text-orange-400"><CheckCircle2 className="w-3 h-3" /><span>Signé le 15/01/2025</span></div></div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </section>
 
