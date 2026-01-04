@@ -352,8 +352,9 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div className="relative order-2 lg:order-1" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <div className="relative z-10 flex justify-center">
-                <div className="w-72 h-80 rounded-3xl flex items-center justify-center overflow-hidden relative bg-gray-900 border border-gray-700">
-                  <NextImage src="/charlie-document-v2.png" alt="Charlie avec document" width={288} height={350} className="object-contain z-10" />
+                <div className="w-96 h-96 rounded-3xl flex items-center justify-center overflow-hidden relative bg-gradient-to-br from-gray-900 to-gray-800 border border-orange-500/30 shadow-2xl">
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-3xl"></div>
+                  <NextImage src="/charlie-document-v2.png" alt="Charlie avec document" width={400} height={400} className="object-contain z-10 scale-110" />
                 </div>
               </div>
             </motion.div>
