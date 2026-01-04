@@ -374,7 +374,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="comment-ca-marche" className="py-20 px-4 bg-black">
+      <section id="comment-ca-marche" className="py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black">
         <div className="max-w-4xl mx-auto">
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6"><Zap className="w-4 h-4" /><span>Simple comme bonjour</span></div>
@@ -382,38 +382,38 @@ export default function HomePage() {
             <p className="text-xl text-gray-300">4 étapes, moins de 2 minutes max. Zéro formation nécessaire.</p>
           </motion.div>
           <div className="space-y-12">
-            <div className="flex gap-8 items-center">
+            <motion.div className="flex gap-8 items-center" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0 }}>
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">01</div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white mb-2">Tu parles à Charlie</h3>
                 <p className="text-gray-300 mb-2">Par WhatsApp ou via le logiciel, dis-lui ce dont tu as besoin.</p>
                 <p className="text-sm text-orange-400 italic">"Fais un devis pour Mme Martin, cuisine complète 15m²"</p>
               </div>
-            </div>
-            <div className="flex gap-8 items-center">
+            </motion.div>
+            <motion.div className="flex gap-8 items-center" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">02</div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white mb-2">Charlie vérifie tout</h3>
                 <p className="text-gray-300 mb-2">Il s'assure d'avoir les bonnes infos et te demande si besoin.</p>
                 <p className="text-sm text-orange-400 italic">"Pose et fourniture ? Quel délai de livraison ?"</p>
               </div>
-            </div>
-            <div className="flex gap-8 items-center">
+            </motion.div>
+            <motion.div className="flex gap-8 items-center" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">03</div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white mb-2">Tu valides en 1 clic</h3>
                 <p className="text-gray-300 mb-2">Charlie crée le document pro et te le montre.</p>
                 <p className="text-sm text-orange-400 italic">"Aperçu du devis avec tous les détails"</p>
               </div>
-            </div>
-            <div className="flex gap-8 items-center">
+            </motion.div>
+            <motion.div className="flex gap-8 items-center" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">04</div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white mb-2">Charlie envoie et relance</h3>
                 <p className="text-gray-300 mb-2">Il gère l'envoi par email/WhatsApp et les relances auto.</p>
                 <p className="text-sm text-orange-400 italic">"Devis envoyé + relance J+3 programmée"</p>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
