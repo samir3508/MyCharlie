@@ -381,39 +381,85 @@ export default function HomePage() {
             <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">Comment ça marche ?</h2>
             <p className="text-xl text-gray-300">4 étapes, moins de 2 minutes max. Zéro formation nécessaire.</p>
           </motion.div>
-          <div className="space-y-12">
-            <motion.div className="flex gap-8 items-center" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0 }}>
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">01</div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-2">Tu parles à Charlie</h3>
-                <p className="text-gray-300 mb-2">Par WhatsApp ou via le logiciel, dis-lui ce dont tu as besoin.</p>
-                <p className="text-sm text-orange-400 italic">"Fais un devis pour Mme Martin, cuisine complète 15m²"</p>
-              </div>
-            </motion.div>
-            <motion.div className="flex gap-8 items-center" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">02</div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-2">Charlie vérifie tout</h3>
-                <p className="text-gray-300 mb-2">Il s'assure d'avoir les bonnes infos et te demande si besoin.</p>
-                <p className="text-sm text-orange-400 italic">"Pose et fourniture ? Quel délai de livraison ?"</p>
-              </div>
-            </motion.div>
-            <motion.div className="flex gap-8 items-center" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">03</div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-2">Tu valides en 1 clic</h3>
-                <p className="text-gray-300 mb-2">Charlie crée le document pro et te le montre.</p>
-                <p className="text-sm text-orange-400 italic">"Aperçu du devis avec tous les détails"</p>
-              </div>
-            </motion.div>
-            <motion.div className="flex gap-8 items-center" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">04</div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-2">Charlie envoie et relance</h3>
-                <p className="text-gray-300 mb-2">Il gère l'envoi par email/WhatsApp et les relances auto.</p>
-                <p className="text-sm text-orange-400 italic">"Devis envoyé + relance J+3 programmée"</p>
-              </div>
-            </motion.div>
+          
+          <div className="max-w-2xl mx-auto">
+            <div className="space-y-6">
+              {/* Étape 1 - Discussion */}
+              <motion.div className="flex justify-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0 }}>
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-lg font-bold mb-4">01</div>
+              </motion.div>
+              
+              <motion.div className="space-y-4" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+                <div className="flex justify-start">
+                  <div className="bg-gray-800 rounded-2xl rounded-tl-none p-4 max-w-xs">
+                    <p className="text-white font-medium mb-2">Tu parles à Charlie</p>
+                    <p className="text-gray-300 text-sm">Par WhatsApp ou via le logiciel, dis-lui ce dont tu as besoin.</p>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <div className="bg-orange-500 rounded-2xl rounded-tr-none p-4 max-w-xs">
+                    <p className="text-white text-sm italic">"Fais un devis pour Mme Martin, cuisine complète 15m²"</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Étape 2 - Discussion */}
+              <motion.div className="flex justify-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-lg font-bold mb-4">02</div>
+              </motion.div>
+              
+              <motion.div className="space-y-4" initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
+                <div className="flex justify-end">
+                  <div className="bg-gray-800 rounded-2xl rounded-tr-none p-4 max-w-xs">
+                    <p className="text-white font-medium mb-2">Charlie vérifie tout</p>
+                    <p className="text-gray-300 text-sm">Il s'assure d'avoir les bonnes infos et te demande si besoin.</p>
+                  </div>
+                </div>
+                <div className="flex justify-start">
+                  <div className="bg-orange-500 rounded-2xl rounded-tl-none p-4 max-w-xs">
+                    <p className="text-white text-sm italic">"Pose et fourniture ? Quel délai de livraison ?"</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Étape 3 - Discussion */}
+              <motion.div className="flex justify-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.4 }}>
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-lg font-bold mb-4">03</div>
+              </motion.div>
+              
+              <motion.div className="space-y-4" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.5 }}>
+                <div className="flex justify-start">
+                  <div className="bg-gray-800 rounded-2xl rounded-tl-none p-4 max-w-xs">
+                    <p className="text-white font-medium mb-2">Tu valides en 1 clic</p>
+                    <p className="text-gray-300 text-sm">Charlie crée le document pro et te le montre.</p>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <div className="bg-orange-500 rounded-2xl rounded-tr-none p-4 max-w-xs">
+                    <p className="text-white text-sm italic">"Aperçu du devis avec tous les détails"</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Étape 4 - Discussion */}
+              <motion.div className="flex justify-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.6 }}>
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-lg font-bold mb-4">04</div>
+              </motion.div>
+              
+              <motion.div className="space-y-4" initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.7 }}>
+                <div className="flex justify-end">
+                  <div className="bg-gray-800 rounded-2xl rounded-tr-none p-4 max-w-xs">
+                    <p className="text-white font-medium mb-2">Charlie envoie et relance</p>
+                    <p className="text-gray-300 text-sm">Il gère l'envoi par email/WhatsApp et les relances auto.</p>
+                  </div>
+                </div>
+                <div className="flex justify-start">
+                  <div className="bg-orange-500 rounded-2xl rounded-tl-none p-4 max-w-xs">
+                    <p className="text-white text-sm italic">"Devis envoyé + relance J+3 programmée"</p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </div>
         </div>
       </section>
