@@ -100,16 +100,12 @@ export default function HomePage() {
 
       <main className="flex flex-col">
 
-      <section className="pt-32 pb-16 px-4 relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-orange-600/10"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl opacity-30"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl opacity-20"></div>
-        
-        <div className="max-w-7xl mx-auto relative">
+      <section className="pt-32 pb-16 px-4 relative bg-black">
+        <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div className="space-y-8" initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
+            <motion.div className="space-y-8" initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 text-orange-400 text-sm border border-orange-500/30 backdrop-blur-sm">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 text-orange-400 text-sm border border-orange-500/30">
                   <Zap className="w-4 h-4" /><span>🚀 L'assistant IA qui transforme ton quotidien</span>
                 </div>
                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
@@ -124,29 +120,29 @@ export default function HomePage() {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <Button size="lg" className="w-full sm:w-auto h-16 px-8 text-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/25 transition-all duration-300 hover:scale-105" onClick={() => { setDemoSource('demo'); setDemoModalOpen(true); }}>
+                <Button size="lg" className="w-full sm:w-auto h-16 px-8 text-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 transition-all duration-200" onClick={() => { setDemoSource('demo'); setDemoModalOpen(true); }}>
                   <Sparkles className="mr-2 w-5 h-5" />Demander une démo gratuite<ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
-                <a href="#comment-ca-marche"><Button variant="outline" size="lg" className="w-full sm:w-auto h-16 px-8 text-lg border-gray-700 text-gray-300 hover:bg-gray-800 hover:border-orange-500 transition-all duration-300">Voir comment ça marche</Button></a>
+                <a href="#comment-ca-marche"><Button variant="outline" size="lg" className="w-full sm:w-auto h-16 px-8 text-lg border-gray-700 text-gray-300 hover:bg-gray-800 hover:border-orange-500 transition-all duration-200">Voir comment ça marche</Button></a>
               </div>
               
               <div className="grid grid-cols-3 gap-6 pt-8">
-                <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/20 flex items-center justify-center mb-3 border border-orange-500/30">
+                <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                  <div className="w-16 h-16 rounded-2xl bg-orange-500/20 flex items-center justify-center mb-3 border border-orange-500/30">
                     <Timer className="w-8 h-8 text-orange-500" />
                   </div>
                   <p className="text-2xl font-bold text-white">&lt;2 min</p>
                   <p className="text-sm text-gray-400">Devis créé</p>
                 </motion.div>
-                <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/20 flex items-center justify-center mb-3 border border-orange-500/30">
+                <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                  <div className="w-16 h-16 rounded-2xl bg-orange-500/20 flex items-center justify-center mb-3 border border-orange-500/30">
                     <Bell className="w-8 h-8 text-orange-500" />
                   </div>
                   <p className="text-2xl font-bold text-white">Auto</p>
                   <p className="text-sm text-gray-400">Relances</p>
                 </motion.div>
-                <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/20 flex items-center justify-center mb-3 border border-orange-500/30">
+                <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                  <div className="w-16 h-16 rounded-2xl bg-orange-500/20 flex items-center justify-center mb-3 border border-orange-500/30">
                     <Users className="w-8 h-8 text-orange-500" />
                   </div>
                   <p className="text-2xl font-bold text-white">100%</p>
@@ -155,56 +151,51 @@ export default function HomePage() {
               </div>
             </motion.div>
             
-            <motion.div className="relative" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.2 }}>
+            <motion.div className="relative" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
               <div className="relative z-10 flex justify-center">
                 <div className="relative">
-                  <div className="w-96 h-[500px] rounded-3xl flex items-center justify-center overflow-hidden relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 shadow-2xl">
-                    <NextImage src="/charlie-hero-v2.png" alt="Charlie - Assistant IA BTP" width={384} height={500} className="object-contain z-10" priority />
+                  <div className="w-80 h-96 rounded-3xl flex items-center justify-center overflow-hidden relative bg-gray-900 border border-gray-700">
+                    <NextImage src="/charlie-hero-v2.png" alt="Charlie - Assistant IA BTP" width={320} height={400} className="object-contain z-10" priority />
                   </div>
                   
-                  {/* Cartes flottantes améliorées */}
-                  <motion.div className="absolute -right-20 top-8 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700/50 rounded-2xl p-4 shadow-2xl z-20 backdrop-blur-sm" animate={{ y: [0, -10, 0] }} transition={{ duration: 3, repeat: Infinity }}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-orange-600/20 flex items-center justify-center border border-orange-500/30">
-                        <Send className="w-6 h-6 text-orange-500" />
+                  {/* Cartes flottantes simplifiées */}
+                  <motion.div className="absolute -right-16 top-8 bg-gray-900 border border-gray-700 rounded-xl p-3 z-20" animate={{ y: [0, -5, 0] }} transition={{ duration: 3, repeat: Infinity }}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
+                        <Send className="w-4 h-4 text-orange-500" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-white">Devis envoyé</p>
-                        <p className="text-xs text-gray-400">M. Dupont • Il y a 2 min</p>
+                        <p className="text-xs font-medium text-white">Devis envoyé</p>
+                        <p className="text-xs text-gray-400">M. Dupont</p>
                       </div>
                     </div>
                   </motion.div>
                   
-                  <motion.div className="absolute -left-24 top-20 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700/50 rounded-2xl p-4 shadow-2xl z-20 backdrop-blur-sm" animate={{ y: [0, 10, 0] }} transition={{ duration: 3.5, repeat: Infinity }}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-orange-600/20 flex items-center justify-center border border-orange-500/30">
-                        <CheckCircle2 className="w-6 h-6 text-orange-500" />
+                  <motion.div className="absolute -left-20 top-16 bg-gray-900 border border-gray-700 rounded-xl p-3 z-20" animate={{ y: [0, 5, 0] }} transition={{ duration: 3.5, repeat: Infinity }}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
+                        <CheckCircle2 className="w-4 h-4 text-orange-500" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-white">Paiement reçu</p>
-                        <p className="text-xs text-gray-400">Facture #1234 • €2,450</p>
+                        <p className="text-xs font-medium text-white">Paiement reçu</p>
+                        <p className="text-xs text-gray-400">Facture #1234</p>
                       </div>
                     </div>
                   </motion.div>
                   
-                  <motion.div className="absolute -right-16 bottom-16 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700/50 rounded-2xl p-4 shadow-2xl z-20 backdrop-blur-sm" animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity }}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-orange-600/20 flex items-center justify-center border border-orange-500/30">
-                        <MessageSquare className="w-6 h-6 text-orange-500" />
+                  <motion.div className="absolute -right-16 bottom-16 bg-gray-900 border border-gray-700 rounded-xl p-3 z-20" animate={{ y: [0, -4, 0] }} transition={{ duration: 4, repeat: Infinity }}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
+                        <MessageSquare className="w-4 h-4 text-orange-500" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-white">Nouveau message</p>
-                        <p className="text-xs text-gray-400">Via WhatsApp • Client</p>
+                        <p className="text-xs font-medium text-white">Nouveau message</p>
+                        <p className="text-xs text-gray-400">Via WhatsApp</p>
                       </div>
                     </div>
                   </motion.div>
                 </div>
               </div>
-              
-              {/* Effets de fond améliorés */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-orange-500/20 via-transparent to-orange-600/20 rounded-full blur-3xl"></div>
-              <div className="absolute top-1/3 right-1/4 w-32 h-32 bg-orange-500/20 rounded-full blur-xl"></div>
-              <div className="absolute bottom-1/3 left-1/4 w-24 h-24 bg-orange-500/15 rounded-full blur-xl"></div>
             </motion.div>
           </div>
         </div>
@@ -314,26 +305,21 @@ export default function HomePage() {
             ].map((item, index) => (
               <motion.div 
                 key={index} 
-                className="group relative"
+                className="h-full p-8 rounded-2xl bg-black border border-gray-700 hover:border-orange-500 transition-all duration-200"
                 initial={{ opacity: 0, y: 30 }} 
                 whileInView={{ opacity: 1, y: 0 }} 
                 viewport={{ once: true }} 
                 transition={{ delay: index * 0.1 }}
               >
-                <div className="h-full p-8 rounded-2xl bg-gradient-to-br from-gray-900/50 to-gray-800/50 border border-gray-700/50 backdrop-blur-sm hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer hover:border-orange-500/50">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/20 border border-orange-500/30 flex items-center justify-center mb-6">
-                    <item.icon className="w-8 h-8 text-orange-500" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-4 group-hover:text-orange-400 transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    {item.description}
-                  </p>
+                <div className="w-16 h-16 rounded-2xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center mb-6">
+                  <item.icon className="w-8 h-8 text-orange-500" />
                 </div>
-                
-                {/* Effet de glow orange au hover */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-orange-500/20 via-transparent to-orange-600/20 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-300 -z-10"></div>
+                <h3 className="text-xl font-bold text-white mb-4 hover:text-orange-400 transition-colors">
+                  {item.title}
+                </h3>
+                <p className="text-gray-300 leading-relaxed">
+                  {item.description}
+                </p>
               </motion.div>
             ))}
           </div>
@@ -389,18 +375,35 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="comment-ca-marche" className="py-20 px-4 bg-gray-900">
+      <section id="comment-ca-marche" className="py-20 px-4 bg-black">
         <div className="max-w-4xl mx-auto">
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6"><Zap className="w-4 h-4" /><span>Simple comme bonjour</span></div>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">Comment ça marche ?</h2>
             <p className="text-xl text-gray-400">4 étapes, moins de 2 minutes max. Zéro formation nécessaire.</p>
           </motion.div>
-          <div className="space-y-12">
-            <StepCard number="01" title="Tu parles à Charlie" description="Par WhatsApp ou via le logiciel, dis-lui ce dont tu as besoin." example="Fais un devis pour Mme Martin, cuisine complète 15m²" delay={0} />
-            <StepCard number="02" title="Charlie vérifie tout" description="Il s'assure d'avoir les bonnes infos et te demande si besoin." example="Pose et fourniture ? Quel délai de livraison ?" delay={0.1} />
-            <StepCard number="03" title="Tu valides en 1 clic" description="Charlie crée le document pro et te le montre." example="Aperçu du devis avec tous les détails" delay={0.2} />
-            <StepCard number="04" title="Charlie envoie et relance" description="Il gère l'envoi par email/WhatsApp et les relances auto." example="Devis envoyé + relance J+3 programmée" delay={0.3} />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { number: "01", title: "Tu parles à Charlie", desc: "Par WhatsApp, dis-lui ce dont tu as besoin" },
+              { number: "02", title: "Charlie vérifie tout", desc: "Il s'assure d'avoir les bonnes infos" },
+              { number: "03", title: "Tu valides en 1 clic", desc: "Charlie crée le document pro" },
+              { number: "04", title: "Charlie envoie et relance", desc: "Il gère l'envoi et les relances auto" }
+            ].map((step, index) => (
+              <motion.div 
+                key={index} 
+                className="text-center p-6 rounded-2xl bg-gray-900 border border-gray-700 hover:border-orange-500 transition-all duration-200"
+                initial={{ opacity: 0, y: 20 }} 
+                whileInView={{ opacity: 1, y: 0 }} 
+                viewport={{ once: true }} 
+                transition={{ delay: index * 0.1 }}
+              >
+                <div className="w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-orange-500 font-bold">{step.number}</span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
+                <p className="text-sm text-gray-400">{step.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
