@@ -347,26 +347,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gray-900">
+      <section className="py-20 px-4 bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div className="relative order-2 lg:order-1" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <div className="relative z-10 flex justify-center">
-                <div className="w-72 h-80 rounded-3xl flex items-center justify-center overflow-hidden relative">
+                <div className="w-72 h-80 rounded-3xl flex items-center justify-center overflow-hidden relative bg-gray-900 border border-gray-700">
                   <NextImage src="/charlie-document-v2.png" alt="Charlie avec document" width={288} height={350} className="object-contain z-10" />
                 </div>
               </div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl"></div>
             </motion.div>
             <motion.div className="space-y-6 order-1 lg:order-2" initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-500/20 to-orange-600/20 text-orange-400 text-sm border border-orange-500/30"><Sparkles className="w-4 h-4" /><span>La solution</span></div>
-              <h2 className="text-3xl sm:text-4xl font-bold">Voici Charlie. Ton assistant administratif.</h2>
-              <p className="text-xl text-gray-400">Charlie gère tout l&apos;administratif pour toi. Par WhatsApp ou depuis ton logiciel de suivi.</p>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm border border-orange-500/30"><Sparkles className="w-4 h-4" /><span>La solution</span></div>
+              <h2 className="text-3xl sm:text-4xl font-bold text-white">Voici Charlie. Ton assistant administratif.</h2>
+              <p className="text-xl text-gray-300">Charlie gère tout l&apos;administratif pour toi. Par WhatsApp ou depuis ton logiciel de suivi.</p>
               <div className="space-y-4 pt-4">
                 {["Comprend ta demande", "Vérifie les infos", "Crée les documents", "Envoie aux clients", "Relance automatiquement", "Fait signer électroniquement"].map((item, index) => (
                   <motion.div key={index} className="flex items-center gap-3" initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }}>
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center"><Check className="w-4 h-4 text-white" /></div>
-                    <span className="text-lg">{item}</span>
+                    <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center"><Check className="w-4 h-4 text-white" /></div>
+                    <span className="text-lg text-white">{item}</span>
                   </motion.div>
                 ))}
               </div>
