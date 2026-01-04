@@ -154,10 +154,7 @@ export default function HomePage() {
             <motion.div className="relative" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
               <div className="relative z-10 flex justify-center">
                 <div className="relative">
-                  <div className="w-96 h-96 rounded-3xl flex items-center justify-center overflow-hidden relative bg-gradient-to-br from-gray-900 to-gray-800 border border-orange-500/30 shadow-2xl">
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-3xl"></div>
-                    <NextImage src="/charlie-hero-v2.png" alt="Charlie - Assistant IA BTP" width={400} height={400} className="object-contain z-10 scale-110" priority />
-                  </div>
+                  <NextImage src="/charlie-hero-v2.png" alt="Charlie - Assistant IA BTP" width={400} height={400} className="object-contain z-10 scale-110" priority />
                   
                   {/* Cartes flottantes simplifiées */}
                   <motion.div className="absolute -right-16 top-8 bg-gradient-to-br from-gray-900 to-gray-800 border border-orange-500/30 rounded-xl p-3 z-20 shadow-lg" animate={{ y: [0, -5, 0] }} transition={{ duration: 3, repeat: Infinity }}>
@@ -353,10 +350,7 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div className="relative order-2 lg:order-1" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <div className="relative z-10 flex justify-center">
-                <div className="w-96 h-96 rounded-3xl flex items-center justify-center overflow-hidden relative bg-gradient-to-br from-gray-900 to-gray-800 border border-orange-500/30 shadow-2xl">
-                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-3xl"></div>
-                  <NextImage src="/charlie-document-v2.png" alt="Charlie avec document" width={400} height={400} className="object-contain z-10 scale-110" />
-                </div>
+                <NextImage src="/charlie-document-v2.png" alt="Charlie avec document" width={400} height={400} className="object-contain z-10 scale-110" />
               </div>
             </motion.div>
             <motion.div className="space-y-6 order-1 lg:order-2" initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
