@@ -154,12 +154,13 @@ export default function HomePage() {
             <motion.div className="relative" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
               <div className="relative z-10 flex justify-center">
                 <div className="relative">
-                  <div className="w-80 h-96 rounded-3xl flex items-center justify-center overflow-hidden relative bg-gray-900 border border-gray-700">
-                    <NextImage src="/charlie-hero-v2.png" alt="Charlie - Assistant IA BTP" width={320} height={400} className="object-contain z-10" priority />
+                  <div className="w-96 h-96 rounded-3xl flex items-center justify-center overflow-hidden relative bg-gradient-to-br from-gray-900 to-gray-800 border border-orange-500/30 shadow-2xl">
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-3xl"></div>
+                    <NextImage src="/charlie-hero-v2.png" alt="Charlie - Assistant IA BTP" width={400} height={400} className="object-contain z-10 scale-110" priority />
                   </div>
                   
                   {/* Cartes flottantes simplifiées */}
-                  <motion.div className="absolute -right-16 top-8 bg-gray-900 border border-gray-700 rounded-xl p-3 z-20" animate={{ y: [0, -5, 0] }} transition={{ duration: 3, repeat: Infinity }}>
+                  <motion.div className="absolute -right-16 top-8 bg-gradient-to-br from-gray-900 to-gray-800 border border-orange-500/30 rounded-xl p-3 z-20 shadow-lg" animate={{ y: [0, -5, 0] }} transition={{ duration: 3, repeat: Infinity }}>
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
                         <Send className="w-4 h-4 text-orange-500" />
