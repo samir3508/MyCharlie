@@ -70,8 +70,8 @@ export default function RoiCalculator() {
   const pourcentageEconomie = Math.round((tempsEconomiseHebdo / tempsTotalHebdo) * 100)
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-900/50 to-black relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-orange-600/5"></div>
+    <section className="py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-orange-600/5"></div>
       <div className="max-w-7xl mx-auto relative">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6 border border-orange-500/30">
