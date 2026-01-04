@@ -378,31 +378,42 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto">
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6"><Zap className="w-4 h-4" /><span>Simple comme bonjour</span></div>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Comment ça marche ?</h2>
-            <p className="text-xl text-gray-400">4 étapes, moins de 2 minutes max. Zéro formation nécessaire.</p>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">Comment ça marche ?</h2>
+            <p className="text-xl text-gray-300">4 étapes, moins de 2 minutes max. Zéro formation nécessaire.</p>
           </motion.div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { number: "01", title: "Tu parles à Charlie", desc: "Par WhatsApp, dis-lui ce dont tu as besoin" },
-              { number: "02", title: "Charlie vérifie tout", desc: "Il s'assure d'avoir les bonnes infos" },
-              { number: "03", title: "Tu valides en 1 clic", desc: "Charlie crée le document pro" },
-              { number: "04", title: "Charlie envoie et relance", desc: "Il gère l'envoi et les relances auto" }
-            ].map((step, index) => (
-              <motion.div 
-                key={index} 
-                className="text-center p-6 rounded-2xl bg-gray-900 border border-gray-700 hover:border-orange-500 transition-all duration-200"
-                initial={{ opacity: 0, y: 20 }} 
-                whileInView={{ opacity: 1, y: 0 }} 
-                viewport={{ once: true }} 
-                transition={{ delay: index * 0.1 }}
-              >
-                <div className="w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-orange-500 font-bold">{step.number}</span>
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-400">{step.desc}</p>
-              </motion.div>
-            ))}
+          <div className="space-y-12">
+            <div className="flex gap-8 items-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">01</div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white mb-2">Tu parles à Charlie</h3>
+                <p className="text-gray-300 mb-2">Par WhatsApp ou via le logiciel, dis-lui ce dont tu as besoin.</p>
+                <p className="text-sm text-orange-400 italic">"Fais un devis pour Mme Martin, cuisine complète 15m²"</p>
+              </div>
+            </div>
+            <div className="flex gap-8 items-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">02</div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white mb-2">Charlie vérifie tout</h3>
+                <p className="text-gray-300 mb-2">Il s'assure d'avoir les bonnes infos et te demande si besoin.</p>
+                <p className="text-sm text-orange-400 italic">"Pose et fourniture ? Quel délai de livraison ?"</p>
+              </div>
+            </div>
+            <div className="flex gap-8 items-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">03</div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white mb-2">Tu valides en 1 clic</h3>
+                <p className="text-gray-300 mb-2">Charlie crée le document pro et te le montre.</p>
+                <p className="text-sm text-orange-400 italic">"Aperçu du devis avec tous les détails"</p>
+              </div>
+            </div>
+            <div className="flex gap-8 items-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">04</div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white mb-2">Charlie envoie et relance</h3>
+                <p className="text-gray-300 mb-2">Il gère l'envoi par email/WhatsApp et les relances auto.</p>
+                <p className="text-sm text-orange-400 italic">"Devis envoyé + relance J+3 programmée"</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
