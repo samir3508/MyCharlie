@@ -100,7 +100,7 @@ export default function HomePage() {
 
       <main className="flex flex-col">
 
-      <section className="pt-32 pb-16 px-4 relative bg-gradient-to-br from-black via-gray-900 to-black">
+      <section className="pt-32 pb-16 px-4 relative bg-gradient-to-br from-black via-black to-black">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div className="space-y-8" initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
@@ -202,7 +202,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-24 px-4 bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden">
+      <section className="py-24 px-4 bg-gradient-to-br from-black via-black to-black relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-orange-600/5"></div>
         <div className="max-w-4xl mx-auto relative">
           <motion.div className="text-center space-y-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}>
@@ -253,7 +253,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-24 px-4 bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden">
+      <section className="py-24 px-4 bg-gradient-to-br from-black via-black to-black relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-orange-600/5"></div>
         <div className="max-w-7xl mx-auto relative">
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -327,7 +327,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black">
+      <section className="py-20 px-4 bg-gradient-to-br from-black via-black to-black">
         <div className="max-w-7xl mx-auto">
           <motion.div className="text-center max-w-3xl mx-auto mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6 border border-orange-500/30"><AlertCircle className="w-4 h-4" /><span>Le problème</span></div>
@@ -348,7 +348,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black">
+      <section className="py-20 px-4 bg-gradient-to-br from-black via-black to-black">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div className="relative order-2 lg:order-1" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
@@ -376,7 +376,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black">
+      <section className="py-20 px-4 bg-gradient-to-br from-black via-black to-black">
         <div className="max-w-7xl mx-auto">
           <motion.div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-3xl p-8 md:p-12 border border-orange-500/20" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="grid md:grid-cols-2 gap-8 items-center">
@@ -402,7 +402,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="comment-ca-marche" className="py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black">
+      <section id="comment-ca-marche" className="py-20 px-4 bg-gradient-to-br from-black via-black to-black">
         <div className="max-w-4xl mx-auto">
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6"><Zap className="w-4 h-4" /><span>Simple comme bonjour</span></div>
@@ -540,7 +540,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black">
+      <section className="py-20 px-4 bg-gradient-to-br from-black via-black to-black">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div className="space-y-6" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
@@ -568,7 +568,7 @@ export default function HomePage() {
 
       <RoiCalculator />
 
-      <section id="faq" className="order-[100] py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black">
+      <section id="faq" className="order-[100] py-20 px-4 bg-gradient-to-br from-black via-black to-black">
         <div className="max-w-3xl mx-auto">
           <motion.div className="text-center mb-12" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">Questions fréquentes</h2>
@@ -577,7 +577,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black">
+      <section className="py-20 px-4 bg-gradient-to-br from-black via-black to-black">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm"><Sparkles className="w-4 h-4" /><span>Libère-toi de l&apos;administratif</span></div>
@@ -590,7 +590,7 @@ export default function HomePage() {
 
       </main>
 
-      <footer className="bg-gradient-to-br from-black via-gray-900 to-black border-t border-gray-800 py-12 px-4">
+      <footer className="bg-gradient-to-br from-black via-black to-black border-t border-gray-800 py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
