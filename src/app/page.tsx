@@ -379,83 +379,131 @@ export default function HomePage() {
           <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm mb-6"><Zap className="w-4 h-4" /><span>Simple comme bonjour</span></div>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">Comment ça marche ?</h2>
-            <p className="text-xl text-gray-300">4 étapes, moins de 2 minutes max. Zéro formation nécessaire.</p>
+            <p className="text-xl text-gray-300">Processus détaillé de Charlie – de la demande à l'envoi de devis/facture</p>
           </motion.div>
           
-          <div className="max-w-2xl mx-auto">
-            <div className="space-y-6">
-              {/* Étape 1 - Discussion */}
-              <motion.div className="flex justify-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0 }}>
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-lg font-bold mb-4">01</div>
-              </motion.div>
-              
-              <motion.div className="space-y-4" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
-                <div className="flex justify-start">
-                  <div className="bg-gray-800 rounded-2xl rounded-tl-none p-4 max-w-xs">
-                    <p className="text-white font-medium mb-2">Tu parles à Charlie</p>
-                    <p className="text-gray-300 text-sm">Par WhatsApp ou via le logiciel, dis-lui ce dont tu as besoin.</p>
-                  </div>
+          <div className="max-w-3xl mx-auto">
+            <div className="space-y-8">
+              {/* Étape 1 - Demande initiale */}
+              <motion.div className="space-y-4" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0 }}>
+                <div className="text-center mb-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold mx-auto">1</div>
+                  <p className="text-orange-400 text-sm mt-2">L'utilisateur fait sa demande</p>
                 </div>
-                <div className="flex justify-end">
-                  <div className="bg-orange-500 rounded-2xl rounded-tr-none p-4 max-w-xs">
-                    <p className="text-white text-sm italic">"Fais un devis pour Mme Martin, cuisine complète 15m²"</p>
+                <div className="flex justify-start">
+                  <div className="bg-gray-800 rounded-2xl rounded-tl-none p-4 max-w-md">
+                    <p className="text-white text-sm">Devis pour Thomas Bernard, 12 rue Victor Hugo, protection sols + peinture</p>
                   </div>
                 </div>
               </motion.div>
 
-              {/* Étape 2 - Discussion */}
-              <motion.div className="flex justify-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-lg font-bold mb-4">02</div>
-              </motion.div>
-              
-              <motion.div className="space-y-4" initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
-                <div className="flex justify-end">
-                  <div className="bg-gray-800 rounded-2xl rounded-tr-none p-4 max-w-xs">
-                    <p className="text-white font-medium mb-2">Charlie vérifie tout</p>
-                    <p className="text-gray-300 text-sm">Il s'assure d'avoir les bonnes infos et te demande si besoin.</p>
-                  </div>
+              {/* Étape 2 - Premier résumé */}
+              <motion.div className="space-y-4" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+                <div className="text-center mb-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold mx-auto">2</div>
+                  <p className="text-orange-400 text-sm mt-2">Premier résumé de la demande</p>
                 </div>
-                <div className="flex justify-start">
-                  <div className="bg-orange-500 rounded-2xl rounded-tl-none p-4 max-w-xs">
-                    <p className="text-white text-sm italic">"Pose et fourniture ? Quel délai de livraison ?"</p>
+                <div className="flex justify-end">
+                  <div className="bg-orange-500 rounded-2xl rounded-tr-none p-4 max-w-md">
+                    <p className="text-white text-sm font-medium mb-2">📋 RÉSUMÉ DE VOTRE DEMANDE</p>
+                    <p className="text-white text-xs mb-1">👤 Client: Thomas Bernard</p>
+                    <p className="text-white text-xs mb-1">📍 Chantier: 12 rue Victor Hugo</p>
+                    <p className="text-white text-xs mb-1">🔧 Travaux: Protection sols + Peinture</p>
+                    <p className="text-white text-xs mb-2">💰 Estimation: En cours de calcul</p>
+                    <p className="text-white text-xs italic">❓ Adresse de facturation ? Délais d'exécution ?</p>
                   </div>
                 </div>
               </motion.div>
 
-              {/* Étape 3 - Discussion */}
-              <motion.div className="flex justify-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.4 }}>
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-lg font-bold mb-4">03</div>
-              </motion.div>
-              
-              <motion.div className="space-y-4" initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.5 }}>
-                <div className="flex justify-start">
-                  <div className="bg-gray-800 rounded-2xl rounded-tl-none p-4 max-w-xs">
-                    <p className="text-white font-medium mb-2">Tu valides en 1 clic</p>
-                    <p className="text-gray-300 text-sm">Charlie crée le document pro et te le montre.</p>
-                  </div>
+              {/* Étape 3 - Questions complémentaires */}
+              <motion.div className="space-y-4" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+                <div className="text-center mb-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold mx-auto">3</div>
+                  <p className="text-orange-400 text-sm mt-2">Questions complémentaires</p>
                 </div>
-                <div className="flex justify-end">
-                  <div className="bg-orange-500 rounded-2xl rounded-tr-none p-4 max-w-xs">
-                    <p className="text-white text-sm italic">"Aperçu du devis avec tous les détails"</p>
+                <div className="flex justify-start">
+                  <div className="bg-gray-800 rounded-2xl rounded-tl-none p-4 max-w-md">
+                    <p className="text-white text-sm">Adresse de facturation identique au chantier. Délais: 2 semaines. Paiement: 30% acompte.</p>
                   </div>
                 </div>
               </motion.div>
 
-              {/* Étape 4 - Discussion */}
-              <motion.div className="flex justify-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.6 }}>
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-lg font-bold mb-4">04</div>
-              </motion.div>
-              
-              <motion.div className="space-y-4" initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.7 }}>
+              {/* Étape 4 - Résumé global */}
+              <motion.div className="space-y-4" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
+                <div className="text-center mb-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold mx-auto">4</div>
+                  <p className="text-orange-400 text-sm mt-2">Résumé global de la demande</p>
+                </div>
                 <div className="flex justify-end">
-                  <div className="bg-gray-800 rounded-2xl rounded-tr-none p-4 max-w-xs">
-                    <p className="text-white font-medium mb-2">Charlie envoie et relance</p>
-                    <p className="text-gray-300 text-sm">Il gère l'envoi par email/WhatsApp et les relances auto.</p>
+                  <div className="bg-orange-500 rounded-2xl rounded-tr-none p-4 max-w-md">
+                    <p className="text-white text-sm font-medium mb-2">📄 DEVIS COMPLET PRÊT</p>
+                    <p className="text-white text-xs mb-1">👤 Thomas Bernard</p>
+                    <p className="text-white text-xs mb-1">📍 12 rue Victor Hugo</p>
+                    <p className="text-white text-xs mb-1">🔧 Protection sols: 800€ HT</p>
+                    <p className="text-white text-xs mb-1">🎨 Peinture: 1,200€ HT</p>
+                    <p className="text-white text-xs mb-2">💰 TOTAL: 2,000€ HT / 2,400€ TTC</p>
+                    <p className="text-white text-xs italic">✅ Validez pour création du devis</p>
                   </div>
                 </div>
+              </motion.div>
+
+              {/* Étape 5 - Création du devis */}
+              <motion.div className="space-y-4" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.4 }}>
+                <div className="text-center mb-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold mx-auto">5</div>
+                  <p className="text-orange-400 text-sm mt-2">Création du devis</p>
+                </div>
                 <div className="flex justify-start">
-                  <div className="bg-orange-500 rounded-2xl rounded-tl-none p-4 max-w-xs">
-                    <p className="text-white text-sm italic">"Devis envoyé + relance J+3 programmée"</p>
+                  <div className="bg-gray-800 rounded-2xl rounded-tl-none p-4 max-w-md">
+                    <p className="text-white text-sm">✅ Validé</p>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <div className="bg-orange-500 rounded-2xl rounded-tr-none p-4 max-w-md">
+                    <p className="text-white text-sm font-medium mb-2">📄 DEVIS DV-2026-013 CRÉÉ</p>
+                    <p className="text-white text-xs mb-1">✅ Numérotation automatique</p>
+                    <p className="text-white text-xs mb-1">✅ Conditions de paiement</p>
+                    <p className="text-white text-xs mb-1">✅ TVA et totaux détaillés</p>
+                    <p className="text-white text-xs italic">📤 Comment envoyer ce devis ?</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Étape 6 - Envoi */}
+              <motion.div className="space-y-4" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.5 }}>
+                <div className="text-center mb-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold mx-auto">6</div>
+                  <p className="text-orange-400 text-sm mt-2">Résumé final avant envoi</p>
+                </div>
+                <div className="flex justify-start">
+                  <div className="bg-gray-800 rounded-2xl rounded-tl-none p-4 max-w-md">
+                    <p className="text-white text-sm">WhatsApp + Email</p>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <div className="bg-green-600 rounded-2xl rounded-tr-none p-4 max-w-md">
+                    <p className="text-white text-sm font-medium mb-2">🎉 DEVIS ENVOYÉ AVEC SUCCÈS</p>
+                    <p className="text-white text-xs mb-1">📱 WhatsApp: Envoyé</p>
+                    <p className="text-white text-xs mb-1">📧 Email: Envoyé</p>
+                    <p className="text-white text-xs mb-1">🔄 Relance J+3 programmée</p>
+                    <p className="text-white text-xs italic">✨ Je vous tiens au courant !</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Étape 7 - Vision complète */}
+              <motion.div className="space-y-4" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.6 }}>
+                <div className="text-center mb-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold mx-auto">7</div>
+                  <p className="text-orange-400 text-sm mt-2">Vision complète</p>
+                </div>
+                <div className="flex justify-end">
+                  <div className="bg-gray-800 rounded-2xl rounded-tr-none p-4 max-w-md">
+                    <p className="text-white text-sm font-medium mb-2">📊 VOTRE TABLEAU DE BORD</p>
+                    <p className="text-white text-xs mb-1">📋 DV-2026-013: Envoyé (En attente signature)</p>
+                    <p className="text-white text-xs mb-1">📞 Relance: 3 jours</p>
+                    <p className="text-white text-xs mb-1">💰 Facture: Prête (en attente validation)</p>
+                    <p className="text-white text-xs italic">🎯 Tout centralisé, rien n'oublie !</p>
                   </div>
                 </div>
               </motion.div>
