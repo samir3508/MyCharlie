@@ -591,6 +591,7 @@ export default function HomePage() {
               <Link href="/politique-confidentialite" className="text-orange-400 hover:text-orange-300 underline">Politique de confidentialité</Link>
               <Link href="/mentions-legales" className="text-orange-400 hover:text-orange-300 underline">Mentions légales</Link>
               <Link href="/cgv" className="text-orange-400 hover:text-orange-300 underline">Conditions générales</Link>
+              <Link href="/conditions-utilisation" className="text-orange-400 hover:text-orange-300 underline">Conditions d'utilisation</Link>
               <a href="mailto:ddvcontact35@gmail.com" className="text-orange-400 hover:text-orange-300 underline">Exercer vos droits RGPD</a>
             </div>
           </div>
@@ -611,7 +612,7 @@ export default function HomePage() {
               </div>
             </div>
             <div><h4 className="font-semibold mb-4">Liens</h4><ul className="space-y-2 text-sm text-gray-400"><li><a href="#comment-ca-marche" className="hover:text-white">Comment ça marche</a></li><li><a href="#calculateur" className="hover:text-white">Calculateur ROI</a></li><li><a href="#avantages" className="hover:text-white">Avantages</a></li><li><a href="#faq" className="hover:text-white">FAQ</a></li></ul></div>
-            <div><h4 className="font-semibold mb-4">Légal</h4><ul className="space-y-2 text-sm text-gray-400"><li><Link href="/mentions-legales" className="hover:text-white">Mentions légales</Link></li><li><Link href="/politique-confidentialite" className="hover:text-white">Politique de confidentialité</Link></li><li><Link href="/cgv" className="hover:text-white">CGV</Link></li></ul></div>
+            <div><h4 className="font-semibold mb-4">Légal</h4><ul className="space-y-2 text-sm text-gray-400"><li><Link href="/mentions-legales" className="hover:text-white">Mentions légales</Link></li><li><Link href="/politique-confidentialite" className="hover:text-white">Politique de confidentialité</Link></li><li><Link href="/cgv" className="hover:text-white">CGV</Link></li><li><Link href="/conditions-utilisation" className="hover:text-white">Conditions d'utilisation</Link></li></ul></div>
             <div><h4 className="font-semibold mb-4">Contact</h4><ul className="space-y-2 text-sm text-gray-400"><li><a href="mailto:ddvcontact35@gmail.com" className="hover:text-white">Email</a></li><li><a href="tel:0745108883" className="hover:text-white">Téléphone</a></li><li><a href="https://wa.me/33745108883" className="hover:text-white">WhatsApp</a></li></ul></div>
           </div>
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400"><p>© 2025 CHARLIE. Tous droits réservés.</p><p className="mt-2 md:mt-0">Hébergé en France 🇫🇷 • Données sécurisées • Conforme RGPD</p></div>
