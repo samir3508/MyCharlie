@@ -221,9 +221,19 @@ export async function POST(
       .eq('id', devis.id)
 
     if (updateError) {
+      console.error('=== UPDATE ERROR DETAILS ===')
       console.error('Update error:', updateError)
+      console.error('Error code:', updateError.code)
+      console.error('Error message:', updateError.message)
+      console.error('Error details:', updateError.details)
+      console.error('Devis ID:', devis.id)
+      console.error('============================')
       return NextResponse.json(
-        { error: 'Erreur lors de l\'enregistrement de la signature' },
+        { 
+          error: 'Erreur lors de l\'enregistrement de la signature: ' + updateError.message,
+          details: updateError.details,
+          code: updateError.code
+        },
         { status: 500 }
       )
     }
