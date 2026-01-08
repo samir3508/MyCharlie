@@ -19,8 +19,8 @@ export default function MentionsLegales() {
             <h2 className="text-2xl font-semibold text-white mb-4">Éditeur du site</h2>
             <div className="space-y-2">
               <p><strong>MyCharlie</strong></p>
-              <p className="flex items-center gap-2"><Mail className="w-4 h-4" /> contact@mycharlie.fr</p>
-              <p className="flex items-center gap-2"><Phone className="w-4 h-4" /> +33 6 XX XX XX XX</p>
+              <p className="flex items-center gap-2"><Mail className="w-4 h-4" /> ddvcontact35@gmail.com</p>
+              <p className="flex items-center gap-2"><Phone className="w-4 h-4" /> 07 45 10 88 83</p>
               <p className="flex items-center gap-2"><MapPin className="w-4 h-4" /> France</p>
             </div>
           </section>
@@ -52,7 +52,7 @@ export default function MentionsLegales() {
             <p>
               Conformément au RGPD, vous disposez d'un droit d'accès, de modification, de rectification et de suppression 
               de vos données personnelles. Vous pouvez exercer ce droit en nous contactant à l'adresse : 
-              <a href="mailto:contact@mycharlie.fr" className="text-orange-400 hover:text-orange-300 ml-1">contact@mycharlie.fr</a>.
+              <a href="mailto:ddvcontact35@gmail.com" className="text-orange-400 hover:text-orange-300 ml-1">ddvcontact35@gmail.com</a>.
             </p>
             <p className="mt-2">
               Pour plus d'informations, consultez notre <Link href="/politique-confidentialite" className="text-orange-400 hover:text-orange-300">Politique de confidentialité</Link>.
@@ -90,8 +90,8 @@ export default function MentionsLegales() {
               Pour toute question concernant ces mentions légales, vous pouvez nous contacter :
             </p>
             <div className="mt-4 space-y-2">
-              <p className="flex items-center gap-2"><Mail className="w-4 h-4" /> <a href="mailto:contact@mycharlie.fr" className="text-orange-400 hover:text-orange-300">contact@mycharlie.fr</a></p>
-              <p className="flex items-center gap-2"><Phone className="w-4 h-4" /> +33 6 XX XX XX XX</p>
+              <p className="flex items-center gap-2"><Mail className="w-4 h-4" /> <a href="mailto:ddvcontact35@gmail.com" className="text-orange-400 hover:text-orange-300">ddvcontact35@gmail.com</a></p>
+              <p className="flex items-center gap-2"><Phone className="w-4 h-4" /> 07 45 10 88 83</p>
             </div>
           </section>
         </div>

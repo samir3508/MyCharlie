@@ -238,11 +238,11 @@ export default function CGV() {
             <div className="mt-4 space-y-2">
               <p className="flex items-center gap-2">
                 <Mail className="w-4 h-4" /> 
-                <a href="mailto:contact@mycharlie.fr" className="text-orange-400 hover:text-orange-300">contact@mycharlie.fr</a>
+                <a href="mailto:ddvcontact35@gmail.com" className="text-orange-400 hover:text-orange-300">ddvcontact35@gmail.com</a>
               </p>
               <p className="flex items-center gap-2">
                 <Phone className="w-4 h-4" /> 
-                +33 6 XX XX XX XX
+                07 45 10 88 83
               </p>
             </div>
           </section>
