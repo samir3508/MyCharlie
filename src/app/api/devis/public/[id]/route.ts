@@ -127,20 +127,25 @@ export async function GET(
     const productionUrl = 'https://mycharlie.onrender.com'
     const localhostUrl = 'http://localhost:3000'
     
-    if (devis.pdf_url && devis.pdf_url.includes(localhostUrl)) {
-      devis.pdf_url = devis.pdf_url.replace(localhostUrl, productionUrl)
+    // Créer un nouvel objet avec les modifications nécessaires
+    const devisResponse: any = {
+      ...devis,
+    }
+    
+    if (devisResponse.pdf_url && devisResponse.pdf_url.includes(localhostUrl)) {
+      devisResponse.pdf_url = devisResponse.pdf_url.replace(localhostUrl, productionUrl)
     }
     
     // Ajouter l'URL de signature si le token existe
-    if (devis.signature_token && !devis.signature_client) {
+    if (devisResponse.signature_token && !devisResponse.signature_client) {
       const host = request.headers.get('host') || 'mycharlie.onrender.com'
       const protocol = request.headers.get('x-forwarded-proto') || 'https'
-      devis.signature_url = `${protocol}://${host}/sign/${devis.signature_token}`
+      devisResponse.signature_url = `${protocol}://${host}/sign/${devisResponse.signature_token}`
     }
     
     return NextResponse.json({
       success: true,
-      data: devis
+      data: devisResponse
     })
   } catch (error) {
     console.error('Error fetching public devis:', error)
