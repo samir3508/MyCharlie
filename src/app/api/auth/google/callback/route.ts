@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 // Configuration
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -13,9 +13,9 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get('state')
   const error = searchParams.get('error')
   
-  // Redirection de base
-  const baseUrl = new URL(request.url).origin
-  const redirectUrl = `${baseUrl}/settings/integrations`
+  // Redirection de base - utiliser NEXT_PUBLIC_APP_URL si disponible
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin
+  const redirectUrl = `${appUrl}/settings/integrations`
 
   // Gestion des erreurs OAuth
   if (error) {
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         client_secret: GOOGLE_CLIENT_SECRET,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: `${baseUrl}/api/auth/google/callback`
+        redirect_uri: `${appUrl}/api/auth/google/callback`
       })
     })
 
