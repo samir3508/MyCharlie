@@ -48,8 +48,11 @@ export default function LoginClient() {
       console.error('Login error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la connexion'
 
-      if (errorMessage === 'Invalid login credentials') {
-        toast.error('Email ou mot de passe incorrect')
+      if (errorMessage.includes('Invalid login credentials') || errorMessage.includes('invalid_credentials')) {
+        toast.error('Email ou mot de passe incorrect', {
+          description: 'Si vous avez oublié votre mot de passe, cliquez sur "Oublié ?" pour le réinitialiser.',
+          duration: 5000,
+        })
       } else if (errorMessage.includes('Email not confirmed')) {
         toast.error('Veuillez confirmer votre email avant de vous connecter')
       } else {
@@ -171,6 +174,10 @@ export default function LoginClient() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
     </div>
   )
 }
