@@ -24,14 +24,20 @@ export default function ForgotPasswordClient() {
     try {
       const supabase = getSupabaseClient()
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
+      const redirectUrl = `${window.location.origin}/auth/callback?type=recovery`
+      console.log('[Password Reset] Requesting reset for:', email)
+      console.log('[Password Reset] Redirect URL:', redirectUrl)
+
+      const { error, data } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
       })
+
+      console.log('[Password Reset] Response:', { error, data })
 
       if (error) throw error
 
       setEmailSent(true)
-      toast.success('Email de réinitialisation envoyé !')
+      toast.success('Email de réinitialisation envoyé ! Vérifiez votre boîte mail (et le dossier spam).')
     } catch (error: unknown) {
       console.error('Reset password error:', error)
       
