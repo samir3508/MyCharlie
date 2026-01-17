@@ -44,10 +44,14 @@ export default function ForgotPasswordClient() {
           status: error.status,
           name: error.name
         })
+        throw error
       }
 
-      if (error) throw error
-
+      // Si pas d'erreur, l'email devrait être envoyé
+      console.log('[Password Reset] ✅ Email envoyé avec succès')
+      console.log('[Password Reset] Vérifiez votre boîte mail:', email)
+      console.log('[Password Reset] Vérifiez aussi le dossier spam')
+      
       setEmailSent(true)
       toast.success('Email de réinitialisation envoyé ! Vérifiez votre boîte mail (et le dossier spam).')
     } catch (error: unknown) {
