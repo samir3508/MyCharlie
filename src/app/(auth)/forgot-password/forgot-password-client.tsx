@@ -24,8 +24,12 @@ export default function ForgotPasswordClient() {
     try {
       const supabase = getSupabaseClient()
 
-      const redirectUrl = `${window.location.origin}/auth/callback?type=recovery`
+      // Utiliser l'URL de production si disponible, sinon window.location.origin
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+      const redirectUrl = `${appUrl}/auth/callback?type=recovery`
+      
       console.log('[Password Reset] Requesting reset for:', email)
+      console.log('[Password Reset] App URL:', appUrl)
       console.log('[Password Reset] Redirect URL:', redirectUrl)
 
       const { error, data } = await supabase.auth.resetPasswordForEmail(email, {
@@ -33,6 +37,14 @@ export default function ForgotPasswordClient() {
       })
 
       console.log('[Password Reset] Response:', { error, data })
+      
+      if (error) {
+        console.error('[Password Reset] Error details:', {
+          message: error.message,
+          status: error.status,
+          name: error.name
+        })
+      }
 
       if (error) throw error
 
