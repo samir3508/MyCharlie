@@ -50,8 +50,18 @@ export default function LoginClient() {
 
       if (errorMessage.includes('Invalid login credentials') || errorMessage.includes('invalid_credentials')) {
         toast.error('Email ou mot de passe incorrect', {
-          description: 'Si vous avez oublié votre mot de passe, cliquez sur "Oublié ?" pour le réinitialiser.',
-          duration: 5000,
+          description: (
+            <div className="space-y-2">
+              <p>Vérifiez vos identifiants ou réinitialisez votre mot de passe.</p>
+              <a 
+                href="/forgot-password" 
+                className="text-primary hover:underline font-medium block"
+              >
+                → Réinitialiser mon mot de passe
+              </a>
+            </div>
+          ),
+          duration: 8000,
         })
       } else if (errorMessage.includes('Email not confirmed')) {
         toast.error('Veuillez confirmer votre email avant de vous connecter')
