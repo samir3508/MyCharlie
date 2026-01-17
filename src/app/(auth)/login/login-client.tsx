@@ -184,7 +184,3 @@ export default function LoginClient() {
     </div>
   )
 }
-
-    </div>
-  )
-}

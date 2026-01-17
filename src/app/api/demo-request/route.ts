@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'ddvcontact35@gmail.com'
 
 export async function POST(req: NextRequest) {
@@ -46,6 +45,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Configuration email manquante' }, { status: 500 })
     }
 
+    const resend = new Resend(process.env.RESEND_API_KEY)
     const subject = source === 'demo' ? '🚀 Nouvelle demande de démo' : '✨ Nouvelle inscription gratuite'
 
     const metierAffiche = metier === 'autre' ? autreMetier : metier

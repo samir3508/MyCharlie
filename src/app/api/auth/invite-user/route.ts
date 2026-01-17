@@ -41,14 +41,17 @@ export async function POST(request: NextRequest) {
 
     const supabase = getServiceSupabase()
     
-    // Vérifier si l'utilisateur existe déjà
-    const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email)
+    // Vérifier si l'utilisateur existe déjà en listant les utilisateurs avec cet email
+    const { data: users, error: listError } = await supabase.auth.admin.listUsers()
     
-    if (existingUser?.user) {
-      return NextResponse.json(
-        { error: 'Un compte existe déjà avec cet email' },
-        { status: 400 }
-      )
+    if (!listError && users?.users) {
+      const existingUser = users.users.find(u => u.email === email)
+      if (existingUser) {
+        return NextResponse.json(
+          { error: 'Un compte existe déjà avec cet email' },
+          { status: 400 }
+        )
+      }
     }
     
     // Générer un mot de passe automatique
@@ -79,17 +82,6 @@ export async function POST(request: NextRequest) {
         { error: 'Erreur lors de la création de l\'utilisateur' },
         { status: 500 }
       )
-    }
-
-    // Générer un lien de confirmation d'email
-    const { data: confirmationLink, error: confirmationError } = await supabase.auth.admin.generateLink({
-      type: 'signup',
-      email: email,
-    })
-
-    let confirmationUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.onrender.com'}/auth/callback`
-    if (confirmationLink?.properties?.action_link) {
-      confirmationUrl = confirmationLink.properties.action_link
     }
 
     // Générer un lien de réinitialisation de mot de passe
@@ -133,8 +125,8 @@ export async function POST(request: NextRequest) {
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${confirmationUrl}" style="background: #FF4D00; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; margin: 5px;">
-                  Confirmer mon email et activer mon compte
+                <a href="${resetPasswordUrl}" style="background: #FF4D00; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; margin: 5px;">
+                  Définir mon mot de passe et activer mon compte
                 </a>
                 <a href="${appUrl}/login" style="background: #6c757d; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; margin: 5px;">
                   Se connecter
