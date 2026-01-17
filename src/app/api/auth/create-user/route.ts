@@ -113,50 +113,65 @@ export async function POST(request: NextRequest) {
 
     // Créer les templates par défaut si le tenant a été créé
     if (newTenant) {
-      await supabase.from('templates_conditions_paiement').insert([
-        {
-          tenant_id: newTenant.id,
-          nom: 'Paiement comptant',
-          description: '100% à la signature',
-          montant_min: 0,
-          montant_max: 1000,
-          pourcentage_acompte: 100,
-          delai_acompte: 0,
-          is_default: true,
-        },
-        {
-          tenant_id: newTenant.id,
-          nom: '30/70',
-          description: '30% acompte, 70% livraison',
-          montant_min: 1000,
-          montant_max: 5000,
-          pourcentage_acompte: 30,
-          pourcentage_solde: 70,
-          delai_solde: 30,
-        },
-        {
-          tenant_id: newTenant.id,
-          nom: '3 x 33%',
-          description: '33% acompte, 33% mi-parcours, 34% livraison',
-          montant_min: 5000,
-          pourcentage_acompte: 33,
-          pourcentage_intermediaire: 33,
-          pourcentage_solde: 34,
-          delai_solde: 30,
-        },
-      ])
+      try {
+        const { error: templatesError } = await supabase.from('templates_conditions_paiement').insert([
+          {
+            tenant_id: newTenant.id,
+            nom: 'Paiement comptant',
+            description: '100% à la signature',
+            montant_min: 0,
+            montant_max: 1000,
+            pourcentage_acompte: 100,
+            delai_acompte: 0,
+            is_default: true,
+          },
+          {
+            tenant_id: newTenant.id,
+            nom: '30/70',
+            description: '30% acompte, 70% livraison',
+            montant_min: 1000,
+            montant_max: 5000,
+            pourcentage_acompte: 30,
+            pourcentage_solde: 70,
+            delai_solde: 30,
+          },
+          {
+            tenant_id: newTenant.id,
+            nom: '3 x 33%',
+            description: '33% acompte, 33% mi-parcours, 34% livraison',
+            montant_min: 5000,
+            pourcentage_acompte: 33,
+            pourcentage_intermediaire: 33,
+            pourcentage_solde: 34,
+            delai_solde: 30,
+          },
+        ])
 
-      // Créer la config LÉO par défaut
-      await supabase.from('leo_config').insert({
-        tenant_id: newTenant.id,
-        nom: 'LÉO',
-        ton: 'informel',
-        horaire_debut: '08:00',
-        horaire_fin: '18:00',
-        jours_travail: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'],
-        reponse_auto_hors_horaires: true,
-        message_hors_horaires: `Bonjour ! Je suis LÉO, l'assistant de ${companyName}. Nous sommes actuellement en dehors de nos horaires de travail. Je vous répondrai dès que possible !`,
-      })
+        if (templatesError) {
+          console.error('Error creating payment templates:', templatesError)
+          // Ne pas échouer si les templates existent déjà
+        }
+
+        // Créer la config LÉO par défaut
+        const { error: leoConfigError } = await supabase.from('leo_config').insert({
+          tenant_id: newTenant.id,
+          nom: 'LÉO',
+          ton: 'informel',
+          horaire_debut: '08:00',
+          horaire_fin: '18:00',
+          jours_travail: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'],
+          reponse_auto_hors_horaires: true,
+          message_hors_horaires: `Bonjour ! Je suis LÉO, l'assistant de ${companyName}. Nous sommes actuellement en dehors de nos horaires de travail. Je vous répondrai dès que possible !`,
+        })
+
+        if (leoConfigError) {
+          console.error('Error creating LEO config:', leoConfigError)
+          // Ne pas échouer si la config existe déjà
+        }
+      } catch (configError) {
+        console.error('Error creating default config:', configError)
+        // Ne pas échouer la création du compte si les configurations échouent
+      }
     }
 
     // Retourner le mot de passe généré (à envoyer par email)
@@ -171,8 +186,24 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error in create-user API:', error)
+    
+    // Vérifier si c'est une erreur de configuration Supabase
+    if (error instanceof Error && error.message.includes('Supabase configuration missing')) {
+      return NextResponse.json(
+        { 
+          error: 'Configuration Supabase manquante',
+          details: 'SUPABASE_SERVICE_ROLE_KEY n\'est pas configuré sur le serveur. Veuillez vérifier les variables d\'environnement sur Render.',
+        },
+        { status: 500 }
+      )
+    }
+    
     return NextResponse.json(
-      { error: 'Erreur serveur', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        error: 'Erreur serveur', 
+        details: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     )
   }
