@@ -34,7 +34,23 @@ export default function ForgotPasswordClient() {
       toast.success('Email de réinitialisation envoyé !')
     } catch (error: unknown) {
       console.error('Reset password error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de l\'envoi de l\'email'
+      
+      let errorMessage = 'Erreur lors de l\'envoi de l\'email'
+      
+      if (error instanceof Error) {
+        const errorMsg = error.message.toLowerCase()
+        
+        if (errorMsg.includes('12 seconds') || errorMsg.includes('rate limit')) {
+          errorMessage = 'Veuillez patienter 12 secondes avant de réessayer. Un email a peut-être déjà été envoyé.'
+        } else if (errorMsg.includes('invalid email')) {
+          errorMessage = 'Adresse email invalide'
+        } else if (errorMsg.includes('user not found')) {
+          errorMessage = 'Aucun compte trouvé avec cet email'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
       toast.error(errorMessage)
     } finally {
       setLoading(false)
