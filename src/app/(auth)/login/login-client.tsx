@@ -109,8 +109,8 @@ export default function LoginClient() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <Label htmlFor="password">Mot de passe</Label>
-                    <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                      Oublié ?
+                    <Link href="/forgot-password" className="text-sm text-primary hover:underline font-medium">
+                      Mot de passe oublié ?
                     </Link>
                   </div>
                   <div className="relative">
@@ -139,6 +139,13 @@ export default function LoginClient() {
                     'Se connecter'
                   )}
                 </Button>
+                
+                <div className="text-center text-sm text-muted-foreground">
+                  <p>Problème de connexion ?</p>
+                  <Link href="/forgot-password" className="text-primary hover:underline font-medium">
+                    Réinitialiser mon mot de passe
+                  </Link>
+                </div>
               </CardFooter>
             </form>
           </Card>
