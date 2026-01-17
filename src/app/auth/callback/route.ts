@@ -27,6 +27,7 @@ export async function GET(request: Request) {
     // Vérifier si c'est un lien de réinitialisation
     // Si type=recovery est dans l'URL, c'est une réinitialisation
     if (type === 'recovery') {
+      console.log('[Callback] Recovery type detected, redirecting to reset-password')
       if (data?.session) {
         // Redirect to reset password page with the session
         return NextResponse.redirect(`${origin}/auth/reset-password`)
@@ -35,22 +36,31 @@ export async function GET(request: Request) {
     }
     
     // Vérifier si l'utilisateur a déjà un tenant (compte existant)
-    // Si oui et qu'on arrive ici, c'est probablement une réinitialisation ou une confirmation
     const { data: existingTenant } = await supabase
       .from('tenants')
-      .select('id')
+      .select('id, created_at')
       .eq('user_id', data.user.id)
       .single()
     
-    // Si le tenant existe déjà et qu'on arrive ici sans type=recovery,
-    // c'est probablement une réinitialisation mal détectée (le template d'email n'a pas inclus type=recovery)
-    // Dans ce cas, on redirige vers la page de réinitialisation
+    // Si le tenant existe déjà, c'est probablement une réinitialisation
+    // Les nouvelles inscriptions créent le tenant dans ce callback, donc si le tenant existe déjà,
+    // c'est qu'on arrive ici pour une autre raison (probablement réinitialisation)
+    // Exception : si l'utilisateur a été créé il y a moins de 5 minutes, c'est peut-être une confirmation d'email
     if (existingTenant && data?.session) {
-      // Vérifier si l'utilisateur vient d'une demande de réinitialisation récente (dans les 1h)
-      // Pour l'instant, on assume que si le tenant existe et qu'on a une session, c'est une réinitialisation
-      // car les confirmations d'email pour nouveaux comptes créent le tenant dans le callback
-      console.log('[Callback] Tenant exists, assuming password reset')
-      return NextResponse.redirect(`${origin}/auth/reset-password`)
+      const userAge = data.user.created_at 
+        ? new Date().getTime() - new Date(data.user.created_at).getTime()
+        : Infinity
+      const fiveMinutes = 5 * 60 * 1000
+      
+      // Si l'utilisateur existe depuis plus de 5 minutes, c'est probablement une réinitialisation
+      if (userAge > fiveMinutes) {
+        console.log('[Callback] Tenant exists and user is older than 5min, assuming password reset')
+        return NextResponse.redirect(`${origin}/auth/reset-password`)
+      }
+      
+      // Si l'utilisateur est très récent (< 5 min) mais le tenant existe, c'est peut-être une confirmation d'email
+      // On continue vers la création du tenant (qui sera ignorée car il existe déjà)
+      console.log('[Callback] User is very recent, might be email confirmation')
     }
     
     // Sinon, c'est une confirmation d'email (nouvelle inscription)
@@ -62,7 +72,7 @@ export async function GET(request: Request) {
         .eq('user_id', data.user.id)
         .single()
 
-      if (!existingTenant) {
+      if (!existingTenantCheck) {
         // Get user metadata
         const metadata = data.user.user_metadata || {}
         const companyName = metadata.company_name || data.user.email?.split('@')[0] || 'Mon entreprise'
