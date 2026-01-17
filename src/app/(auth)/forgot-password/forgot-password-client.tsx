@@ -109,6 +109,12 @@ export default function ForgotPasswordClient() {
               <p className="text-sm text-muted-foreground text-center">
                 Si vous ne recevez pas l'email dans quelques minutes, vérifiez votre dossier spam.
               </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+                <p className="text-sm text-yellow-800 font-semibold mb-2">💡 Alternative :</p>
+                <p className="text-sm text-yellow-700">
+                  Si l'email n'arrive pas, vous pouvez aussi réinitialiser votre mot de passe directement depuis le <strong>Supabase Dashboard</strong> → <strong>Authentication</strong> → <strong>Users</strong> → <strong>Send password reset email</strong>
+                </p>
+              </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <Button
