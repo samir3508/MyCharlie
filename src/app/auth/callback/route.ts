@@ -35,25 +35,28 @@ export async function GET(request: Request) {
     }
     
     // Vérifier si l'utilisateur a déjà un tenant (compte existant)
-    // Si oui et qu'on arrive ici sans type=recovery, c'est peut-être une réinitialisation mal détectée
+    // Si oui et qu'on arrive ici, c'est probablement une réinitialisation ou une confirmation
     const { data: existingTenant } = await supabase
       .from('tenants')
       .select('id')
       .eq('user_id', data.user.id)
       .single()
     
-    // Si le tenant existe déjà, vérifier si c'est une réinitialisation
-    // en regardant si l'utilisateur vient d'une demande de réinitialisation récente
-    if (existingTenant) {
-      // Vérifier dans les logs ou metadata si c'est une réinitialisation
-      // Pour l'instant, on assume que si le tenant existe, c'est une confirmation normale
-      // Les réinitialisations doivent avoir type=recovery dans l'URL
+    // Si le tenant existe déjà et qu'on arrive ici sans type=recovery,
+    // c'est probablement une réinitialisation mal détectée (le template d'email n'a pas inclus type=recovery)
+    // Dans ce cas, on redirige vers la page de réinitialisation
+    if (existingTenant && data?.session) {
+      // Vérifier si l'utilisateur vient d'une demande de réinitialisation récente (dans les 1h)
+      // Pour l'instant, on assume que si le tenant existe et qu'on a une session, c'est une réinitialisation
+      // car les confirmations d'email pour nouveaux comptes créent le tenant dans le callback
+      console.log('[Callback] Tenant exists, assuming password reset')
+      return NextResponse.redirect(`${origin}/auth/reset-password`)
     }
     
     // Sinon, c'est une confirmation d'email (nouvelle inscription)
     if (data.user) {
       // Check if tenant exists, if not create it
-      const { data: existingTenant } = await supabase
+      const { data: existingTenantCheck } = await supabase
         .from('tenants')
         .select('id')
         .eq('user_id', data.user.id)
