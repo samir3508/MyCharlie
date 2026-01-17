@@ -204,6 +204,7 @@ export function useCreateDevis() {
         template_condition_paiement_id: templateId || null,
         // S'assurer que date_creation est définie
         date_creation: devis.date_creation || new Date().toISOString().split('T')[0],
+        // Le signature_token sera généré automatiquement par le trigger PostgreSQL si non fourni
       }
       
       console.log('📋 Données du devis à insérer:', devisData)

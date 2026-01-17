@@ -4,8 +4,10 @@ import { updateSession } from '@/lib/supabase/middleware'
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   
-  // Skip middleware entirely for API routes and public signature pages
-  if (pathname.startsWith('/api') || pathname.startsWith('/sign')) {
+  // Skip middleware entirely for API routes and public pages (signature, public devis)
+  if (pathname.startsWith('/api') || 
+      pathname.startsWith('/sign') || 
+      pathname.startsWith('/devis-public')) {
     console.log('[MIDDLEWARE] Skipping public route:', pathname)
     return NextResponse.next()
   }
