@@ -189,7 +189,7 @@ export async function GET(
       // URL de signature électronique (si le devis n'est pas encore signé)
       signature_url: devis.signature_token && !devis.signature_client
         ? (() => {
-            const host = request.headers.get('host') || 'mycharlie.onrender.com'
+            const host = request.headers.get('host') || 'mycharlie.fr'
             const protocol = 'https'
             return `${protocol}://${host}/sign/${devis.signature_token}`
           })()

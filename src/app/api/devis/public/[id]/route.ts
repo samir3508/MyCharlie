@@ -124,7 +124,7 @@ export async function GET(
     console.log('[PUBLIC DEVIS API] Devis found:', devis.numero)
     
     // Convertir les URLs localhost vers production
-    const productionUrl = 'https://mycharlie.onrender.com'
+    const productionUrl = 'https://mycharlie.fr'
     const localhostUrl = 'http://localhost:3000'
     
     // Créer un nouvel objet avec les modifications nécessaires
@@ -138,7 +138,7 @@ export async function GET(
     
     // Ajouter l'URL de signature si le token existe
     if (devisResponse.signature_token && !devisResponse.signature_client) {
-      const host = request.headers.get('host') || 'mycharlie.onrender.com'
+      const host = request.headers.get('host') || 'mycharlie.fr'
       const protocol = request.headers.get('x-forwarded-proto') || 'https'
       devisResponse.signature_url = `${protocol}://${host}/sign/${devisResponse.signature_token}`
     }

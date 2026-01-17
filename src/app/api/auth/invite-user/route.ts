@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       email: email,
     })
 
-    let resetPasswordUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.onrender.com'}/forgot-password`
+    let resetPasswordUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.fr'}/forgot-password`
     if (recoveryLink?.properties?.action_link) {
       resetPasswordUrl = recoveryLink.properties.action_link
     }
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       const resend = new Resend(process.env.RESEND_API_KEY)
       
       if (process.env.RESEND_API_KEY) {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.onrender.com'
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.fr'
         
         const emailHtml = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">

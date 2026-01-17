@@ -12,7 +12,7 @@ const MAX_HISTORY_LENGTH = 20
 
 // Fonction pour convertir les URLs relatives en URLs absolues
 function convertToAbsoluteUrls(text: string, request: NextRequest): string {
-  const host = request.headers.get('host') || 'mycharlie.onrender.com'
+  const host = request.headers.get('host') || 'mycharlie.fr'
   const protocol = 'https'
   const baseUrl = `${protocol}://${host}`
   
@@ -253,7 +253,7 @@ export async function POST(req: NextRequest) {
       // Convertir les URLs dans les actions aussi
       actions = actions.map(action => ({
         ...action,
-        args: action.args ? JSON.parse(JSON.stringify(action.args).replace(/http:\/\/localhost:3000\//g, 'https://mycharlie.onrender.com/')) : action.args
+        args: action.args ? JSON.parse(JSON.stringify(action.args).replace(/http:\/\/localhost:3000\//g, 'https://mycharlie.fr/')) : action.args
       }))
 
       // Sauvegarder réponse LÉO IMMÉDIATEMENT après réception

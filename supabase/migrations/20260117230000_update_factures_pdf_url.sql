@@ -3,7 +3,7 @@
 
 -- Fonction pour générer l'URL du PDF
 -- Note: L'URL de base doit être configurée selon l'environnement
--- En production: https://mycharlie.onrender.com
+-- En production: https://mycharlie.fr
 -- En local: http://localhost:3000
 
 UPDATE factures
@@ -11,7 +11,7 @@ SET pdf_url = CONCAT(
   CASE 
     WHEN current_setting('app.url', true) != '' 
     THEN current_setting('app.url', true)
-    ELSE 'https://mycharlie.onrender.com'  -- URL par défaut en production
+    ELSE 'https://mycharlie.fr'  -- URL par défaut en production
   END,
   '/api/pdf/facture/',
   id::text
@@ -28,7 +28,7 @@ BEGIN
     NEW.pdf_url := CONCAT(
       COALESCE(
         current_setting('app.url', true),
-        'https://mycharlie.onrender.com'  -- URL par défaut en production
+        'https://mycharlie.fr'  -- URL par défaut en production
       ),
       '/api/pdf/facture/',
       NEW.id::text

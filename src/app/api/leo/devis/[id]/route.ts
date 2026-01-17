@@ -40,7 +40,7 @@ export async function GET(
     }
 
     // Convertir les URLs localhost vers production
-    const productionUrl = 'https://mycharlie.onrender.com'
+    const productionUrl = 'https://mycharlie.fr'
     const localhostUrl = 'http://localhost:3000'
 
     // Fonction pour convertir les URLs dans l'objet

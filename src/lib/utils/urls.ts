@@ -10,7 +10,7 @@ export function getAppUrl(): string {
   }
   
   // Côté serveur, utiliser l'URL de production
-  return process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.onrender.com'
+  return process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.fr'
 }
 
 export function getDevisUrl(devisId: string): string {

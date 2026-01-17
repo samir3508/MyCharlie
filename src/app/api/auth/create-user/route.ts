@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Envoyer un email avec le mot de passe
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.onrender.com'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.fr'
     
     // Utiliser l'API Admin pour envoyer un email de réinitialisation
     // Cela permettra à l'utilisateur de définir son propre mot de passe

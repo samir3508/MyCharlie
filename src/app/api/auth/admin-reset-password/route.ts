@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     const resetUrl = recoveryLink?.properties?.action_link || 
-                     `${process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.onrender.com'}/auth/callback?type=recovery`
+                     `${process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.fr'}/auth/callback?type=recovery`
 
     return NextResponse.json({
       success: true,
