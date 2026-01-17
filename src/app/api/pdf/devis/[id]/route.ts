@@ -22,16 +22,28 @@ async function logDebug(data: any) {
 // Sécurisé car l'UUID du devis est déjà un secret unique
 function getSupabasePublic() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseKey = serviceKey || anonKey
 
   if (!supabaseUrl || !supabaseKey) {
-    console.error('Missing Supabase credentials:', {
+    console.error('[PDF ROUTE] Missing Supabase credentials:', {
       hasUrl: !!supabaseUrl,
-      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      hasServiceKey: !!serviceKey,
+      hasAnonKey: !!anonKey,
     })
     throw new Error('Supabase credentials not configured')
   }
+
+  // Avertir si on utilise ANON_KEY au lieu de SERVICE_ROLE_KEY
+  if (!serviceKey && anonKey) {
+    console.warn('[PDF ROUTE] ⚠️ Utilisation de ANON_KEY au lieu de SERVICE_ROLE_KEY - Les RLS policies peuvent bloquer l\'accès')
+  }
+
+  console.log('[PDF ROUTE] Configuration Supabase:', {
+    url: supabaseUrl ? '✅' : '❌',
+    keyType: serviceKey ? 'SERVICE_ROLE_KEY (bypass RLS)' : 'ANON_KEY (soumis aux RLS)',
+  })
 
   return createClient(supabaseUrl, supabaseKey, {
     auth: {
@@ -60,6 +72,9 @@ export async function GET(
     await logDebug({location:'devis/[id]/route.ts:53',message:'Getting Supabase client',data:{hasUrl:!!process.env.NEXT_PUBLIC_SUPABASE_URL,hasServiceKey:!!process.env.SUPABASE_SERVICE_ROLE_KEY,hasAnonKey:!!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY},hypothesisId:'D'})
     const supabase = getSupabasePublic()
 
+    console.log('[PDF ROUTE] 🔍 Recherche du devis avec ID:', id)
+    console.log('[PDF ROUTE] Utilise SERVICE_ROLE_KEY:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+
     // Fetch devis with all relations
     const { data: devis, error: devisError } = await supabase
       .from('devis')
@@ -70,29 +85,47 @@ export async function GET(
         template:templates_conditions_paiement(*)
       `)
       .eq('id', id)
-      .single()
+      .maybeSingle()
+
+    console.log('[PDF ROUTE] Résultat de la requête:', { 
+      hasData: !!devis, 
+      hasError: !!devisError,
+      errorMessage: devisError?.message,
+      devisNumero: devis?.numero 
+    })
 
     if (devisError) {
       await logDebug({location:'devis/[id]/route.ts:59',message:'Devis query error',data:{error:devisError.message,code:devisError.code},hypothesisId:'C'})
-      console.error('Devis query error:', devisError)
+      console.error('[PDF ROUTE] ❌ Erreur lors de la récupération du devis:', devisError)
       return NextResponse.json({ error: 'Devis non trouvé', details: devisError.message }, { status: 404 })
     }
 
     if (!devis) {
       await logDebug({location:'devis/[id]/route.ts:64',message:'Devis not found',data:{id},hypothesisId:'C'})
-      console.error('Devis not found:', id)
-      return NextResponse.json({ error: 'Devis non trouvé' }, { status: 404 })
+      console.error('[PDF ROUTE] ❌ Devis non trouvé avec ID:', id)
+      console.error('[PDF ROUTE] Vérifiez que le devis existe dans Supabase et que la clé SERVICE_ROLE_KEY est configurée')
+      return NextResponse.json({ error: 'Devis non trouvé', details: `Aucun devis trouvé avec l'ID ${id}` }, { status: 404 })
     }
+    
+    console.log('[PDF ROUTE] ✅ Devis trouvé:', { numero: devis.numero, tenant_id: devis.tenant_id })
 
     await logDebug({location:'devis/[id]/route.ts:69',message:'Devis found',data:{numero:devis.numero,clientId:devis.client_id,hasLignes:!!devis.lignes,lignesCount:devis.lignes?.length||0},hypothesisId:'C'})
     console.log('Devis found:', devis.numero, 'Client:', devis.client_id)
 
     // Fetch tenant info
-    const { data: tenant } = await supabase
+    const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
       .select('*')
       .eq('id', devis.tenant_id)
-      .single()
+      .maybeSingle()
+    
+    if (tenantError) {
+      console.error('[PDF ROUTE] ⚠️ Erreur lors de la récupération du tenant:', tenantError)
+    }
+    
+    if (!tenant) {
+      console.warn('[PDF ROUTE] ⚠️ Tenant non trouvé pour tenant_id:', devis.tenant_id)
+    }
 
     // Calculate validity date (30 days from creation by default)
     const dateCreation = new Date(devis.date_creation || devis.created_at)

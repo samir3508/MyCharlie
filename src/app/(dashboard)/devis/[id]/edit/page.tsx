@@ -21,7 +21,7 @@ export default function EditDevisPage({ params }: PageProps) {
   const { id } = use(params)
   const { tenant } = useAuth()
   const { data: clients, isLoading: clientsLoading } = useClients(tenant?.id)
-  const { data: devis, isLoading: devisLoading, error: devisError } = useDevisById(id)
+  const { data: devis, isLoading: devisLoading, error: devisError } = useDevisById(id, tenant?.id)
 
   console.log('🔍 Devis chargé:', devis)
   console.log('🔍 lignes_devis:', devis?.lignes_devis)

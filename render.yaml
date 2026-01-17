@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: my-leo-saas
+    runtime: node
+    plan: starter
+    region: frankfurt  # ou votre région préférée: oregon, frankfurt, singapore
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false  # À configurer manuellement dans Render Dashboard
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false  # À configurer manuellement dans Render Dashboard
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false  # À configurer manuellement dans Render Dashboard
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false  # Sera automatiquement mis à jour avec l'URL Render
+      - key: RESEND_API_KEY
+        sync: false  # À configurer manuellement dans Render Dashboard
+      - key: SUPPORT_EMAIL
+        value: support@example.com  # Remplacez par votre email
+    healthCheckPath: /
+    autoDeploy: false  # Changez à true pour auto-deploy depuis Git

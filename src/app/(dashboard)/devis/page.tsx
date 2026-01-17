@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useDevis, useDeleteDevis, useUpdateDevisStatus } from '@/lib/hooks/use-devis'
@@ -49,10 +49,11 @@ import {
 } from 'lucide-react'
 import { formatCurrency, formatDate, getStatusColor, getStatusLabel } from '@/lib/utils'
 import { Pagination } from '@/components/ui/pagination'
-import { exportToCSV } from '@/lib/utils/export'
+import { ExportDropdown } from '@/components/ui/export-dropdown'
+import { DEVIS_COLUMNS } from '@/lib/utils/export'
 
 export default function DevisPage() {
-  const { tenant } = useAuth()
+  const { tenant, user } = useAuth()
   const { data: devis, isLoading } = useDevis(tenant?.id)
   const deleteDevis = useDeleteDevis()
   const updateStatus = useUpdateDevisStatus()
@@ -61,6 +62,15 @@ export default function DevisPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 20
+  
+  // Debug: Afficher les infos de connexion
+  useEffect(() => {
+    console.log('🔍 [Devis Page] Infos de connexion:', {
+      user: user ? { id: user.id, email: user.email } : 'Non connecté',
+      tenant: tenant ? { id: tenant.id, company_name: tenant.company_name } : 'Pas de tenant',
+      devisCount: devis?.length || 0,
+    })
+  }, [user, tenant, devis])
 
   const filteredDevis = devis?.filter(d => {
     const matchesSearch = 
@@ -104,38 +114,20 @@ export default function DevisPage() {
     }
   }
 
-  const handleExportCSV = () => {
-    if (!filteredDevis || filteredDevis.length === 0) {
-      toast.error('Aucun devis à exporter')
-      return
-    }
-
-    const exportData = filteredDevis.map(d => ({
+  // Données préparées pour l'export
+  const exportData = useMemo(() => {
+    if (!filteredDevis) return []
+    return filteredDevis.map(d => ({
       numero: d.numero,
-      client: d.client_name || '',
+      client_nom: d.client_name || '',
       titre: d.titre || '',
       montant_ht: d.montant_ht,
-      montant_tva: d.montant_tva,
       montant_ttc: d.montant_ttc,
-      statut: getStatusLabel(d.statut),
-      date_creation: formatDate(d.date_creation),
-      date_expiration: d.date_expiration ? formatDate(d.date_expiration) : '',
+      statut: getStatusLabel(d.statut || 'brouillon'),
+      date_creation: d.date_creation ? formatDate(d.date_creation) : '',
+      date_validite: d.date_expiration ? formatDate(d.date_expiration) : '',
     }))
-
-    exportToCSV(exportData, `devis-${new Date().toISOString().split('T')[0]}`, [
-      { key: 'numero', label: 'Numéro' },
-      { key: 'client', label: 'Client' },
-      { key: 'titre', label: 'Titre' },
-      { key: 'montant_ht', label: 'Montant HT' },
-      { key: 'montant_tva', label: 'TVA' },
-      { key: 'montant_ttc', label: 'Montant TTC' },
-      { key: 'statut', label: 'Statut' },
-      { key: 'date_creation', label: 'Date de création' },
-      { key: 'date_expiration', label: 'Date d\'expiration' },
-    ])
-
-    toast.success('Export CSV réussi')
-  }
+  }, [filteredDevis])
 
   // Stats
   const stats = {
@@ -143,7 +135,7 @@ export default function DevisPage() {
     brouillon: devis?.filter(d => d.statut === 'brouillon').length || 0,
     envoye: devis?.filter(d => d.statut === 'envoye').length || 0,
     accepte: devis?.filter(d => d.statut === 'accepte').length || 0,
-    totalAmount: devis?.reduce((sum, d) => sum + d.montant_ttc, 0) || 0,
+    totalAmount: devis?.reduce((sum, d) => sum + (d.montant_ttc || 0), 0) || 0,
   }
 
   return (
@@ -160,14 +152,13 @@ export default function DevisPage() {
         </div>
         
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            className="border-gray-700 text-gray-300 hover:bg-[#262626]"
-            onClick={handleExportCSV}
-          >
-            <FileDown className="w-4 h-4 mr-2" />
-            Exporter en CSV
-          </Button>
+          <ExportDropdown 
+            data={exportData}
+            columns={DEVIS_COLUMNS}
+            filename="devis"
+            title="Export Devis"
+            label="Exporter"
+          />
           <Link href="/devis/new">
             <Button className="bg-gradient-btp hover:opacity-90">
               <Plus className="w-4 h-4 mr-2" />
@@ -294,11 +285,11 @@ export default function DevisPage() {
                       {formatCurrency(d.montant_ttc)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDate(d.date_creation)}
+                      {d.date_creation ? formatDate(d.date_creation) : '-'}
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(d.statut)}>
-                        {getStatusLabel(d.statut)}
+                      <Badge className={getStatusColor(d.statut || 'brouillon')}>
+                        {getStatusLabel(d.statut || 'brouillon')}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -325,12 +316,12 @@ export default function DevisPage() {
                             <Copy className="w-4 h-4 mr-2" />
                             Dupliquer
                           </DropdownMenuItem>
-                          {d.pdf_url && (
-                            <DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/api/pdf/devis/${d.id}`} target="_blank">
                               <Download className="w-4 h-4 mr-2" />
                               Télécharger PDF
-                            </DropdownMenuItem>
-                          )}
+                            </Link>
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           {d.statut === 'brouillon' && (
                             <DropdownMenuItem onClick={() => handleUpdateStatus(d.id, 'envoye')}>

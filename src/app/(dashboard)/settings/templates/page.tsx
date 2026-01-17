@@ -12,6 +12,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -41,7 +48,8 @@ import {
   Percent,
   Calendar,
   Star,
-  Loader2
+  Loader2,
+  Minus
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -76,6 +84,25 @@ interface TemplateFormData {
   is_default: boolean
 }
 
+// Structure pour les paiements dynamiques
+interface Paiement {
+  id: string
+  nom: string
+  pourcentage: number
+  delai: number
+  color: string
+}
+
+const PAYMENT_COLORS = [
+  { bg: 'bg-[#FF4D00]', border: 'border-[#FF4D00]', text: 'text-[#FF4D00]' },
+  { bg: 'bg-emerald-500', border: 'border-emerald-500', text: 'text-emerald-500' },
+  { bg: 'bg-amber-500', border: 'border-amber-500', text: 'text-amber-500' },
+  { bg: 'bg-blue-500', border: 'border-blue-500', text: 'text-blue-500' },
+  { bg: 'bg-purple-500', border: 'border-purple-500', text: 'text-purple-500' },
+]
+
+const PAYMENT_NAMES = ['Acompte', 'Solde', 'Paiement 3', 'Paiement 4', 'Paiement 5']
+
 const defaultFormData: TemplateFormData = {
   nom: '',
   description: '',
@@ -98,10 +125,142 @@ export default function TemplatesPage() {
   const [formData, setFormData] = useState<TemplateFormData>(defaultFormData)
   const [hasIntermediate, setHasIntermediate] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [nombrePaiements, setNombrePaiements] = useState(2)
+  const [paiements, setPaiements] = useState<Paiement[]>([
+    { id: '1', nom: 'Acompte', pourcentage: 30, delai: 0, color: PAYMENT_COLORS[0].border },
+    { id: '2', nom: 'Solde', pourcentage: 70, delai: 30, color: PAYMENT_COLORS[1].border },
+  ])
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Mettre à jour les paiements quand le nombre change
+  const handleNombrePaiementsChange = (value: string) => {
+    const newCount = parseInt(value)
+    setNombrePaiements(newCount)
+    
+    const currentPaiements = [...paiements]
+    
+    if (newCount > currentPaiements.length) {
+      // Ajouter des paiements
+      const totalActuel = currentPaiements.reduce((sum, p) => sum + p.pourcentage, 0)
+      const restant = 100 - totalActuel
+      const pourcentageParNouveau = Math.floor(restant / (newCount - currentPaiements.length))
+      
+      for (let i = currentPaiements.length; i < newCount; i++) {
+        currentPaiements.push({
+          id: String(i + 1),
+          nom: PAYMENT_NAMES[i] || `Paiement ${i + 1}`,
+          pourcentage: pourcentageParNouveau,
+          delai: 15 * i,
+          color: PAYMENT_COLORS[i % PAYMENT_COLORS.length].border,
+        })
+      }
+      
+      // Ajuster le dernier paiement pour arriver à 100%
+      const total = currentPaiements.reduce((sum, p) => sum + p.pourcentage, 0)
+      if (total !== 100 && currentPaiements.length > 0) {
+        currentPaiements[currentPaiements.length - 1].pourcentage += (100 - total)
+      }
+    } else if (newCount < currentPaiements.length) {
+      // Retirer des paiements
+      const removed = currentPaiements.splice(newCount)
+      const removedTotal = removed.reduce((sum, p) => sum + p.pourcentage, 0)
+      // Ajouter le pourcentage retiré au dernier paiement restant
+      if (currentPaiements.length > 0) {
+        currentPaiements[currentPaiements.length - 1].pourcentage += removedTotal
+      }
+    }
+    
+    setPaiements(currentPaiements)
+  }
+
+  // Mettre à jour le pourcentage d'un paiement
+  const updatePaiementPourcentage = (id: string, value: number) => {
+    const newPaiements = paiements.map(p => 
+      p.id === id ? { ...p, pourcentage: value } : p
+    )
+    setPaiements(newPaiements)
+  }
+
+  // Mettre à jour le délai d'un paiement
+  const updatePaiementDelai = (id: string, value: number) => {
+    const newPaiements = paiements.map(p => 
+      p.id === id ? { ...p, delai: value } : p
+    )
+    setPaiements(newPaiements)
+  }
+
+  // Mettre à jour le nom d'un paiement
+  const updatePaiementNom = (id: string, value: string) => {
+    const newPaiements = paiements.map(p => 
+      p.id === id ? { ...p, nom: value } : p
+    )
+    setPaiements(newPaiements)
+  }
+
+  // Convertir paiements vers formData pour sauvegarde
+  const paiementsToFormData = (): Partial<TemplateFormData> => {
+    if (paiements.length >= 1) {
+      const result: Partial<TemplateFormData> = {
+        pourcentage_acompte: paiements[0].pourcentage,
+        delai_acompte: paiements[0].delai,
+      }
+      
+      if (paiements.length === 2) {
+        result.pourcentage_intermediaire = null
+        result.delai_intermediaire = null
+        result.pourcentage_solde = paiements[1].pourcentage
+        result.delai_solde = paiements[1].delai
+      } else if (paiements.length >= 3) {
+        result.pourcentage_intermediaire = paiements[1].pourcentage
+        result.delai_intermediaire = paiements[1].delai
+        result.pourcentage_solde = paiements.slice(2).reduce((sum, p) => sum + p.pourcentage, 0)
+        result.delai_solde = paiements[paiements.length - 1].delai
+      }
+      
+      return result
+    }
+    return {}
+  }
+
+  // Charger paiements depuis un template
+  const loadPaiementsFromTemplate = (template: Template) => {
+    const newPaiements: Paiement[] = [
+      { id: '1', nom: 'Acompte', pourcentage: template.pourcentage_acompte, delai: template.delai_acompte, color: PAYMENT_COLORS[0].border },
+    ]
+    
+    if (template.pourcentage_intermediaire) {
+      newPaiements.push({
+        id: '2',
+        nom: 'Intermédiaire',
+        pourcentage: template.pourcentage_intermediaire,
+        delai: template.delai_intermediaire || 15,
+        color: PAYMENT_COLORS[2].border,
+      })
+      if (template.pourcentage_solde) {
+        newPaiements.push({
+          id: '3',
+          nom: 'Solde',
+          pourcentage: template.pourcentage_solde,
+          delai: template.delai_solde,
+          color: PAYMENT_COLORS[1].border,
+        })
+      }
+    } else if (template.pourcentage_solde) {
+      newPaiements.push({
+        id: '2',
+        nom: 'Solde',
+        pourcentage: template.pourcentage_solde,
+        delai: template.delai_solde,
+        color: PAYMENT_COLORS[1].border,
+      })
+    }
+    
+    setPaiements(newPaiements)
+    setNombrePaiements(newPaiements.length)
+  }
 
   // Fetch templates
   const { data: templates = [], isLoading } = useQuery({
@@ -205,6 +364,11 @@ export default function TemplatesPage() {
     setFormData(defaultFormData)
     setEditingTemplate(null)
     setHasIntermediate(false)
+    setNombrePaiements(2)
+    setPaiements([
+      { id: '1', nom: 'Acompte', pourcentage: 30, delai: 0, color: PAYMENT_COLORS[0].border },
+      { id: '2', nom: 'Solde', pourcentage: 70, delai: 30, color: PAYMENT_COLORS[1].border },
+    ])
   }
 
   const openEditDialog = (template: Template) => {
@@ -223,6 +387,7 @@ export default function TemplatesPage() {
       is_default: template.is_default,
     })
     setHasIntermediate(!!template.pourcentage_intermediaire)
+    loadPaiementsFromTemplate(template)
     setIsDialogOpen(true)
   }
 
@@ -232,42 +397,38 @@ export default function TemplatesPage() {
   }
 
   const handleSubmit = () => {
-    // Validate percentages
-    const total = formData.pourcentage_acompte + 
-      (formData.pourcentage_intermediaire || 0) + 
-      (formData.pourcentage_solde || 0)
+    // Validate percentages from paiements
+    const total = paiements.reduce((sum, p) => sum + p.pourcentage, 0)
     
     if (Math.abs(total - 100) > 0.01) {
       toast.error('Les pourcentages doivent totaliser 100%')
       return
     }
 
+    // Fusionner les données de paiements dans formData
+    const finalData = {
+      ...formData,
+      ...paiementsToFormData(),
+    }
+
     if (editingTemplate) {
-      updateMutation.mutate({ id: editingTemplate.id, data: formData })
+      updateMutation.mutate({ id: editingTemplate.id, data: finalData })
     } else {
-      createMutation.mutate(formData)
+      createMutation.mutate(finalData)
     }
   }
 
-  const updatePercentages = (field: 'acompte' | 'intermediaire' | 'solde', value: number) => {
-    const newData = { ...formData }
+  // Équilibrer automatiquement les pourcentages
+  const equilibrerPourcentages = () => {
+    const pourcentageParPaiement = Math.floor(100 / paiements.length)
+    const reste = 100 - (pourcentageParPaiement * paiements.length)
     
-    if (field === 'acompte') {
-      newData.pourcentage_acompte = value
-      if (hasIntermediate) {
-        // Keep intermediate, adjust solde
-        newData.pourcentage_solde = 100 - value - (newData.pourcentage_intermediaire || 0)
-      } else {
-        newData.pourcentage_solde = 100 - value
-      }
-    } else if (field === 'intermediaire') {
-      newData.pourcentage_intermediaire = value
-      newData.pourcentage_solde = 100 - newData.pourcentage_acompte - value
-    } else {
-      newData.pourcentage_solde = value
-    }
+    const newPaiements = paiements.map((p, index) => ({
+      ...p,
+      pourcentage: pourcentageParPaiement + (index === paiements.length - 1 ? reste : 0)
+    }))
     
-    setFormData(newData)
+    setPaiements(newPaiements)
   }
 
   const formatMontant = (montant: number | null) => {
@@ -362,81 +523,76 @@ export default function TemplatesPage() {
                 </div>
               </div>
 
-              {/* Switch pour paiement intermédiaire */}
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <Label>Paiement intermédiaire</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Ajouter un paiement entre l'acompte et le solde
-                  </p>
+              {/* Nombre de paiements */}
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2">
+                  <Percent className="w-4 h-4" />
+                  Nombre d'échéances de paiement
+                </Label>
+                <div className="flex items-center gap-4">
+                  <Select 
+                    value={String(nombrePaiements)} 
+                    onValueChange={handleNombrePaiementsChange}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Nombre de paiements" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 paiement (100%)</SelectItem>
+                      <SelectItem value="2">2 paiements</SelectItem>
+                      <SelectItem value="3">3 paiements</SelectItem>
+                      <SelectItem value="4">4 paiements</SelectItem>
+                      <SelectItem value="5">5 paiements</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={equilibrerPourcentages}
+                  >
+                    Équilibrer les %
+                  </Button>
                 </div>
-                <Switch
-                  checked={hasIntermediate}
-                  onCheckedChange={(checked) => {
-                    setHasIntermediate(checked)
-                    if (!checked) {
-                      setFormData({
-                        ...formData,
-                        pourcentage_intermediaire: null,
-                        delai_intermediaire: null,
-                        pourcentage_solde: 100 - formData.pourcentage_acompte,
-                      })
-                    } else {
-                      const inter = Math.floor((100 - formData.pourcentage_acompte) / 2)
-                      setFormData({
-                        ...formData,
-                        pourcentage_intermediaire: inter,
-                        delai_intermediaire: 15,
-                        pourcentage_solde: 100 - formData.pourcentage_acompte - inter,
-                      })
-                    }
-                  }}
-                />
+                <p className="text-xs text-muted-foreground">
+                  Choisissez le nombre d'échéances de paiement pour ce template
+                </p>
               </div>
 
-              {/* Pourcentages */}
+              {/* Répartition dynamique des paiements */}
               <div className="space-y-4">
                 <Label className="flex items-center gap-2">
                   <Percent className="w-4 h-4" />
                   Répartition des paiements
                 </Label>
                 
-                <div className={hasIntermediate ? 'grid gap-4 md:grid-cols-3' : 'grid gap-4 md:grid-cols-2'}>
-                  {/* Acompte */}
-                  <Card className="border-[#FF4D00] border-opacity-30">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">Acompte</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div>
-                        <Label className="text-xs">Pourcentage</Label>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            value={formData.pourcentage_acompte}
-                            onChange={(e) => updatePercentages('acompte', parseFloat(e.target.value) || 0)}
-                            className="text-right"
-                          />
-                          <span className="text-muted-foreground">%</span>
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-xs">Délai (jours)</Label>
-                        <Input
-                          type="number"
-                          value={formData.delai_acompte}
-                          onChange={(e) => setFormData({ ...formData, delai_acompte: parseInt(e.target.value) || 0 })}
-                          placeholder="0 = immédiat"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Intermédiaire */}
-                  {hasIntermediate && (
-                    <Card className="border-yellow-500 border-opacity-30">
+                <div className={`grid gap-4 ${
+                  paiements.length === 1 ? 'grid-cols-1' :
+                  paiements.length === 2 ? 'md:grid-cols-2' :
+                  paiements.length === 3 ? 'md:grid-cols-3' :
+                  paiements.length === 4 ? 'md:grid-cols-2 lg:grid-cols-4' :
+                  'md:grid-cols-2 lg:grid-cols-5'
+                }`}>
+                  {paiements.map((paiement, index) => (
+                    <Card 
+                      key={paiement.id} 
+                      className={`${PAYMENT_COLORS[index % PAYMENT_COLORS.length].border} border-opacity-50`}
+                    >
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Intermédiaire</CardTitle>
+                        <CardTitle className="text-sm font-medium flex items-center justify-between">
+                          <Input
+                            value={paiement.nom}
+                            onChange={(e) => updatePaiementNom(paiement.id, e.target.value)}
+                            className="h-7 text-sm font-medium border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            placeholder={`Paiement ${index + 1}`}
+                          />
+                          <Badge 
+                            variant="outline" 
+                            className={`ml-2 ${PAYMENT_COLORS[index % PAYMENT_COLORS.length].text}`}
+                          >
+                            #{index + 1}
+                          </Badge>
+                        </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <div>
@@ -444,67 +600,48 @@ export default function TemplatesPage() {
                           <div className="flex items-center gap-2">
                             <Input
                               type="number"
-                              value={formData.pourcentage_intermediaire || 0}
-                              onChange={(e) => updatePercentages('intermediaire', parseFloat(e.target.value) || 0)}
+                              min="0"
+                              max="100"
+                              value={paiement.pourcentage}
+                              onChange={(e) => updatePaiementPourcentage(paiement.id, parseFloat(e.target.value) || 0)}
                               className="text-right"
                             />
                             <span className="text-muted-foreground">%</span>
                           </div>
                         </div>
                         <div>
-                          <Label className="text-xs">Délai (jours)</Label>
+                          <Label className="text-xs">
+                            {index === 0 ? 'Délai (jours)' : 'Délai après précédent (jours)'}
+                          </Label>
                           <Input
                             type="number"
-                            value={formData.delai_intermediaire || ''}
-                            onChange={(e) => setFormData({ ...formData, delai_intermediaire: parseInt(e.target.value) || null })}
+                            min="0"
+                            value={paiement.delai}
+                            onChange={(e) => updatePaiementDelai(paiement.id, parseInt(e.target.value) || 0)}
+                            placeholder={index === 0 ? "0 = immédiat" : "Jours après le précédent"}
                           />
                         </div>
                       </CardContent>
                     </Card>
-                  )}
-
-                  {/* Solde */}
-                  <Card className="border-green-500 border-opacity-30">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">Solde</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div>
-                        <Label className="text-xs">Pourcentage</Label>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            value={formData.pourcentage_solde || 0}
-                            onChange={(e) => updatePercentages('solde', parseFloat(e.target.value) || 0)}
-                            className="text-right"
-                          />
-                          <span className="text-muted-foreground">%</span>
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-xs">Délai après livraison (jours)</Label>
-                        <Input
-                          type="number"
-                          value={formData.delai_solde}
-                          onChange={(e) => setFormData({ ...formData, delai_solde: parseInt(e.target.value) || 0 })}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
+                  ))}
                 </div>
 
                 {/* Total indicator */}
                 {(() => {
-                  const total = formData.pourcentage_acompte + (formData.pourcentage_intermediaire || 0) + (formData.pourcentage_solde || 0)
+                  const total = paiements.reduce((sum, p) => sum + p.pourcentage, 0)
                   const isValid = Math.abs(total - 100) < 0.01
-                  const className = isValid
-                    ? 'p-3 rounded-lg text-center bg-green-50 text-green-700 border border-green-200'
-                    : 'p-3 rounded-lg text-center bg-red-50 text-red-700 border border-red-200'
                   return (
-                    <div className={className}>
-                      Total: {total}%
+                    <div className={`p-3 rounded-lg text-center ${
+                      isValid 
+                        ? 'bg-green-500/10 text-green-600 border border-green-500/30' 
+                        : 'bg-red-500/10 text-red-600 border border-red-500/30'
+                    }`}>
+                      <span className="font-semibold">Total: {total}%</span>
                       {!isValid && (
-                        <span className="ml-2">(doit être 100%)</span>
+                        <span className="ml-2 text-sm">(doit être exactement 100%)</span>
+                      )}
+                      {isValid && (
+                        <span className="ml-2 text-sm">✓ Répartition valide</span>
                       )}
                     </div>
                   )

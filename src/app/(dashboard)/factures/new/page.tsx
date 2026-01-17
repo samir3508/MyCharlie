@@ -172,7 +172,7 @@ export default function NewFacturePage() {
                       <div className="flex flex-col">
                         <span>{dev.numero} - {dev.titre || 'Sans titre'}</span>
                         <span className="text-sm text-muted-foreground">
-                          {client?.nom || 'Client inconnu'} - {new Date(dev.created_at).toLocaleDateString()}
+                          {client?.nom || 'Client inconnu'} - {dev.created_at ? new Date(dev.created_at).toLocaleDateString() : '-'}
                         </span>
                       </div>
                     </SelectItem>

@@ -98,7 +98,7 @@ export async function GET(
         )
       `)
       .eq('signature_token', token)
-      .single()
+      .maybeSingle()
 
     console.log('Query result - error:', error)
     console.log('Query result - devis:', devis ? 'Found' : 'Not found')

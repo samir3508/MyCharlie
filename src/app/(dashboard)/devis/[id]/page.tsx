@@ -101,7 +101,7 @@ function useTemplateConditionPaiement(templateId: string | null | undefined) {
         .from('templates_conditions_paiement')
         .select('*')
         .eq('id', templateId)
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
@@ -116,7 +116,7 @@ export default function DevisDetailPage({ params }: PageProps) {
   const { tenant } = useAuth()
   const queryClient = useQueryClient()
 
-  const { data: devis, isLoading: devisLoading, error: devisError } = useDevisById(id)
+  const { data: devis, isLoading: devisLoading, error: devisError } = useDevisById(id, tenant?.id)
   const { data: facturesSummary } = useDevisFactures(id)
   const { data: template } = useTemplateConditionPaiement(devis?.template_condition_paiement_id || undefined)
 
@@ -366,7 +366,7 @@ export default function DevisDetailPage({ params }: PageProps) {
   const isDevisExpired = () => {
     if (!devis || devis.statut === 'accepte' || devis.statut === 'refuse') return false
     
-    const createdDate = new Date(devis.created_at)
+    const createdDate = new Date(devis.created_at || Date.now())
     const today = new Date()
     const daysDiff = Math.floor((today.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24))
     
@@ -444,12 +444,46 @@ export default function DevisDetailPage({ params }: PageProps) {
     )
   }
 
-  if (devisError || !devis) {
+  if (devisError) {
+    console.error('Devis error:', devisError)
+    console.error('Tenant ID:', tenant?.id)
+    console.error('Devis ID recherché:', id)
     return (
       <div className="container mx-auto p-6">
         <Card>
           <CardContent className="p-6">
             <p className="text-red-600">Erreur lors du chargement du devis</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {devisError instanceof Error ? devisError.message : 'Erreur inconnue'}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              ID recherché: {id} | Tenant: {tenant?.id || 'Non défini'}
+            </p>
+            <Button asChild className="mt-4">
+              <Link href="/devis">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Retour à la liste
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!devis) {
+    console.warn('Devis non trouvé - ID:', id, 'Tenant:', tenant?.id)
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-red-600">Devis non trouvé</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Le devis avec l'ID "{id}" n'existe pas ou n'est plus disponible.
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Vérifiez que le devis appartient au tenant: {tenant?.id || 'Non défini'}
+            </p>
             <Button asChild className="mt-4">
               <Link href="/devis">
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -644,7 +678,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                     {devis.statut === 'accepte' && <CheckCircle className="h-3 w-3 mr-1 inline" />}
                     {devis.statut === 'envoye' && <Send className="h-3 w-3 mr-1 inline" />}
                     {devis.statut === 'refuse' && <XCircle className="h-3 w-3 mr-1 inline" />}
-                    {getStatusLabel(devis.statut)}
+                    {getStatusLabel(devis.statut || 'brouillon')}
                   </Badge>
                 </div>
 
@@ -656,7 +690,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                       <span className="font-medium">Créé le</span>
                     </div>
                     <p className="font-bold text-sm text-white">
-                      {format(new Date(devis.created_at), 'dd/MM/yyyy', { locale: fr })}
+                      {devis.created_at ? format(new Date(devis.created_at), 'dd/MM/yyyy', { locale: fr }) : '-'}
                     </p>
                   </div>
 
@@ -962,7 +996,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                       </div>
                       <div className="text-right flex-shrink-0 min-w-0">
                         <p className="text-xl font-bold text-[#FF4D00] mb-1 break-words">
-                          {formatCurrency((devis.montant_ttc * template.pourcentage_acompte) / 100)}
+                          {formatCurrency(((devis.montant_ttc || 0) * (template.pourcentage_acompte || 0)) / 100)}
                         </p>
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{template.pourcentage_acompte}%</p>
                       </div>
@@ -984,7 +1018,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                       </div>
                       <div className="text-right flex-shrink-0 min-w-0">
                         <p className="text-xl font-bold text-purple-400 mb-1 break-words">
-                          {formatCurrency((devis.montant_ttc * template.pourcentage_intermediaire) / 100)}
+                          {formatCurrency(((devis.montant_ttc || 0) * (template.pourcentage_intermediaire || 0)) / 100)}
                         </p>
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{template.pourcentage_intermediaire}%</p>
                       </div>
@@ -1006,7 +1040,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                       </div>
                       <div className="text-right flex-shrink-0 min-w-0">
                         <p className="text-xl font-bold text-emerald-400 mb-1 break-words">
-                          {formatCurrency((devis.montant_ttc * template.pourcentage_solde) / 100)}
+                          {formatCurrency(((devis.montant_ttc || 0) * (template.pourcentage_solde || 0)) / 100)}
                         </p>
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{template.pourcentage_solde}%</p>
                       </div>
@@ -1045,7 +1079,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                   <div className="relative flex items-start justify-between gap-4 flex-wrap">
                     <p className="text-sm text-gray-300 flex-1 leading-relaxed min-w-0">
                       Selon les conditions de paiement <strong className="text-white font-semibold">{template.nom}</strong>, ce devis de{' '}
-                      <strong className="text-[#FF4D00] font-bold text-base">{formatCurrency(devis.montant_ttc)} TTC</strong>{' '}
+                      <strong className="text-[#FF4D00] font-bold text-base">{formatCurrency(devis.montant_ttc || 0)} TTC</strong>{' '}
                       sera facturé en{' '}
                       <strong className="text-white font-semibold">
                         {template.pourcentage_intermediaire && template.pourcentage_intermediaire > 0 ? '3' : '2'} fois
@@ -1144,7 +1178,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                         
                         <div className="text-right flex-shrink-0 min-w-0">
                           <p className="text-xl font-bold text-[#FF4D00] mb-1 break-words">
-                            {formatCurrency((devis.montant_ttc * template.pourcentage_acompte) / 100)}
+                            {formatCurrency(((devis.montant_ttc || 0) * (template.pourcentage_acompte || 0)) / 100)}
                           </p>
                           {factureAcompte && (
                             <Link
@@ -1259,7 +1293,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                         
                         <div className="text-right flex-shrink-0 min-w-0">
                           <p className="text-xl font-bold text-purple-400 mb-1 break-words">
-                            {formatCurrency((devis.montant_ttc * template.pourcentage_intermediaire) / 100)}
+                            {formatCurrency(((devis.montant_ttc || 0) * (template.pourcentage_intermediaire || 0)) / 100)}
                           </p>
                           {factureIntermediaire && (
                             <Link
@@ -1367,7 +1401,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                         
                         <div className="text-right flex-shrink-0 min-w-0">
                           <p className="text-xl font-bold text-emerald-400 mb-1 break-words">
-                            {formatCurrency((devis.montant_ttc * template.pourcentage_solde) / 100)}
+                            {formatCurrency(((devis.montant_ttc || 0) * (template.pourcentage_solde || 0)) / 100)}
                           </p>
                           {factureSolde && (
                             <Link

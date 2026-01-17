@@ -50,6 +50,9 @@ import {
 } from 'lucide-react'
 import { formatCurrency, formatDate, getInitials, formatPhone } from '@/lib/utils'
 import { Pagination } from '@/components/ui/pagination'
+import { ExportDropdown } from '@/components/ui/export-dropdown'
+import { CLIENT_COLUMNS } from '@/lib/utils/export'
+import { ImportWizard } from '@/components/import-export/import-wizard'
 
 export default function ClientsPage() {
   const { tenant } = useAuth()
@@ -94,7 +97,7 @@ export default function ClientsPage() {
   }, [clients, devis, factures])
 
   const filteredClients = clients?.filter(client => 
-    client.nom_complet.toLowerCase().includes(search.toLowerCase()) ||
+    client.nom_complet?.toLowerCase().includes(search.toLowerCase()) ||
     client.email?.toLowerCase().includes(search.toLowerCase()) ||
     client.telephone?.includes(search)
   ) || []
@@ -145,6 +148,48 @@ export default function ClientsPage() {
     }
   }
 
+  // État pour l'import
+  const [isImportOpen, setIsImportOpen] = useState(false)
+
+  // Données préparées pour l'export
+  const exportData = useMemo(() => {
+    if (!clients) return []
+    return clients.map(client => ({
+      nom_complet: client.nom_complet || '',
+      email: client.email || '',
+      telephone: client.telephone || '',
+      type: client.type || '',
+      adresse_facturation: client.adresse_facturation || '',
+      adresse_chantier: client.adresse_chantier || '',
+      created_at: client.created_at ? new Date(client.created_at).toLocaleDateString('fr-FR') : '',
+    }))
+  }, [clients])
+
+  // Gestion de l'import
+  const handleImport = async (data: Record<string, unknown>[]) => {
+    if (!tenant?.id) return
+    
+    for (const item of data) {
+      const nomComplet = String(item.nom_complet || '')
+      // Séparer nom_complet en nom et prenom
+      const parts = nomComplet.trim().split(/\s+/)
+      const prenom = parts[0] || ''
+      const nom = parts.slice(1).join(' ') || parts[0] || ''
+      
+      await createClient.mutateAsync({
+        tenant_id: tenant.id,
+        nom: nom,
+        prenom: prenom,
+        email: String(item.email || '') || null,
+        telephone: String(item.telephone || '') || null,
+        type: (item.type as 'particulier' | 'professionnel') || 'particulier',
+        adresse_facturation: String(item.adresse_facturation || '') || null,
+        adresse_chantier: String(item.adresse_chantier || '') || null,
+      })
+    }
+    toast.success(`${data.length} client(s) importé(s) avec succès`)
+  }
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
@@ -158,13 +203,24 @@ export default function ClientsPage() {
           </p>
         </div>
         
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-btp hover:opacity-90">
-              <Plus className="w-4 h-4 mr-2" />
-              Nouveau client
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <ExportDropdown 
+            data={exportData}
+            columns={CLIENT_COLUMNS}
+            filename="clients"
+            title="Export Clients"
+            showImport={true}
+            onImport={() => setIsImportOpen(true)}
+            label="Import/Export"
+          />
+          
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-btp hover:opacity-90">
+                <Plus className="w-4 h-4 mr-2" />
+                Nouveau client
+              </Button>
+            </DialogTrigger>
           {mounted && (
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
@@ -181,7 +237,8 @@ export default function ClientsPage() {
               />
             </DialogContent>
           )}
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats */}
@@ -360,6 +417,25 @@ export default function ClientsPage() {
           </div>
         )}
       </Card>
+
+      {/* Import Wizard */}
+      <ImportWizard
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        dataType="clients"
+        onImport={handleImport}
+        requiredFields={[
+          { field: 'nom_complet', label: 'Nom complet' }
+        ]}
+        optionalFields={[
+          { field: 'email', label: 'Email' },
+          { field: 'telephone', label: 'Téléphone' },
+          { field: 'type', label: 'Type (particulier/professionnel)' },
+          { field: 'adresse_facturation', label: 'Adresse facturation' },
+          { field: 'adresse_chantier', label: 'Adresse chantier' },
+          { field: 'siret', label: 'SIRET' }
+        ]}
+      />
     </div>
   )
 }

@@ -16,10 +16,10 @@ export function useTenant(userId: string | undefined) {
         .from('tenants')
         .select('*')
         .eq('user_id', userId)
-        .single()
+        .maybeSingle()
 
       if (error) throw error
-      return data as Tenant
+      return data as Tenant | null
     },
     enabled: !!userId,
   })

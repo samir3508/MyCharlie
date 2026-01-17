@@ -189,7 +189,7 @@ export default function ClientEditPage({ params }: PageProps) {
             <label className="block text-sm font-medium mb-2">Type</label>
             <select
               name="type"
-              defaultValue={client.type}
+              defaultValue={client.type || 'particulier'}
               className="w-full p-2 border rounded"
             >
               <option value="particulier">Particulier</option>

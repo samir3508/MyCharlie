@@ -65,11 +65,11 @@ export function RecentDevisTable({ devis }: RecentDevisTableProps) {
                   <TableCell>{d.client_name || 'Client inconnu'}</TableCell>
                   <TableCell className="font-semibold">{formatCurrency(d.montant_ttc)}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {formatDate(d.date_creation)}
+                    {d.date_creation ? formatDate(d.date_creation) : '-'}
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(d.statut)}>
-                      {getStatusLabel(d.statut)}
+                    <Badge className={getStatusColor(d.statut || 'brouillon')}>
+                      {getStatusLabel(d.statut || 'brouillon')}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

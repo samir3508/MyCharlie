@@ -3,70 +3,57 @@
 import { useQuery } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/hooks/use-auth'
-import { StatsCards } from '@/components/dashboard/stats-cards'
-import { RevenueChartSimple } from '@/components/dashboard/revenue-chart-simple'
-import { DevisStatusChartSimple } from '@/components/dashboard/devis-status-chart-simple'
-import { RecentDevisTable } from '@/components/dashboard/recent-devis-table'
+import { motion } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Card } from '@/components/ui/card'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import {
+  FileText,
+  Receipt,
+  Euro,
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  FolderKanban,
+  ClipboardList,
+  Users,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
+  Sparkles,
+  Bot,
+  Trophy,
+  Send,
+  Plus
+} from 'lucide-react'
+import Link from 'next/link'
+import { useDossiersStats } from '@/lib/hooks/use-dossiers'
+import { useRdvToday, useRdvUpcoming } from '@/lib/hooks/use-rdv'
+import { cn } from '@/lib/utils'
 
 export default function DashboardPage() {
   const { tenant } = useAuth()
   const supabase = getSupabaseClient()
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['dashboard-stats', tenant?.id],
+  // Stats Charlie (Devis & Factures)
+  const { data: charlieStats, isLoading: charlieLoading } = useQuery({
+    queryKey: ['charlie-stats', tenant?.id],
     queryFn: async () => {
       if (!tenant?.id) return null
 
-      // Devis en cours
+      const now = new Date()
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+
+      // Devis stats
       const { count: devisEnCours } = await supabase
         .from('devis')
         .select('*', { count: 'exact', head: true })
         .eq('tenant_id', tenant.id)
-        .in('statut', ['brouillon', 'envoye'])
-
-      // CA ce mois : somme des montants TTC des factures payées ce mois-ci uniquement
-      const startOfMonth = new Date()
-      startOfMonth.setDate(1)
-      startOfMonth.setHours(0, 0, 0, 0)
-      
-      const endOfMonth = new Date()
-      endOfMonth.setMonth(endOfMonth.getMonth() + 1)
-      endOfMonth.setDate(0)
-      endOfMonth.setHours(23, 59, 59, 999)
-
-      // Récupérer uniquement les factures payées (statut = 'payee')
-      const { data: facturesPaidAll } = await supabase
-        .from('factures')
-        .select('montant_ttc, date_paiement, updated_at')
-        .eq('tenant_id', tenant.id)
-        .eq('statut', 'payee') // Seulement les factures payées
-
-      // Filtrer pour ne garder que celles payées ce mois-ci (basé sur date_paiement ou updated_at si date_paiement est null)
-      const facturesPaid = facturesPaidAll?.filter((f: any) => {
-        const datePaiement = f.date_paiement || f.updated_at
-        if (!datePaiement) return false
-        const paiementDate = new Date(datePaiement)
-        return paiementDate >= startOfMonth && paiementDate <= endOfMonth
-      }) || []
-
-      // Calculer la somme des montants TTC des factures payées ce mois
-      const caMois = facturesPaid.reduce((sum: number, f: { montant_ttc: number | null }) => sum + Number(f.montant_ttc || 0), 0)
-
-      // Factures impayées
-      const { count: facturesImpayees } = await supabase
-        .from('factures')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenant.id)
-        .in('statut', ['envoyee', 'en_retard'])
-
-      // Taux de conversion
-      const { count: devisEnvoyes } = await supabase
-        .from('devis')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenant.id)
-        .in('statut', ['envoye', 'accepte', 'refuse'])
+        .in('statut', ['brouillon', 'en_preparation', 'pret', 'envoye'])
 
       const { count: devisAcceptes } = await supabase
         .from('devis')
@@ -74,270 +61,491 @@ export default function DashboardPage() {
         .eq('tenant_id', tenant.id)
         .eq('statut', 'accepte')
 
-      const tauxConversion = devisEnvoyes && devisEnvoyes > 0
-        ? Math.round((devisAcceptes || 0) / devisEnvoyes * 100)
-        : 0
-
-      // Clients actifs
-      const { count: clientsActifs } = await supabase
-        .from('clients')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenant.id)
-
-      // Devis ce mois
       const { count: devisMois } = await supabase
         .from('devis')
         .select('*', { count: 'exact', head: true })
         .eq('tenant_id', tenant.id)
-        .gte('date_creation', startOfMonth.toISOString().split('T')[0])
+        .gte('date_creation', startOfMonth.toISOString())
 
-      // CA total (toutes les factures payées)
-      const caTotal = facturesPaidAll?.reduce((sum: number, f: { montant_ttc: number | null }) => sum + Number(f.montant_ttc || 0), 0) || 0
-
-      // Factures payées ce mois (count) - on réutilise facturesPaid avec le même filtre de date
-      const facturesPayeesMois = facturesPaid.length || 0
-
-      // Calculer les variations pour les tendances
-      const lastMonthStart = new Date(startOfMonth)
-      lastMonthStart.setMonth(lastMonthStart.getMonth() - 1)
-      const lastMonthEnd = new Date(startOfMonth)
-      lastMonthEnd.setDate(0)
-      lastMonthEnd.setHours(23, 59, 59, 999)
-
-      // Pour le CA du mois dernier, on utilise aussi la même logique (factures payées le mois dernier uniquement)
-      const facturesPaidLastMonth = facturesPaidAll?.filter((f: any) => {
-        const datePaiement = f.date_paiement || f.updated_at
-        if (!datePaiement) return false
-        const paiementDate = new Date(datePaiement)
-        return paiementDate >= lastMonthStart && paiementDate <= lastMonthEnd
-      }) || []
-
-      const caLastMonth = facturesPaidLastMonth.reduce((sum: number, f: { montant_ttc: number | null }) => sum + Number(f.montant_ttc || 0), 0)
-      const caVariation = caLastMonth > 0 ? Math.round(((caMois - caLastMonth) / caLastMonth) * 100) : 0
-
-      const { count: devisMoisLast } = await supabase
-        .from('devis')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenant.id)
-        .gte('date_creation', lastMonthStart.toISOString().split('T')[0])
-        .lt('date_creation', startOfMonth.toISOString().split('T')[0])
-
-      const devisMoisVariation = devisMoisLast ? (devisMois || 0) - devisMoisLast : 0
-
-      return {
-        devisEnCours: devisEnCours || 0,
-        caMois,
-        facturesImpayees: facturesImpayees || 0,
-        tauxConversion,
-        clientsActifs: clientsActifs || 0,
-        devisMois: devisMois || 0,
-        caTotal,
-        facturesPayeesMois: facturesPayeesMois || 0,
-        devisAcceptes: devisAcceptes || 0,
-        caVariation,
-        devisMoisVariation,
-      }
-    },
-    enabled: !!tenant?.id,
-  })
-
-  const { data: recentDevis, isLoading: devisLoading } = useQuery({
-    queryKey: ['recent-devis', tenant?.id],
-    queryFn: async () => {
-      if (!tenant?.id) return []
-
-      const { data } = await supabase
-        .from('devis')
-        .select(`
-          *,
-          clients (nom_complet)
-        `)
-        .eq('tenant_id', tenant.id)
-        .order('created_at', { ascending: false })
-        .limit(5)
-
-      return data?.map((d: any) => ({
-        ...d,
-        client_name: d.clients?.nom_complet || 'Client inconnu'
-      })) || []
-    },
-    enabled: !!tenant?.id,
-  })
-
-  // Récupérer les revenus mensuels de l'année courante
-  const { data: revenueData, isLoading: revenueLoading } = useQuery({
-    queryKey: ['revenue-monthly', tenant?.id],
-    queryFn: async () => {
-      if (!tenant?.id) return []
-
-      const now = new Date()
-      const yearStart = new Date(now.getFullYear(), 0, 1)
-      yearStart.setHours(0, 0, 0, 0)
-
-      // Récupérer toutes les factures payées de l'année
-      const { data: factures } = await supabase
+      // Factures stats
+      const { data: facturesPaid } = await supabase
         .from('factures')
-        .select('montant_ttc, date_paiement, updated_at')
+        .select('montant_ttc')
         .eq('tenant_id', tenant.id)
         .eq('statut', 'payee')
 
-      if (!factures) return []
+      const { count: facturesImpayees } = await supabase
+        .from('factures')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenant.id)
+        .in('statut', ['envoyee', 'en_retard'])
 
-      // Grouper par mois
-      const monthLabels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
-      const monthlyRevenue = new Array(12).fill(0)
+      const caTotal = facturesPaid?.reduce((sum: number, f: { montant_ttc: number | null }) => sum + (f.montant_ttc || 0), 0) || 0
 
-      factures.forEach((f: any) => {
-        const datePaiement = f.date_paiement || f.updated_at
-        if (!datePaiement) return
+      // Taux conversion
+      const { count: totalDevisEnvoyes } = await supabase
+        .from('devis')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenant.id)
+        .in('statut', ['envoye', 'accepte', 'refuse'])
 
-        const date = new Date(datePaiement)
-        const month = date.getMonth()
-        
-        if (date.getFullYear() === now.getFullYear() && month >= 0 && month < 12) {
-          monthlyRevenue[month] += Number(f.montant_ttc || 0)
-        }
-      })
+      const tauxConversion = totalDevisEnvoyes && totalDevisEnvoyes > 0
+        ? Math.round(((devisAcceptes || 0) / totalDevisEnvoyes) * 100)
+        : 0
 
-      return monthLabels.map((month, index) => ({
-        month,
-        revenue: monthlyRevenue[index]
-      }))
+      // Relances à faire
+      const { count: relancesAFaire } = await supabase
+        .from('devis')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenant.id)
+        .eq('statut', 'envoye')
+        .lt('date_envoi', new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString())
+
+      return {
+        devisEnCours: devisEnCours || 0,
+        devisAcceptes: devisAcceptes || 0,
+        devisMois: devisMois || 0,
+        facturesImpayees: facturesImpayees || 0,
+        caTotal,
+        tauxConversion,
+        relancesAFaire: relancesAFaire || 0,
+      }
     },
     enabled: !!tenant?.id,
   })
 
-  // Récupérer la répartition des devis par statut pour le trimestre actuel
-  const { data: devisStatusData, isLoading: devisStatusLoading } = useQuery({
-    queryKey: ['devis-status-quarter', tenant?.id],
+  // Stats Léo
+  const { data: leoStats } = useDossiersStats()
+  const { data: rdvToday } = useRdvToday()
+  const { data: rdvUpcoming } = useRdvUpcoming(7)
+
+  // Clients
+  const { data: clientsCount } = useQuery({
+    queryKey: ['clients-count', tenant?.id],
+    queryFn: async () => {
+      if (!tenant?.id) return 0
+      const { count } = await supabase
+        .from('clients')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenant.id)
+      return count || 0
+    },
+    enabled: !!tenant?.id,
+  })
+
+  // Recent devis
+  const { data: recentDevis } = useQuery({
+    queryKey: ['recent-devis', tenant?.id],
     queryFn: async () => {
       if (!tenant?.id) return []
-
-      const now = new Date()
-      const currentQuarter = Math.floor(now.getMonth() / 3)
-      const quarterStart = new Date(now.getFullYear(), currentQuarter * 3, 1)
-      quarterStart.setHours(0, 0, 0, 0)
-      const quarterEnd = new Date(now.getFullYear(), currentQuarter * 3 + 3, 0)
-      quarterEnd.setHours(23, 59, 59, 999)
-
-      // Récupérer tous les devis du trimestre
-      const { data: devis } = await supabase
+      const { data } = await supabase
         .from('devis')
-        .select('statut')
+        .select('id, numero, montant_ttc, statut, clients (nom_complet)')
         .eq('tenant_id', tenant.id)
-        .gte('date_creation', quarterStart.toISOString().split('T')[0])
-        .lte('date_creation', quarterEnd.toISOString().split('T')[0])
-
-      if (!devis) return []
-
-      // Compter par statut
-      const statusCounts: Record<string, number> = {
-        accepte: 0,
-        envoye: 0,
-        refuse: 0,
-        expire: 0,
-        brouillon: 0,
-      }
-
-      devis.forEach((d: any) => {
-        const statut = d.statut || 'brouillon'
-        if (statusCounts.hasOwnProperty(statut)) {
-          statusCounts[statut]++
-        }
-      })
-
-      const statusColors: Record<string, string> = {
-        accepte: '#27AE60',
-        envoye: '#3498DB',
-        refuse: '#E74C3C',
-        expire: '#F39C12',
-        brouillon: '#9CA3AF',
-      }
-
-      const statusLabels: Record<string, string> = {
-        accepte: 'Acceptés',
-        envoye: 'En attente',
-        refuse: 'Refusés',
-        expire: 'Expirés',
-        brouillon: 'Brouillons',
-      }
-
-      return Object.entries(statusCounts)
-        .filter(([_, count]) => count > 0)
-        .map(([statut, value]) => ({
-          name: statusLabels[statut] || statut,
-          value,
-          color: statusColors[statut] || '#9CA3AF',
-        }))
+        .order('created_at', { ascending: false })
+        .limit(5)
+      return data || []
     },
     enabled: !!tenant?.id,
   })
 
-  // Debug logs pour vérifier les données
-  console.log('Revenue data:', revenueData)
-  console.log('Devis status data:', devisStatusData)
+  const formatMontant = (montant: number) => {
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(montant)
+  }
+
+  const getStatutColor = (statut: string) => {
+    const colors: Record<string, string> = {
+      brouillon: 'bg-gray-500/10 text-gray-400',
+      en_preparation: 'bg-blue-500/10 text-blue-400',
+      pret: 'bg-amber-500/10 text-amber-400',
+      envoye: 'bg-purple-500/10 text-purple-400',
+      accepte: 'bg-green-500/10 text-green-400',
+      refuse: 'bg-red-500/10 text-red-400',
+    }
+    return colors[statut] || 'bg-gray-500/10 text-gray-400'
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
-          Tableau de bord
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Bienvenue, voici un aperçu de votre activité
-        </p>
-      </div>
-
-      {/* Stats Cards */}
-      {statsLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="p-6">
-              <Skeleton className="h-4 w-24 mb-2" />
-              <Skeleton className="h-8 w-16" />
-            </Card>
-          ))}
-        </div>
-      ) : stats ? (
-        <StatsCards stats={stats} />
-      ) : null}
-
-      {/* Charts */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {revenueLoading ? (
-          <Card className="col-span-1 p-6">
-            <Skeleton className="h-6 w-32 mb-4" />
-            <Skeleton className="h-[300px] w-full" />
-          </Card>
-        ) : (
-          <RevenueChartSimple data={revenueData || []} />
-        )}
-        {devisStatusLoading ? (
-          <Card className="col-span-1 p-6">
-            <Skeleton className="h-6 w-32 mb-4" />
-            <Skeleton className="h-[300px] w-full" />
-          </Card>
-        ) : (
-          <DevisStatusChartSimple data={devisStatusData || []} />
-        )}
-      </div>
-
-      {/* Recent Devis */}
-      {devisLoading ? (
-        <Card className="p-6">
-          <Skeleton className="h-6 w-32 mb-4" />
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
+            <Sparkles className="w-6 h-6 text-white" />
           </div>
-        </Card>
-      ) : (
-        <RecentDevisTable devis={recentDevis || []} />
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
+              Bonjour{tenant?.company_name ? `, ${tenant.company_name}` : ''} 👋
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Voici le récapitulatif de votre activité
+            </p>
+          </div>
+        </div>
+        {/* Boutons toujours sous le titre */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" className="w-full sm:w-auto justify-center" asChild>
+            <Link href="/devis/nouveau">
+              <Plus className="w-4 h-4 mr-2" />
+              Nouveau devis
+            </Link>
+          </Button>
+          <Button className="w-full sm:w-auto justify-center bg-gradient-to-r from-orange-500 to-orange-600" asChild>
+            <Link href="/dossiers">
+              <FolderKanban className="w-4 h-4 mr-2" />
+              Voir les dossiers
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Agents Sections */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* CHARLIE Section */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="border-border bg-gradient-to-br from-blue-500/5 to-indigo-500/5 border-blue-500/20 overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-blue-500" />
+                  </div>
+                  <span className="text-blue-400">Charlie</span>
+                  <span className="text-muted-foreground text-sm font-normal">— Devis & Factures</span>
+                </CardTitle>
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+                  Actif
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {charlieLoading ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-20" />)}
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 rounded-lg bg-card/50 border border-border/50">
+                      <div className="flex items-center gap-2 mb-1">
+                        <FileText className="w-4 h-4 text-blue-400" />
+                        <span className="text-xs text-muted-foreground">Devis en cours</span>
+                      </div>
+                      <p className="text-2xl font-bold">{charlieStats?.devisEnCours}</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-card/50 border border-border/50">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Trophy className="w-4 h-4 text-green-400" />
+                        <span className="text-xs text-muted-foreground">Taux conversion</span>
+                      </div>
+                      <p className="text-2xl font-bold">{charlieStats?.tauxConversion}%</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-card/50 border border-border/50">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Euro className="w-4 h-4 text-orange-400" />
+                        <span className="text-xs text-muted-foreground">CA total</span>
+                      </div>
+                      <p className="text-2xl font-bold">{formatMontant(charlieStats?.caTotal || 0)}</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-card/50 border border-border/50">
+                      <div className="flex items-center gap-2 mb-1">
+                        <AlertTriangle className="w-4 h-4 text-red-400" />
+                        <span className="text-xs text-muted-foreground">Impayées</span>
+                      </div>
+                      <p className="text-2xl font-bold">{charlieStats?.facturesImpayees}</p>
+                    </div>
+                  </div>
+
+                  {(charlieStats?.relancesAFaire || 0) > 0 && (
+                    <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Send className="w-4 h-4 text-amber-400" />
+                        <span className="text-sm text-amber-400">
+                          {charlieStats?.relancesAFaire} devis à relancer
+                        </span>
+                      </div>
+                      <Button size="sm" variant="ghost" className="text-amber-400 hover:bg-amber-500/10" asChild>
+                        <Link href="/relances">
+                          Voir <ArrowRight className="w-3 h-3 ml-1" />
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end">
+                    <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300" asChild>
+                      <Link href="/devis">
+                        Gérer les devis <ArrowRight className="w-4 h-4 ml-1" />
+                      </Link>
+                    </Button>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* LÉO Section */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="border-border bg-gradient-to-br from-orange-500/5 to-amber-500/5 border-orange-500/20 overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <span className="text-orange-400">Léo</span>
+                  <span className="text-muted-foreground text-sm font-normal">— Suivi Commercial</span>
+                </CardTitle>
+                <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/30">
+                  Nouveau
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-card/50 border border-border/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FolderKanban className="w-4 h-4 text-orange-400" />
+                    <span className="text-xs text-muted-foreground">Dossiers actifs</span>
+                  </div>
+                  <p className="text-2xl font-bold">{leoStats?.enCours || 0}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-card/50 border border-border/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Calendar className="w-4 h-4 text-purple-400" />
+                    <span className="text-xs text-muted-foreground">RDV aujourd'hui</span>
+                  </div>
+                  <p className="text-2xl font-bold">{rdvToday?.length || 0}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-card/50 border border-border/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Trophy className="w-4 h-4 text-green-400" />
+                    <span className="text-xs text-muted-foreground">Dossiers signés</span>
+                  </div>
+                  <p className="text-2xl font-bold">{leoStats?.signes || 0}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-card/50 border border-border/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Euro className="w-4 h-4 text-orange-400" />
+                    <span className="text-xs text-muted-foreground">CA potentiel</span>
+                  </div>
+                  <p className="text-2xl font-bold">{formatMontant(leoStats?.montantTotal || 0)}</p>
+                </div>
+              </div>
+
+              {(rdvUpcoming?.length || 0) > 0 && (
+                <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-purple-400" />
+                    <span className="text-sm text-purple-400">
+                      {rdvUpcoming?.length} RDV cette semaine
+                    </span>
+                  </div>
+                  <Button size="sm" variant="ghost" className="text-purple-400 hover:bg-purple-500/10" asChild>
+                    <Link href="/rdv">
+                      Voir <ArrowRight className="w-3 h-3 ml-1" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
+
+              <div className="flex justify-end">
+                <Button variant="ghost" size="sm" className="text-orange-400 hover:text-orange-300" asChild>
+                  <Link href="/dossiers">
+                    Gérer les dossiers <ArrowRight className="w-4 h-4 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Bottom Section */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Recent Devis */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="lg:col-span-2"
+        >
+          <Card className="border-border">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-400" />
+                Derniers devis
+              </CardTitle>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/devis">
+                  Voir tout <ArrowRight className="w-4 h-4 ml-1" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {recentDevis && recentDevis.length > 0 ? (
+                <div className="space-y-2">
+                  {recentDevis.map((devis: any, index: number) => (
+                    <motion.div
+                      key={devis.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + index * 0.05 }}
+                      className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/50 hover:border-blue-500/30 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarFallback className="bg-blue-500/10 text-blue-400 text-xs">
+                            {devis.clients?.nom_complet?.split(' ').map((n: string) => n[0]).join('').slice(0, 2) || '??'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-sm">{devis.clients?.nom_complet || 'Client inconnu'}</p>
+                          <p className="text-xs text-muted-foreground">{devis.numero}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold text-sm">{formatMontant(devis.montant_ttc || 0)}</span>
+                        <Badge variant="outline" className={cn("text-xs", getStatutColor(devis.statut))}>
+                          {devis.statut?.replace(/_/g, ' ')}
+                        </Badge>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Aucun devis récent</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Quick Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="border-border h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="w-5 h-5 text-orange-400" />
+                Aperçu rapide
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/50">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">Clients</span>
+                  </div>
+                  <span className="font-bold">{clientsCount}</span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/50">
+                  <div className="flex items-center gap-2">
+                    <FolderKanban className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">Dossiers total</span>
+                  </div>
+                  <span className="font-bold">{leoStats?.total || 0}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/50">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">Devis ce mois</span>
+                  </div>
+                  <span className="font-bold">{charlieStats?.devisMois || 0}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/50">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">Devis acceptés</span>
+                  </div>
+                  <span className="font-bold text-green-400">{charlieStats?.devisAcceptes || 0}</span>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="pt-4 border-t border-border space-y-2">
+                <p className="text-xs text-muted-foreground mb-2">Actions rapides</p>
+                <Button variant="outline" size="sm" className="w-full justify-start" asChild>
+                  <Link href="/clients">
+                    <Users className="w-4 h-4 mr-2" />
+                    Nouveau client
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" className="w-full justify-start" asChild>
+                  <Link href="/dossiers">
+                    <FolderKanban className="w-4 h-4 mr-2" />
+                    Nouveau dossier
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* RDV du jour */}
+      {rdvToday && rdvToday.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Card className="border-border bg-gradient-to-r from-purple-500/5 to-purple-600/5 border-purple-500/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-purple-400" />
+                RDV aujourd'hui
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {rdvToday.map((rdv: any, index: number) => (
+                  <motion.div
+                    key={rdv.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.6 + index * 0.05 }}
+                    className="p-3 rounded-lg bg-card border border-purple-500/20"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-lg font-bold text-purple-400">
+                        {new Date(rdv.date_heure).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30 text-xs">
+                        {rdv.type_rdv}
+                      </Badge>
+                    </div>
+                    <p className="font-medium text-sm">{rdv.titre || rdv.dossiers?.titre}</p>
+                    {rdv.clients && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {rdv.clients.nom_complet}
+                      </p>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
     </div>
   )
 }
-
-

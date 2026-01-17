@@ -351,7 +351,7 @@ export default function ClientDetailPage({ params }: PageProps) {
 
                     <div className="flex items-center gap-2 text-sm text-gray-400 mt-4 pt-4 border-t border-gray-800">
                       <Calendar className="h-4 w-4" />
-                      <span>Client depuis le {format(new Date(client.created_at), 'dd MMMM yyyy', { locale: fr })}</span>
+                      <span>Client depuis le {client.created_at ? format(new Date(client.created_at), 'dd MMMM yyyy', { locale: fr }) : '-'}</span>
                     </div>
                   </div>
                 </div>

@@ -5,6 +5,11 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Calculator, Clock, Euro, TrendingUp, Users, FileText, Send, ArrowRight } from 'lucide-react'
 
+// Formatage des nombres pour éviter les erreurs d'hydratation SSR
+const formatNumber = (num: number): string => {
+  return new Intl.NumberFormat('fr-FR').format(num)
+}
+
 const SliderInput = ({ label, value, onChange, min, max, step, unit, suffix }: { 
   label: string; 
   value: number; 
@@ -200,17 +205,17 @@ export default function RoiCalculator() {
                     <div className="text-center">
                       <p className="text-gray-400 text-sm mb-2">Par semaine</p>
                       <p className="text-3xl font-bold text-white">{tempsTotalHebdo.toFixed(1)}h</p>
-                      <p className="text-xl text-orange-400">{coutHebdo.toLocaleString()} €</p>
+                      <p className="text-xl text-orange-400">{formatNumber(coutHebdo)} €</p>
                     </div>
                     <div className="text-center">
                       <p className="text-gray-400 text-sm mb-2">Par mois</p>
                       <p className="text-3xl font-bold text-white">{(tempsTotalHebdo * 4).toFixed(1)}h</p>
-                      <p className="text-xl text-orange-400">{coutMensuel.toLocaleString()} €</p>
+                      <p className="text-xl text-orange-400">{formatNumber(coutMensuel)} €</p>
                     </div>
                     <div className="text-center">
                       <p className="text-gray-400 text-sm mb-2">Par an</p>
                       <p className="text-3xl font-bold text-white">{(tempsTotalHebdo * 52).toFixed(0)}h</p>
-                      <p className="text-xl text-orange-400">{coutAnnuel.toLocaleString()} €</p>
+                      <p className="text-xl text-orange-400">{formatNumber(coutAnnuel)} €</p>
                     </div>
                   </div>
                 </div>
@@ -226,7 +231,7 @@ export default function RoiCalculator() {
                     </div>
                     <div className="text-center">
                       <p className="text-gray-400 text-sm mb-2">Argent économisé / an</p>
-                      <p className="text-3xl font-bold text-orange-400">{argentEconomiseAnnuel.toLocaleString()} €</p>
+                      <p className="text-3xl font-bold text-orange-400">{formatNumber(argentEconomiseAnnuel)} €</p>
                     </div>
                   </div>
                 </div>
@@ -256,15 +261,15 @@ export default function RoiCalculator() {
                     <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
                         <p className="text-gray-400 text-xs mb-1">Avant</p>
-                        <p className="text-xl font-bold text-white">{coutMensuel.toLocaleString()} €</p>
+                        <p className="text-xl font-bold text-white">{formatNumber(coutMensuel)} €</p>
                       </div>
                       <div>
                         <p className="text-gray-400 text-xs mb-1">Avec Charly</p>
-                        <p className="text-xl font-bold text-orange-400">{coutCharlyMensuel.toLocaleString()} €</p>
+                        <p className="text-xl font-bold text-orange-400">{formatNumber(coutCharlyMensuel)} €</p>
                       </div>
                       <div>
                         <p className="text-gray-400 text-xs mb-1">Économie</p>
-                        <p className="text-xl font-bold text-green-400">{(coutMensuel - coutCharlyMensuel).toLocaleString()} €</p>
+                        <p className="text-xl font-bold text-green-400">{formatNumber(coutMensuel - coutCharlyMensuel)} €</p>
                         <p className="text-xs text-green-400">-{pourcentageEconomie}%</p>
                       </div>
                     </div>
@@ -285,7 +290,7 @@ export default function RoiCalculator() {
                 <p className="text-lg text-gray-400 mb-8">
                   Prêt à gagner {tempsEconomiseAnnuel.toFixed(0)}h par an ?<br />
                   Charly automatise vos devis, factures et relances en moins de 2 minutes chacun.<br />
-                  C'est {argentEconomiseAnnuel.toLocaleString()} € d'économies annuelles.
+                  C'est {formatNumber(argentEconomiseAnnuel)} € d'économies annuelles.
                 </p>
                 
                 <Link href="#demo">

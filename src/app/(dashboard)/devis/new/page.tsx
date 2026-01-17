@@ -37,6 +37,8 @@ export default function NewDevisPage() {
     if (!tenant?.id) return
 
     try {
+      console.log('🚀 Création du devis avec données:', { tenant_id: tenant.id, client_id: data.client_id, lignes_count: data.lignes.length })
+      
       const result = await createDevis.mutateAsync({
         devis: {
           tenant_id: tenant.id,
@@ -62,10 +64,25 @@ export default function NewDevisPage() {
         })),
       })
 
+      console.log('✅ Devis créé avec succès:', result)
+      
+      if (!result || !result.id) {
+        console.error('❌ Le devis créé n\'a pas d\'ID:', result)
+        toast.error('Erreur: Le devis a été créé mais l\'ID est manquant')
+        return
+      }
+
       toast.success('Devis créé avec succès')
+      console.log('🔗 Redirection vers:', `/devis/${result.id}`)
+      
+      // Attendre un peu pour que la base de données finalise la création
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
       router.push(`/devis/${result.id}`)
-    } catch {
-      toast.error('Erreur lors de la création du devis')
+    } catch (error: any) {
+      console.error('❌ Erreur lors de la création du devis:', error)
+      const errorMessage = error?.message || 'Erreur inconnue lors de la création du devis'
+      toast.error(`Erreur: ${errorMessage}`)
     }
   }
 

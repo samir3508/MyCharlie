@@ -12,8 +12,8 @@ export function DashboardSidebarWrapper({ children }: { children: React.ReactNod
         <header className="flex h-14 shrink-0 items-center gap-2 border-b border-gray-800 bg-black/50 backdrop-blur-sm px-4">
           <SidebarTrigger className="-ml-1 text-white hover:bg-[#FF4D00]/20 hover:text-[#FF4D00]" />
         </header>
-        <main className="flex-1 overflow-auto p-6 bg-gradient-to-br from-black via-[#0A0A0A] to-[#1A0A00] min-h-screen">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 bg-gradient-to-br from-black via-[#0A0A0A] to-[#1A0A00] min-h-screen">
+          <div className="w-full max-w-7xl mx-auto">
             {children}
           </div>
         </main>

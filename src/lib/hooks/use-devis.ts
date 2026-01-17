@@ -4,13 +4,87 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { Devis, LigneDevis, InsertTables, UpdateTables } from '@/types/database'
 
+/**
+ * Sélectionne automatiquement le template de conditions de paiement selon le montant TTC
+ */
+async function selectPaymentTemplate(
+  tenantId: string,
+  montantTtc: number
+): Promise<string | null> {
+  const supabase = getSupabaseClient()
+  
+  // Si montant est 0, utiliser directement le template par défaut
+  if (montantTtc === 0) {
+    return await getDefaultPaymentTemplate(tenantId, supabase)
+  }
+
+  // Chercher le template correspondant au montant
+  const { data: templates, error } = await supabase
+    .from('templates_conditions_paiement')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .lte('montant_min', montantTtc)
+    .order('montant_min', { ascending: false })
+    .limit(1)
+
+  if (error) {
+    console.error('Erreur lors de la sélection du template:', error)
+    // En cas d'erreur, chercher le template par défaut
+    return await getDefaultPaymentTemplate(tenantId, supabase)
+  }
+
+  if (templates && templates.length > 0) {
+    const template = templates[0]
+    // Vérifier que le montant est dans la plage (si montant_max est défini)
+    if (template.montant_max === null || montantTtc <= template.montant_max) {
+      return template.id
+    }
+  }
+
+  // Si aucun template ne correspond, utiliser le template par défaut
+  return await getDefaultPaymentTemplate(tenantId, supabase)
+}
+
+/**
+ * Récupère le template de paiement par défaut
+ */
+async function getDefaultPaymentTemplate(tenantId: string, supabase: ReturnType<typeof getSupabaseClient>): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('templates_conditions_paiement')
+    .select('id')
+    .eq('tenant_id', tenantId)
+    .eq('is_default', true)
+    .limit(1)
+    .maybeSingle()
+
+  if (error || !data) {
+    console.error('Aucun template par défaut trouvé:', error)
+    // Si aucun template par défaut, prendre le premier template disponible
+    const { data: fallback } = await supabase
+      .from('templates_conditions_paiement')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .limit(1)
+      .maybeSingle()
+    
+    return fallback?.id || null
+  }
+
+  return data.id
+}
+
 export function useDevis(tenantId: string | undefined) {
   const supabase = getSupabaseClient()
 
   return useQuery({
     queryKey: ['devis', tenantId],
     queryFn: async () => {
-      if (!tenantId) return []
+      console.log('📊 [useDevis] Requête démarrée pour tenant:', tenantId)
+      
+      if (!tenantId) {
+        console.warn('⚠️ [useDevis] Pas de tenantId fourni')
+        return []
+      }
 
       const { data, error } = await supabase
         .from('devis')
@@ -21,7 +95,13 @@ export function useDevis(tenantId: string | undefined) {
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ [useDevis] Erreur lors de la récupération:', error)
+        throw error
+      }
+      
+      console.log('✅ [useDevis] Devis récupérés:', data?.length || 0)
+      
       return data.map((d: Devis & { clients?: { nom_complet: string } | null }) => ({
         ...d,
         client_name: d.clients?.nom_complet
@@ -31,25 +111,48 @@ export function useDevis(tenantId: string | undefined) {
   })
 }
 
-export function useDevisById(devisId: string | undefined) {
+export function useDevisById(devisId: string | undefined, tenantId?: string | undefined) {
   const supabase = getSupabaseClient()
 
   return useQuery({
-    queryKey: ['devis', devisId],
+    queryKey: ['devis', devisId, tenantId],
     queryFn: async () => {
-      if (!devisId) return null
+      if (!devisId) {
+        console.log('⚠️ useDevisById: devisId est undefined')
+        return null
+      }
 
-      const { data, error } = await supabase
+      console.log('🔍 Recherche du devis avec ID:', devisId, 'tenantId:', tenantId)
+
+      let query = supabase
         .from('devis')
         .select(`
           *,
+          tenant_id,
           clients (id, nom_complet, email, telephone, adresse_facturation),
           lignes_devis (*)
         `)
         .eq('id', devisId)
-        .single()
 
-      if (error) throw error
+      // Filtrer par tenant_id si fourni (pour respecter les RLS)
+      if (tenantId) {
+        query = query.eq('tenant_id', tenantId)
+      }
+
+      const { data, error } = await query.maybeSingle()
+
+      if (error) {
+        console.error('❌ Erreur lors de la récupération du devis:', error)
+        throw error
+      }
+      
+      if (!data) {
+        console.warn('⚠️ Devis non trouvé avec ID:', devisId, tenantId ? `pour tenant ${tenantId}` : '')
+        return null
+      }
+
+      console.log('✅ Devis trouvé:', { id: data.id, numero: data.numero, tenant_id: data.tenant_id })
+      
       return data as Devis & { 
         clients: { id: string; nom_complet: string; email: string; telephone: string; adresse_facturation: string } | null;
         lignes_devis: LigneDevis[] 
@@ -71,19 +174,57 @@ export function useCreateDevis() {
       devis: InsertTables<'devis'>; 
       lignes: Omit<InsertTables<'lignes_devis'>, 'devis_id'>[] 
     }) => {
+      // Calculate totals first to determine template
+      const totals = lignes.reduce(
+        (acc, ligne) => ({
+          montant_ht: acc.montant_ht + (ligne.quantite * ligne.prix_unitaire_ht),
+          montant_tva: acc.montant_tva + (ligne.quantite * ligne.prix_unitaire_ht * (ligne.tva_pct || 10) / 100),
+        }),
+        { montant_ht: 0, montant_tva: 0 }
+      )
+      const montant_ttc = totals.montant_ht + totals.montant_tva
+
+      // Sélectionner automatiquement le template si non fourni
+      let templateId = devis.template_condition_paiement_id
+      if (!templateId) {
+        templateId = await selectPaymentTemplate(devis.tenant_id, montant_ttc)
+      }
+
       // Generate devis number
       const { data: numero } = await supabase.rpc('generate_devis_numero', {
         p_tenant_id: devis.tenant_id
       })
 
-      // Create devis
+      // Create devis with template
+      console.log('📝 Création du devis avec template:', { templateId, numero: numero || devis.numero })
+      
+      const devisData = {
+        ...devis, 
+        numero: numero || devis.numero,
+        template_condition_paiement_id: templateId || null,
+        // S'assurer que date_creation est définie
+        date_creation: devis.date_creation || new Date().toISOString().split('T')[0],
+      }
+      
+      console.log('📋 Données du devis à insérer:', devisData)
+      
       const { data: newDevis, error: devisError } = await supabase
         .from('devis')
-        .insert({ ...devis, numero: numero || devis.numero })
+        .insert(devisData)
         .select()
         .single()
 
-      if (devisError) throw devisError
+      if (devisError) {
+        console.error('❌ Erreur lors de la création du devis:', devisError)
+        throw devisError
+      }
+
+      if (!newDevis) {
+        console.error('❌ Le devis n\'a pas été créé (newDevis est null)')
+        throw new Error('Le devis n\'a pas pu être créé')
+      }
+
+      console.log('✅ Devis créé:', { id: newDevis.id, numero: newDevis.numero })
 
       // Create lignes
       if (lignes.length > 0) {
@@ -99,28 +240,23 @@ export function useCreateDevis() {
         if (lignesError) throw lignesError
       }
 
-      // Calculate and update totals
-      const totals = lignes.reduce(
-        (acc, ligne) => ({
-          montant_ht: acc.montant_ht + (ligne.quantite * ligne.prix_unitaire_ht),
-          montant_tva: acc.montant_tva + (ligne.quantite * ligne.prix_unitaire_ht * (ligne.tva_pct || 10) / 100),
-        }),
-        { montant_ht: 0, montant_tva: 0 }
-      )
-
+      // Update totals
       await supabase
         .from('devis')
         .update({
           montant_ht: totals.montant_ht,
           montant_tva: totals.montant_tva,
-          montant_ttc: totals.montant_ht + totals.montant_tva
+          montant_ttc: montant_ttc
         })
         .eq('id', newDevis.id)
 
       return newDevis
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('🔄 Invalidation des queries pour le devis:', data.id)
       queryClient.invalidateQueries({ queryKey: ['devis'] })
+      // Précharger le devis créé dans le cache
+      queryClient.setQueryData(['devis', data.id], data)
     },
   })
 }

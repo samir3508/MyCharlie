@@ -22,9 +22,17 @@ export async function GET(
         lignes_devis (*)
       `)
       .eq('id', id)
-      .single()
+      .maybeSingle()
 
-    if (error || !devis) {
+    if (error) {
+      console.error('Database error:', error)
+      return NextResponse.json(
+        { success: false, error: 'Erreur lors de la récupération du devis', details: error.message },
+        { status: 500 }
+      )
+    }
+
+    if (!devis) {
       return NextResponse.json(
         { success: false, error: 'Devis non trouvé' },
         { status: 404 }

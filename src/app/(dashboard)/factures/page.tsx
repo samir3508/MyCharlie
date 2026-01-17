@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useFactures, useDeleteFacture, useUpdateFactureStatus } from '@/lib/hooks/use-factures'
@@ -53,7 +53,8 @@ import {
 } from 'lucide-react'
 import { formatCurrency, formatDate, getStatusColor, getStatusLabel, isOverdue } from '@/lib/utils'
 import { Pagination } from '@/components/ui/pagination'
-import { exportToCSV } from '@/lib/utils/export'
+import { ExportDropdown } from '@/components/ui/export-dropdown'
+import { FACTURE_COLUMNS } from '@/lib/utils/export'
 
 export default function FacturesPage() {
   const { tenant } = useAuth()
@@ -114,9 +115,9 @@ export default function FacturesPage() {
     envoyee: factures?.filter(f => f.statut === 'envoyee').length || 0,
     enRetard: factures?.filter(f => f.statut === 'en_retard' || (f.statut === 'envoyee' && f.date_echeance && isOverdue(f.date_echeance))).length || 0,
     payee: factures?.filter(f => f.statut === 'payee').length || 0,
-    montantTotal: factures?.reduce((sum, f) => sum + f.montant_ttc, 0) || 0,
-    montantPaye: factures?.filter(f => f.statut === 'payee').reduce((sum, f) => sum + f.montant_ttc, 0) || 0,
-    montantEnAttente: factures?.filter(f => f.statut === 'envoyee' || f.statut === 'en_retard').reduce((sum, f) => sum + f.montant_ttc, 0) || 0,
+    montantTotal: factures?.reduce((sum, f) => sum + (f.montant_ttc || 0), 0) || 0,
+    montantPaye: factures?.filter(f => f.statut === 'payee').reduce((sum, f) => sum + (f.montant_ttc || 0), 0) || 0,
+    montantEnAttente: factures?.filter(f => f.statut === 'envoyee' || f.statut === 'en_retard').reduce((sum, f) => sum + (f.montant_ttc || 0), 0) || 0,
   }
 
   const getStatusVariant = (statut: string) => {
@@ -158,40 +159,19 @@ export default function FacturesPage() {
     }
   };
 
-  const handleExportCSV = () => {
-    if (!filteredFactures || filteredFactures.length === 0) {
-      toast.error('Aucune facture à exporter')
-      return
-    }
-
-    const exportData = filteredFactures.map(f => ({
+  // Données préparées pour l'export
+  const exportData = useMemo(() => {
+    if (!filteredFactures) return []
+    return filteredFactures.map(f => ({
       numero: f.numero,
-      client: f.client_name || '',
-      titre: f.titre || '',
+      client_nom: f.client_name || '',
       montant_ht: f.montant_ht,
-      montant_tva: f.montant_tva,
       montant_ttc: f.montant_ttc,
-      statut: getStatusLabel(f.statut),
-      date_emission: formatDate(f.date_emission),
+      statut: getStatusLabel(f.statut || 'brouillon'),
+      date_emission: f.date_emission ? formatDate(f.date_emission) : '',
       date_echeance: f.date_echeance ? formatDate(f.date_echeance) : '',
-      date_paiement: f.date_paiement ? formatDate(f.date_paiement) : '',
     }))
-
-    exportToCSV(exportData, `factures-${new Date().toISOString().split('T')[0]}`, [
-      { key: 'numero', label: 'Numéro' },
-      { key: 'client', label: 'Client' },
-      { key: 'titre', label: 'Titre' },
-      { key: 'montant_ht', label: 'Montant HT' },
-      { key: 'montant_tva', label: 'TVA' },
-      { key: 'montant_ttc', label: 'Montant TTC' },
-      { key: 'statut', label: 'Statut' },
-      { key: 'date_emission', label: 'Date d\'émission' },
-      { key: 'date_echeance', label: 'Date d\'échéance' },
-      { key: 'date_paiement', label: 'Date de paiement' },
-    ])
-
-    toast.success('Export CSV réussi')
-  }
+  }, [filteredFactures])
 
   return (
     <div className="space-y-6">
@@ -229,10 +209,13 @@ export default function FacturesPage() {
             </SelectContent>
           </Select>
           
-          <Button variant="outline" size="sm" onClick={handleExportCSV} className="gap-2">
-            <FileDown className="h-4 w-4" />
-            <span className="hidden sm:inline">Exporter</span>
-          </Button>
+          <ExportDropdown 
+            data={exportData}
+            columns={FACTURE_COLUMNS}
+            filename="factures"
+            title="Export Factures"
+            label="Exporter"
+          />
           
           <Link href="/factures/new">
             <Button className="gap-2">
@@ -408,10 +391,10 @@ export default function FacturesPage() {
                       </TableCell>
                       <TableCell>
                         <Badge 
-                          variant={getStatusVariant(isLate ? 'en_retard' : f.statut)} 
-                          className={getStatusColor(isLate ? 'en_retard' : f.statut)}
+                          variant={getStatusVariant(isLate ? 'en_retard' : (f.statut || 'brouillon'))} 
+                          className={getStatusColor(isLate ? 'en_retard' : (f.statut || 'brouillon'))}
                         >
-                          {getStatusLabel(isLate ? 'en_retard' : f.statut)}
+                          {getStatusLabel(isLate ? 'en_retard' : (f.statut || 'brouillon'))}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
