@@ -62,6 +62,9 @@ export default function RegisterPage() {
         // Ancienne méthode : l'utilisateur définit son propre mot de passe
         const supabase = getSupabaseClient()
         
+        // Utiliser l'URL de production si disponible, sinon window.location.origin
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+        
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -70,7 +73,7 @@ export default function RegisterPage() {
               company_name: formData.companyName,
               phone: formData.phone,
             },
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            emailRedirectTo: `${appUrl}/auth/callback`,
           },
         })
 
