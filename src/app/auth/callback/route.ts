@@ -7,30 +7,51 @@ export async function GET(request: Request) {
   const type = searchParams.get('type') // 'recovery' for password reset
   const next = searchParams.get('next') ?? '/dashboard'
 
-  // Handle password reset
-  if (type === 'recovery' && code) {
-    const supabase = await createClient()
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-    
-    if (error) {
-      console.error('Password reset callback error:', error)
-      return NextResponse.redirect(`${origin}/forgot-password?error=invalid_link`)
-    }
-    
-    if (data?.session) {
-      // Redirect to reset password page with the session
-      return NextResponse.redirect(`${origin}/auth/reset-password`)
-    }
-    
-    // If no session, redirect to forgot password page
-    return NextResponse.redirect(`${origin}/forgot-password?error=session_expired`)
-  }
-
   if (code) {
     const supabase = await createClient()
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
-    if (!error && data.user) {
+    if (error) {
+      console.error('Callback error:', error)
+      // Si c'est un lien de réinitialisation expiré, rediriger vers forgot-password
+      if (type === 'recovery' || error.message.includes('recovery') || error.message.includes('expired')) {
+        return NextResponse.redirect(`${origin}/forgot-password?error=invalid_link`)
+      }
+      return NextResponse.redirect(`${origin}/login?error=auth`)
+    }
+    
+    if (!data?.user) {
+      return NextResponse.redirect(`${origin}/login?error=auth`)
+    }
+
+    // Vérifier si c'est un lien de réinitialisation
+    // Si type=recovery est dans l'URL, c'est une réinitialisation
+    if (type === 'recovery') {
+      if (data?.session) {
+        // Redirect to reset password page with the session
+        return NextResponse.redirect(`${origin}/auth/reset-password`)
+      }
+      return NextResponse.redirect(`${origin}/forgot-password?error=session_expired`)
+    }
+    
+    // Vérifier si l'utilisateur a déjà un tenant (compte existant)
+    // Si oui et qu'on arrive ici sans type=recovery, c'est peut-être une réinitialisation mal détectée
+    const { data: existingTenant } = await supabase
+      .from('tenants')
+      .select('id')
+      .eq('user_id', data.user.id)
+      .single()
+    
+    // Si le tenant existe déjà, vérifier si c'est une réinitialisation
+    // en regardant si l'utilisateur vient d'une demande de réinitialisation récente
+    if (existingTenant) {
+      // Vérifier dans les logs ou metadata si c'est une réinitialisation
+      // Pour l'instant, on assume que si le tenant existe, c'est une confirmation normale
+      // Les réinitialisations doivent avoir type=recovery dans l'URL
+    }
+    
+    // Sinon, c'est une confirmation d'email (nouvelle inscription)
+    if (data.user) {
       // Check if tenant exists, if not create it
       const { data: existingTenant } = await supabase
         .from('tenants')

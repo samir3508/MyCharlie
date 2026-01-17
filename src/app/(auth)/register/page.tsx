@@ -18,9 +18,10 @@ export default function RegisterPage() {
     companyName: '',
     email: '',
     phone: '',
-    password: '',
+    password: '', // Garder pour le mode manuel
     acceptTerms: false,
   })
+  const [autoPassword, setAutoPassword] = useState(true) // Par défaut, générer automatiquement
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,35 +34,59 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const supabase = getSupabaseClient()
-      
-      // Create user in Supabase Auth with metadata
-      // The tenant will be created via a database trigger or after email confirmation
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            company_name: formData.companyName,
-            phone: formData.phone,
+      if (autoPassword) {
+        // Créer l'utilisateur avec mot de passe automatique via l'API
+        const response = await fetch('/api/auth/create-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
+          body: JSON.stringify({
+            email: formData.email,
+            companyName: formData.companyName,
+            phone: formData.phone,
+          }),
+        })
 
-      if (authError) throw authError
-      if (!authData.user) throw new Error('Erreur lors de la création du compte')
+        const data = await response.json()
 
-      // Show success message - email confirmation required
-      setEmailSent(true)
-      toast.success('Email de confirmation envoyé !')
+        if (!response.ok) {
+          throw new Error(data.error || 'Erreur lors de la création du compte')
+        }
+
+        // L'utilisateur est créé avec un mot de passe automatique
+        // Un email de réinitialisation sera envoyé pour qu'il puisse définir son propre mot de passe
+        setEmailSent(true)
+        toast.success('Compte créé ! Un email avec les instructions de connexion vous a été envoyé.')
+      } else {
+        // Ancienne méthode : l'utilisateur définit son propre mot de passe
+        const supabase = getSupabaseClient()
+        
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              company_name: formData.companyName,
+              phone: formData.phone,
+            },
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        })
+
+        if (authError) throw authError
+        if (!authData.user) throw new Error('Erreur lors de la création du compte')
+
+        setEmailSent(true)
+        toast.success('Email de confirmation envoyé !')
+      }
       
     } catch (error: unknown) {
       console.error('Register error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de l\'inscription'
       
       // Handle specific errors
-      if (errorMessage.includes('already registered')) {
+      if (errorMessage.includes('already registered') || errorMessage.includes('already exists')) {
         toast.error('Cet email est déjà utilisé')
       } else {
         toast.error(errorMessage)
@@ -194,23 +219,44 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Mot de passe</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      className="pl-10 h-12"
-                      required
-                      minLength={8}
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="autoPassword"
+                      checked={autoPassword}
+                      onChange={(e) => setAutoPassword(e.target.checked)}
+                      className="rounded border-gray-300"
                     />
+                    <Label htmlFor="autoPassword" className="text-sm font-normal cursor-pointer">
+                      Générer un mot de passe automatiquement (recommandé)
+                    </Label>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Minimum 8 caractères
-                  </p>
+                  {!autoPassword && (
+                    <>
+                      <Label htmlFor="password">Mot de passe</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="password"
+                          type="password"
+                          placeholder="••••••••"
+                          className="pl-10 h-12"
+                          required
+                          minLength={8}
+                          value={formData.password || ''}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Minimum 8 caractères
+                      </p>
+                    </>
+                  )}
+                  {autoPassword && (
+                    <p className="text-xs text-muted-foreground">
+                      Un mot de passe sécurisé sera généré automatiquement et vous sera envoyé par email.
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-start space-x-3 pt-2">
