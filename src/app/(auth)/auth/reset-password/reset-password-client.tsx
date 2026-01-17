@@ -13,22 +13,31 @@ import { Sparkles, Loader2, Lock, ArrowLeft, CheckCircle2 } from 'lucide-react'
 
 export default function ResetPasswordClient() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [checkingSession, setCheckingSession] = useState(true)
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: '',
   })
 
   useEffect(() => {
-    // Vérifier que le token est présent dans l'URL
-    const token = searchParams.get('token')
-    if (!token) {
-      toast.error('Lien invalide ou expiré')
-      router.push('/forgot-password')
+    // Vérifier que l'utilisateur a une session valide (après le callback)
+    const checkSession = async () => {
+      const supabase = getSupabaseClient()
+      const { data: { session }, error } = await supabase.auth.getSession()
+      
+      if (error || !session) {
+        toast.error('Lien invalide ou expiré. Veuillez demander un nouveau lien de réinitialisation.')
+        router.push('/forgot-password')
+        return
+      }
+      
+      setCheckingSession(false)
     }
-  }, [searchParams, router])
+    
+    checkSession()
+  }, [router])
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,6 +78,21 @@ export default function ResetPasswordClient() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          <Card className="border-0 shadow-xl">
+            <CardContent className="p-6 text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+              <p className="text-muted-foreground">Vérification de la session...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
   }
 
   if (success) {

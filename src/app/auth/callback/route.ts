@@ -10,12 +10,20 @@ export async function GET(request: Request) {
   // Handle password reset
   if (type === 'recovery' && code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
-    if (!error) {
+    if (error) {
+      console.error('Password reset callback error:', error)
+      return NextResponse.redirect(`${origin}/forgot-password?error=invalid_link`)
+    }
+    
+    if (data?.session) {
       // Redirect to reset password page with the session
       return NextResponse.redirect(`${origin}/auth/reset-password`)
     }
+    
+    // If no session, redirect to forgot password page
+    return NextResponse.redirect(`${origin}/forgot-password?error=session_expired`)
   }
 
   if (code) {
