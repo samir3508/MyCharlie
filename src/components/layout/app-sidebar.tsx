@@ -96,8 +96,7 @@ const menuItems: SidebarNavGroup[] = [
   {
     title: 'Paramètres',
     items: [
-      { title: 'Mon entreprise', icon: Building2, href: '/settings' },
-      { title: 'Paramètres', icon: Settings, href: '/settings/config' },
+      { title: 'Paramètres', icon: Settings, href: '/settings' },
     ],
   },
 ]
@@ -195,12 +194,6 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width]">
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings" className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4" />
-                      Mon entreprise
-                    </Link>
-                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/settings" className="flex items-center gap-2">
                       <Settings className="w-4 h-4" />

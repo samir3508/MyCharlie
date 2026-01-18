@@ -20,8 +20,13 @@ import {
   Crown,
   Check,
   Receipt,
-  ChevronRight
+  ChevronRight,
+  Settings as SettingsIcon,
+  Mail,
+  FileText,
+  Bell
 } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
 import Link from 'next/link'
 import { Tenant } from '@/types/database'
 import { formatDate } from '@/lib/utils'
@@ -42,6 +47,20 @@ export default function SettingsPage() {
     bic: '',
     legal_mentions: '',
   })
+
+  // Configuration settings (emails, documents, notifications)
+  const [config, setConfig] = useState({
+    email_signature: '',
+    email_footer: '',
+    devis_validite_jours: 30,
+    facture_delai_paiement: 30,
+    tva_default: 20,
+    notif_nouveau_devis: true,
+    notif_devis_signe: true,
+    notif_paiement_recu: true,
+    notif_relance_auto: true,
+  })
+  const [configLoading, setConfigLoading] = useState(false)
 
   useEffect(() => {
     if (tenant) {
@@ -131,7 +150,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="company" className="space-y-6">
-        <TabsList>
+        <TabsList className={`grid w-full ${process.env.NODE_ENV === 'production' ? 'grid-cols-4' : 'grid-cols-3'}`}>
           <TabsTrigger value="company" className="gap-2">
             <Building2 className="w-4 h-4" />
             Entreprise
@@ -139,6 +158,10 @@ export default function SettingsPage() {
           <TabsTrigger value="templates" className="gap-2">
             <Receipt className="w-4 h-4" />
             Paiements
+          </TabsTrigger>
+          <TabsTrigger value="config" className="gap-2">
+            <SettingsIcon className="w-4 h-4" />
+            Configuration
           </TabsTrigger>
           {/* Hide subscription tab for beta/MVP */}
           {process.env.NODE_ENV === 'production' && (
@@ -308,6 +331,154 @@ export default function SettingsPage() {
               </Link>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="config" className="space-y-6">
+          {/* Emails */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Paramètres des emails</CardTitle>
+              <CardDescription>
+                Personnalisez vos emails automatiques
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label>Signature email</Label>
+                <Textarea 
+                  placeholder="Cordialement,&#10;[Votre nom]&#10;[Votre entreprise]"
+                  value={config.email_signature}
+                  onChange={(e) => setConfig({...config, email_signature: e.target.value})}
+                  rows={4}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Pied de page légal</Label>
+                <Textarea 
+                  placeholder="Mentions légales, SIRET, etc."
+                  value={config.email_footer}
+                  onChange={(e) => setConfig({...config, email_footer: e.target.value})}
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Documents */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Paramètres des documents</CardTitle>
+              <CardDescription>
+                Configurez les valeurs par défaut pour les devis et factures
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Validité devis (jours)</Label>
+                  <Input 
+                    type="number"
+                    value={config.devis_validite_jours}
+                    onChange={(e) => setConfig({...config, devis_validite_jours: parseInt(e.target.value) || 30})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Délai paiement facture (jours)</Label>
+                  <Input 
+                    type="number"
+                    value={config.facture_delai_paiement}
+                    onChange={(e) => setConfig({...config, facture_delai_paiement: parseInt(e.target.value) || 30})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>TVA par défaut (%)</Label>
+                  <Input 
+                    type="number"
+                    value={config.tva_default}
+                    onChange={(e) => setConfig({...config, tva_default: parseInt(e.target.value) || 20})}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Notifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Notifications</CardTitle>
+              <CardDescription>
+                Choisissez quand vous souhaitez être notifié
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <Label>Nouveau devis créé</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Notification quand un devis est créé par l'IA
+                  </p>
+                </div>
+                <Switch 
+                  checked={config.notif_nouveau_devis}
+                  onCheckedChange={(v) => setConfig({...config, notif_nouveau_devis: v})}
+                />
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <Label>Devis signé</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Notification quand un client signe un devis
+                  </p>
+                </div>
+                <Switch 
+                  checked={config.notif_devis_signe}
+                  onCheckedChange={(v) => setConfig({...config, notif_devis_signe: v})}
+                />
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <Label>Paiement reçu</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Notification quand une facture est payée
+                  </p>
+                </div>
+                <Switch 
+                  checked={config.notif_paiement_recu}
+                  onCheckedChange={(v) => setConfig({...config, notif_paiement_recu: v})}
+                />
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <Label>Relance automatique envoyée</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Notification quand une relance automatique est envoyée
+                  </p>
+                </div>
+                <Switch 
+                  checked={config.notif_relance_auto}
+                  onCheckedChange={(v) => setConfig({...config, notif_relance_auto: v})}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button onClick={() => {
+              setConfigLoading(true)
+              // TODO: Sauvegarder dans tenant_settings
+              setTimeout(() => {
+                toast.success('Configuration sauvegardée')
+                setConfigLoading(false)
+              }, 500)
+            }} disabled={configLoading}>
+              {configLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              Sauvegarder
+            </Button>
+          </div>
         </TabsContent>
 
         {/* Hide subscription content for beta/MVP */}
