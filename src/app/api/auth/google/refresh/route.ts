@@ -179,15 +179,15 @@ export async function POST(request: NextRequest) {
     const { access_token, expires_in } = tokens
 
     // Calculer nouvelle expiration
-    const expiresAt = new Date()
-    expiresAt.setSeconds(expiresAt.getSeconds() + (expires_in || 3600))
+    const newExpiresAt = new Date()
+    newExpiresAt.setSeconds(newExpiresAt.getSeconds() + (expires_in || 3600))
 
     // Mettre à jour en DB
     const { error: updateError } = await supabase
       .from('oauth_connections')
       .update({
         access_token,
-        expires_at: expiresAt.toISOString(),
+        expires_at: newExpiresAt.toISOString(),
         is_active: true,
         last_error: null,
         updated_at: new Date().toISOString()
@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      expires_at: expiresAt.toISOString() 
+      expires_at: newExpiresAt.toISOString() 
     })
 
   } catch (error) {
