@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 // POST - Créer une notification
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    // Pas besoin de vérifier l'utilisateur pour POST, on utilise service role
     const body = await request.json()
     const { tenant_id, type, titre, message, data } = body
 
