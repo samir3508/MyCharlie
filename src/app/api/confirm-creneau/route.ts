@@ -176,9 +176,50 @@ export async function GET(request: NextRequest) {
     }
 
     // Récupérer les informations du créneau
-    const creneauDate = new Date(creneau);
-    const creneauEnd = new Date(creneauDate);
-    creneauEnd.setHours(creneauEnd.getHours() + 1); // Durée par défaut : 1h
+    // Le paramètre 'creneau' est un timestamp ISO (ex: "2026-01-26T16:00:00Z" ou "2026-01-26T16:00:00")
+    // IMPORTANT: Le créneau est envoyé en UTC depuis le frontend, mais représente une heure locale Europe/Paris
+    // Exemple: Si le client choisit 16h, le créneau peut être "2026-01-26T15:00:00Z" (UTC) = 16h Europe/Paris
+    // OU "2026-01-26T16:00:00" (sans Z) qui sera interprété différemment selon le serveur
+    
+    // Parser le créneau et extraire les composants
+    const creneauDateParsed = new Date(creneau);
+    
+    // Si le créneau a un Z (UTC), on doit le convertir en Europe/Paris
+    // Si le créneau n'a pas de Z, on l'interprète comme étant déjà en heure locale
+    const isUTC = creneau.includes('Z') || creneau.endsWith('+00:00');
+    
+    let creneauDateForDisplay: Date;
+    let creneauDateISO: string;
+    let creneauEndISO: string;
+    
+    // Convertir le créneau en heure Europe/Paris pour l'affichage et Google Calendar
+    // Utiliser toLocaleString pour obtenir les composants en Europe/Paris
+    const creneauInParis = creneauDateParsed.toLocaleString('en-US', { 
+      timeZone: 'Europe/Paris',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    
+    // Parser la date formatée (format: "MM/DD/YYYY, HH:mm:ss")
+    const [datePart, timePart] = creneauInParis.split(', ');
+    const [month, day, year] = datePart.split('/');
+    const [hour, minute, second] = timePart.split(':');
+    
+    // Créer les dates ISO pour Google Calendar (en Europe/Paris)
+    creneauDateISO = `${year}-${month}-${day}T${hour}:${minute}:${second}`;
+    const endHour = (parseInt(hour) + 1).toString().padStart(2, '0');
+    creneauEndISO = `${year}-${month}-${day}T${endHour}:${minute}:${second}`;
+    
+    // Créer la date pour l'affichage
+    creneauDateForDisplay = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+    
+    const creneauEnd = new Date(creneauDateForDisplay);
+    creneauEnd.setHours(creneauEnd.getHours() + 1);
 
     // Utiliser prénom et nom si disponibles ET différents (éviter doublons), sinon nom_complet valide, sinon "Client"
     let clientName = 'Client';
@@ -430,7 +471,7 @@ export async function GET(request: NextRequest) {
           dossier_id: dossierId,
           client_id: client?.id || null,
           type_rdv: 'visite' as const,
-          date_heure: creneauDate.toISOString(),
+          date_heure: creneauDateForDisplay.toISOString(),
           duree_minutes: 60,
           statut: 'confirme' as const,
           notes: `Créneau confirmé par le client via email le ${new Date().toLocaleString('fr-FR')}`,
@@ -553,15 +594,16 @@ export async function GET(request: NextRequest) {
         }
 
         // Créer l'événement dans Google Calendar
+        // Utiliser les dates ISO sans Z pour indiquer qu'elles sont en Europe/Paris
         const calendarEvent = {
           summary: `Visite chantier - ${clientName}`,
           description: `Visite de chantier confirmée avec ${clientName}${clientPhone ? `\nTéléphone: ${clientPhone}` : ''}${clientAddress ? `\nAdresse: ${clientAddress}` : ''}`,
           start: {
-            dateTime: creneauDate.toISOString(),
+            dateTime: creneauDateISO,
             timeZone: 'Europe/Paris'
           },
           end: {
-            dateTime: creneauEnd.toISOString(),
+            dateTime: creneauEndISO,
             timeZone: 'Europe/Paris'
           },
           location: clientAddress || undefined,
@@ -640,7 +682,7 @@ export async function GET(request: NextRequest) {
         const fromEmail = gmailConnection.email || 'noreply@example.com';
         
         // Sujet simple sans emoji pour éviter les problèmes d'encodage UTF-8
-        const dateSujet = creneauDate.toLocaleDateString('fr-FR', {
+        const dateSujet = creneauDateForDisplay.toLocaleDateString('fr-FR', {
           day: '2-digit',
           month: '2-digit',
           year: 'numeric'
@@ -648,7 +690,8 @@ export async function GET(request: NextRequest) {
         // Sujet sans caractères spéciaux pour éviter les problèmes d'encodage
         const subject = `Confirmation de votre visite de chantier - ${dateSujet}`;
         
-        const dateFormatee = creneauDate.toLocaleString('fr-FR', {
+        // Utiliser creneauDateForDisplay pour l'affichage (déjà en heure locale)
+        const dateFormatee = creneauDateForDisplay.toLocaleString('fr-FR', {
           weekday: 'long',
           year: 'numeric',
           month: 'long',
@@ -778,7 +821,8 @@ ${tenant.company_name ? (tenant.company_name.toLowerCase() === 'nos artisan' ? '
           // Sujet sans emoji pour éviter les problèmes d'encodage
           const artisanSubject = `Nouveau RDV confirmé - ${artisanClientName} - ${creneauDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
           
-          const dateFormateeArtisan = creneauDate.toLocaleString('fr-FR', {
+          // Utiliser creneauDateForDisplay pour l'affichage (déjà en heure locale)
+          const dateFormateeArtisan = creneauDateForDisplay.toLocaleString('fr-FR', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -908,7 +952,7 @@ Système MyCharlie
           tenant_id: tenantId,
           type: 'rdv_confirme',
           titre: `Nouveau RDV confirmé - ${displayClientName}`,
-          message: `Le client ${displayClientName} a confirmé un rendez-vous le ${creneauDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}${displayAddress ? ` à ${displayAddress}` : ''}.`,
+          message: `Le client ${displayClientName} a confirmé un rendez-vous le ${creneauDateForDisplay.toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' })}${displayAddress ? ` à ${displayAddress}` : ''}.`,
           data: {
             rdv_id: rdvId,
             client_id: client?.id,
@@ -990,7 +1034,7 @@ Système MyCharlie
           <p>Merci d'avoir confirmé votre créneau.</p>
           <div class="creneau-info">
             <p><strong>Date et heure :</strong></p>
-            <p>${creneauDate.toLocaleString('fr-FR', { 
+            <p>${creneauDateForDisplay.toLocaleString('fr-FR', { 
               weekday: 'long', 
               year: 'numeric', 
               month: 'long', 
