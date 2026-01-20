@@ -85,6 +85,20 @@ export async function GET(request: NextRequest) {
       .eq('email', email)
       .maybeSingle(); // Utiliser maybeSingle() au lieu de single() pour éviter l'erreur si client non trouvé
     
+    // Si le client existe mais n'a pas de nom/prenom, essayer de les extraire de nom_complet
+    if (existingClient && (!existingClient.nom || !existingClient.prenom)) {
+      if (existingClient.nom_complet) {
+        const parts = existingClient.nom_complet.trim().split(/\s+/);
+        if (parts.length >= 2) {
+          existingClient.prenom = parts[0];
+          existingClient.nom = parts.slice(1).join(' ');
+        } else if (parts.length === 1) {
+          existingClient.nom = parts[0];
+          existingClient.prenom = '';
+        }
+      }
+    }
+    
     if (clientError) {
       console.warn('⚠️ Erreur lors de la recherche du client:', clientError);
     }

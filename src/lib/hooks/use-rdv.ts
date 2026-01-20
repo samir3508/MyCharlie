@@ -24,7 +24,7 @@ export function useRdvList() {
         .select(`
           *,
           dossiers (id, numero, titre, client_id),
-          clients (id, nom_complet, telephone)
+          clients (id, nom, prenom, nom_complet, telephone)
         `)
         .eq('tenant_id', tenant.id)
         .order('date_heure', { ascending: true })
@@ -81,7 +81,7 @@ export function useRdvToday() {
         .from('rdv')
         .select(`
           *,
-          dossiers (id, numero, titre),
+          dossiers (id, numero, titre, client_id, clients (id, nom, prenom, nom_complet, telephone)),
           clients (id, nom, prenom, nom_complet, telephone)
         `)
         .eq('tenant_id', tenant.id)
@@ -124,7 +124,7 @@ export function useRdvUpcoming(days: number = 7) {
         .from('rdv')
         .select(`
           *,
-          dossiers (id, numero, titre),
+          dossiers (id, numero, titre, client_id, clients (id, nom, prenom, nom_complet, telephone)),
           clients (id, nom, prenom, nom_complet, telephone)
         `)
         .eq('tenant_id', tenant.id)
@@ -178,7 +178,7 @@ export function useRdvMonth(year?: number, month?: number) {
         .from('rdv')
         .select(`
           *,
-          dossiers (id, numero, titre),
+          dossiers (id, numero, titre, client_id, clients (id, nom, prenom, nom_complet, telephone)),
           clients (id, nom, prenom, nom_complet, telephone)
         `)
         .eq('tenant_id', tenant.id)

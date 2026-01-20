@@ -568,12 +568,44 @@ export default function RdvPage() {
                               )}
                             </div>
                             <div className="flex items-center gap-2 mt-1">
-                              {rdv.clients && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <User className="w-3 h-3" />
-                                  {rdv.clients.nom_complet}
-                                </div>
-                              )}
+                              {(() => {
+                                // Essayer d'abord le client direct, puis via le dossier
+                                const client = rdv.clients || (rdv.dossiers as any)?.clients;
+                                if (client) {
+                                  let displayName = 'Client';
+                                  
+                                  // Priorité 1: Utiliser nom et prenom si disponibles
+                                  if (client.prenom && client.nom) {
+                                    displayName = `${client.prenom} ${client.nom}`;
+                                  } 
+                                  // Priorité 2: Extraire depuis nom_complet si possible (éviter les emails ou doublons)
+                                  else if (client.nom_complet) {
+                                    // Si nom_complet ressemble à un email ou est un doublon (ex: "adlbapp4 adlbapp4"), ne pas l'utiliser
+                                    if (client.nom_complet.includes('@') || 
+                                        (client.nom_complet.split(/\s+/).length === 2 && 
+                                         client.nom_complet.split(/\s+/)[0] === client.nom_complet.split(/\s+/)[1])) {
+                                      // C'est probablement un email ou un doublon, ne pas afficher
+                                      displayName = 'Client';
+                                    } else {
+                                      const parts = client.nom_complet.trim().split(/\s+/);
+                                      if (parts.length >= 2) {
+                                        // Si nom_complet contient plusieurs mots différents, utiliser comme prénom nom
+                                        displayName = `${parts[0]} ${parts.slice(1).join(' ')}`;
+                                      } else {
+                                        displayName = client.nom_complet;
+                                      }
+                                    }
+                                  }
+                                  
+                                  return (
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <User className="w-3 h-3" />
+                                      {displayName}
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
                               {rdv.adresse && (
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                   <MapPin className="w-3 h-3" />
@@ -684,12 +716,44 @@ export default function RdvPage() {
                               )}
                             </div>
                             <div className="flex items-center gap-2 mt-1">
-                              {rdv.clients && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <User className="w-3 h-3" />
-                                  {rdv.clients.nom_complet}
-                                </div>
-                              )}
+                              {(() => {
+                                // Essayer d'abord le client direct, puis via le dossier
+                                const client = rdv.clients || (rdv.dossiers as any)?.clients;
+                                if (client) {
+                                  let displayName = 'Client';
+                                  
+                                  // Priorité 1: Utiliser nom et prenom si disponibles
+                                  if (client.prenom && client.nom) {
+                                    displayName = `${client.prenom} ${client.nom}`;
+                                  } 
+                                  // Priorité 2: Extraire depuis nom_complet si possible (éviter les emails ou doublons)
+                                  else if (client.nom_complet) {
+                                    // Si nom_complet ressemble à un email ou est un doublon (ex: "adlbapp4 adlbapp4"), ne pas l'utiliser
+                                    if (client.nom_complet.includes('@') || 
+                                        (client.nom_complet.split(/\s+/).length === 2 && 
+                                         client.nom_complet.split(/\s+/)[0] === client.nom_complet.split(/\s+/)[1])) {
+                                      // C'est probablement un email ou un doublon, ne pas afficher
+                                      displayName = 'Client';
+                                    } else {
+                                      const parts = client.nom_complet.trim().split(/\s+/);
+                                      if (parts.length >= 2) {
+                                        // Si nom_complet contient plusieurs mots différents, utiliser comme prénom nom
+                                        displayName = `${parts[0]} ${parts.slice(1).join(' ')}`;
+                                      } else {
+                                        displayName = client.nom_complet;
+                                      }
+                                    }
+                                  }
+                                  
+                                  return (
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <User className="w-3 h-3" />
+                                      {displayName}
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
                               {rdv.adresse && (
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                   <MapPin className="w-3 h-3" />
