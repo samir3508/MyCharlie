@@ -6,6 +6,7 @@ import { getSupabaseClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
@@ -18,6 +19,7 @@ export default function RegisterPage() {
     companyName: '',
     email: '',
     phone: '',
+    address: '',
     password: '', // Garder pour le mode manuel
     acceptTerms: false,
   })
@@ -45,6 +47,7 @@ export default function RegisterPage() {
             email: formData.email,
             companyName: formData.companyName,
             phone: formData.phone,
+            address: formData.address || '',
           }),
         })
 
@@ -72,6 +75,7 @@ export default function RegisterPage() {
             data: {
               company_name: formData.companyName,
               phone: formData.phone,
+              address: formData.address || '',
             },
             emailRedirectTo: `${appUrl}/auth/callback`,
           },
@@ -219,6 +223,20 @@ export default function RegisterPage() {
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Adresse (optionnel)</Label>
+                  <Textarea
+                    id="address"
+                    placeholder="123 Rue de la Paix, 75001 Paris"
+                    className="min-h-[80px]"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Vous pourrez modifier cette adresse dans les paramètres
+                  </p>
                 </div>
 
                 <div className="space-y-2">

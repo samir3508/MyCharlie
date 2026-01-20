@@ -77,6 +77,7 @@ export async function GET(request: Request) {
         const metadata = data.user.user_metadata || {}
         const companyName = metadata.company_name || data.user.email?.split('@')[0] || 'Mon entreprise'
         const phone = metadata.phone || ''
+        const address = metadata.address || ''
 
         // Create tenant
         const { data: newTenant, error: tenantError } = await supabase
@@ -86,6 +87,7 @@ export async function GET(request: Request) {
             company_name: companyName,
             email: data.user.email,
             phone: phone,
+            address: address,
             subscription_status: 'trial',
             subscription_plan: 'starter',
             trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),

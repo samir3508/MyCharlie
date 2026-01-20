@@ -123,17 +123,24 @@ export async function GET(
     
     console.log('[PUBLIC DEVIS API] Devis found:', devis.numero)
     
-    // Convertir les URLs localhost vers production
+    // Convertir les URLs localhost et onrender.com vers production
     const productionUrl = 'https://mycharlie.fr'
     const localhostUrl = 'http://localhost:3000'
+    const oldRenderUrl = 'https://mycharlie.onrender.com'
     
     // Créer un nouvel objet avec les modifications nécessaires
     const devisResponse: any = {
       ...devis,
     }
     
-    if (devisResponse.pdf_url && devisResponse.pdf_url.includes(localhostUrl)) {
-      devisResponse.pdf_url = devisResponse.pdf_url.replace(localhostUrl, productionUrl)
+    // Remplacer les anciennes URLs par la nouvelle URL de production
+    if (devisResponse.pdf_url) {
+      if (devisResponse.pdf_url.includes(localhostUrl)) {
+        devisResponse.pdf_url = devisResponse.pdf_url.replace(localhostUrl, productionUrl)
+      }
+      if (devisResponse.pdf_url.includes(oldRenderUrl)) {
+        devisResponse.pdf_url = devisResponse.pdf_url.replace(oldRenderUrl, productionUrl)
+      }
     }
     
     // Ajouter l'URL de signature si le token existe

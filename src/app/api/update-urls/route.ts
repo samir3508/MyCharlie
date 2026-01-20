@@ -10,16 +10,27 @@ export async function POST(request: NextRequest) {
 
     const productionUrl = 'https://mycharlie.fr'
     const localhostUrl = 'http://localhost:3000'
+    const oldRenderUrl = 'https://mycharlie.onrender.com'
 
-    console.log('Mise à jour des URLs de localhost vers production...')
+    console.log('Mise à jour des URLs de localhost et onrender.com vers production...')
 
-    // Mettre à jour les PDF URLs dans les devis
-    const { data: devisUpdated, error: devisError } = await supabase
+    // Mettre à jour les PDF URLs dans les devis (localhost et onrender.com)
+    const { data: devisUpdated1, error: devisError1 } = await supabase
       .from('devis')
       .update({ 
         pdf_url: supabase.rpc('replace_url', { old_url: localhostUrl, new_url: productionUrl })
       })
       .like('pdf_url', `${localhostUrl}%`)
+    
+    const { data: devisUpdated2, error: devisError2 } = await supabase
+      .from('devis')
+      .update({ 
+        pdf_url: supabase.rpc('replace_url', { old_url: oldRenderUrl, new_url: productionUrl })
+      })
+      .like('pdf_url', `${oldRenderUrl}%`)
+    
+    const devisError = devisError1 || devisError2
+    const devisUpdated = devisUpdated1 || devisUpdated2
 
     if (devisError) {
       console.error('Erreur mise à jour devis:', devisError)
@@ -27,13 +38,23 @@ export async function POST(request: NextRequest) {
       console.log('Devis mis à jour:', devisUpdated)
     }
 
-    // Mettre à jour les PDF URLs dans les factures
-    const { data: facturesUpdated, error: facturesError } = await supabase
+    // Mettre à jour les PDF URLs dans les factures (localhost et onrender.com)
+    const { data: facturesUpdated1, error: facturesError1 } = await supabase
       .from('factures')
       .update({ 
         pdf_url: supabase.rpc('replace_url', { old_url: localhostUrl, new_url: productionUrl })
       })
       .like('pdf_url', `${localhostUrl}%`)
+    
+    const { data: facturesUpdated2, error: facturesError2 } = await supabase
+      .from('factures')
+      .update({ 
+        pdf_url: supabase.rpc('replace_url', { old_url: oldRenderUrl, new_url: productionUrl })
+      })
+      .like('pdf_url', `${oldRenderUrl}%`)
+    
+    const facturesError = facturesError1 || facturesError2
+    const facturesUpdated = facturesUpdated1 || facturesUpdated2
 
     if (facturesError) {
       console.error('Erreur mise à jour factures:', facturesError)

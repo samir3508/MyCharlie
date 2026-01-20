@@ -10,15 +10,28 @@ export async function POST(request: NextRequest) {
 
     const productionUrl = 'https://mycharlie.fr'
     const localhostUrl = 'http://localhost:3000'
+    const oldRenderUrl = 'https://mycharlie.onrender.com'
 
-    console.log('🔧 Correction des URLs N8N...')
+    console.log('🔧 Correction des URLs N8N et PDF...')
 
     // Utiliser SQL direct pour plus de fiabilité
     const sqlQueries = [
+      // Devis - localhost
       `UPDATE devis SET pdf_url = REPLACE(pdf_url, '${localhostUrl}', '${productionUrl}') WHERE pdf_url LIKE '${localhostUrl}%'`,
+      // Devis - onrender.com
+      `UPDATE devis SET pdf_url = REPLACE(REPLACE(pdf_url, 'https://mycharlie.onrender.com', '${productionUrl}'), 'http://mycharlie.onrender.com', '${productionUrl}') WHERE pdf_url LIKE '%mycharlie.onrender.com%'`,
+      // Factures - localhost
       `UPDATE factures SET pdf_url = REPLACE(pdf_url, '${localhostUrl}', '${productionUrl}') WHERE pdf_url LIKE '${localhostUrl}%'`,
+      // Factures - onrender.com
+      `UPDATE factures SET pdf_url = REPLACE(REPLACE(pdf_url, 'https://mycharlie.onrender.com', '${productionUrl}'), 'http://mycharlie.onrender.com', '${productionUrl}') WHERE pdf_url LIKE '%mycharlie.onrender.com%'`,
+      // Tenants webhook - localhost
       `UPDATE tenants SET n8n_webhook_url = REPLACE(n8n_webhook_url, '${localhostUrl}', '${productionUrl}') WHERE n8n_webhook_url LIKE '${localhostUrl}%'`,
-      `UPDATE tenants SET logo_url = REPLACE(logo_url, '${localhostUrl}', '${productionUrl}') WHERE logo_url LIKE '${localhostUrl}%'`
+      // Tenants webhook - onrender.com
+      `UPDATE tenants SET n8n_webhook_url = REPLACE(REPLACE(n8n_webhook_url, 'https://mycharlie.onrender.com', '${productionUrl}'), 'http://mycharlie.onrender.com', '${productionUrl}') WHERE n8n_webhook_url LIKE '%mycharlie.onrender.com%'`,
+      // Tenants logo - localhost
+      `UPDATE tenants SET logo_url = REPLACE(logo_url, '${localhostUrl}', '${productionUrl}') WHERE logo_url LIKE '${localhostUrl}%'`,
+      // Tenants logo - onrender.com
+      `UPDATE tenants SET logo_url = REPLACE(REPLACE(logo_url, 'https://mycharlie.onrender.com', '${productionUrl}'), 'http://mycharlie.onrender.com', '${productionUrl}') WHERE logo_url LIKE '%mycharlie.onrender.com%'`
     ]
 
     const results = []

@@ -42,23 +42,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Les tokens Google OAuth expirent après 1 heure (3600 secondes)
-    // On permet le rafraîchissement préventif pour éviter les déconnexions
-    // Le frontend gère la logique de timing (rafraîchissement toutes les heures)
+    // On ne rafraîchit que si le token est expiré ou expire bientôt (dans les 15 prochaines minutes)
     const now = new Date()
     const expiresAt = connection.expires_at ? new Date(connection.expires_at) : null
     const bufferTime = 15 * 60 * 1000 // 15 minutes de buffer
     const isExpired = expiresAt && expiresAt < now
     const isExpiringSoon = expiresAt && expiresAt <= new Date(now.getTime() + bufferTime)
     
-    // Si le token n'est pas expiré et n'expire pas bientôt, on peut quand même le rafraîchir
-    // (rafraîchissement préventif pour éviter les déconnexions)
-    // Mais on log pour information
+    // Si le token n'est pas expiré et n'expire pas bientôt, on retourne le token actuel
+    // (pas besoin de rafraîchir si encore valide pour plus de 15 minutes)
     if (expiresAt && !isExpired && !isExpiringSoon) {
-      console.log('ℹ️ Rafraîchissement préventif du token (encore valide pour plus de 15 minutes)')
-      // On continue avec le rafraîchissement même si le token est encore valide
+      const timeRemaining = expiresAt.getTime() - now.getTime()
+      const minutesRemaining = Math.floor(timeRemaining / (60 * 1000))
+      console.log(`ℹ️ Token encore valide pour ${minutesRemaining} minutes, pas de rafraîchissement nécessaire`)
+      
+      return NextResponse.json({
+        success: true,
+        access_token: connection.access_token,
+        expires_at: connection.expires_at,
+        message: `Token encore valide pour ${minutesRemaining} minutes`
+      })
     }
 
-    // Rafraîchir le token
+    // Rafraîchir le token seulement si nécessaire
     console.log('🔄 Rafraîchissement du token pour connection_id:', connection_id)
     console.log('   Token expiré:', isExpired)
     console.log('   Token expire bientôt:', isExpiringSoon)
@@ -66,16 +72,82 @@ export async function POST(request: NextRequest) {
     console.log('   GOOGLE_CLIENT_ID valeur:', GOOGLE_CLIENT_ID ? `${GOOGLE_CLIENT_ID.substring(0, 20)}...` : 'MANQUANT')
     console.log('   GOOGLE_CLIENT_SECRET configuré:', !!GOOGLE_CLIENT_SECRET)
     
-    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: GOOGLE_CLIENT_ID,
-        client_secret: GOOGLE_CLIENT_SECRET,
-        refresh_token: connection.refresh_token,
-        grant_type: 'refresh_token'
-      })
-    })
+    // Fonction pour faire l'appel avec retry et timeout
+    async function refreshTokenWithRetry(retries = 3, timeout = 10000) {
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), timeout)
+          
+          const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_id: GOOGLE_CLIENT_ID,
+              client_secret: GOOGLE_CLIENT_SECRET,
+              refresh_token: connection.refresh_token,
+              grant_type: 'refresh_token'
+            }),
+            signal: controller.signal
+          })
+          
+          clearTimeout(timeoutId)
+          return tokenResponse
+        } catch (error: any) {
+          if (error.name === 'AbortError' || error.cause?.code === 'ETIMEDOUT') {
+            console.warn(`⚠️ Tentative ${attempt}/${retries} : Timeout lors du rafraîchissement`)
+            if (attempt < retries) {
+              // Attendre avant de réessayer (backoff exponentiel)
+              await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+              continue
+            } else {
+              throw new Error(`Timeout après ${retries} tentatives`)
+            }
+          } else {
+            throw error
+          }
+        }
+      }
+      throw new Error('Échec après toutes les tentatives')
+    }
+    
+    let tokenResponse
+    try {
+      tokenResponse = await refreshTokenWithRetry()
+    } catch (error: any) {
+      // Si toutes les tentatives ont échoué avec timeout
+      if (error.message?.includes('Timeout')) {
+        const now = new Date()
+        const expiresAt = connection.expires_at ? new Date(connection.expires_at) : null
+        const isExpired = expiresAt && expiresAt < now
+        
+        if (!isExpired && connection.access_token) {
+          console.log('⚠️ Timeout après toutes les tentatives mais token encore valide, utilisation du token existant')
+          return NextResponse.json({
+            success: true,
+            access_token: connection.access_token,
+            expires_at: connection.expires_at,
+            message: 'Timeout lors du rafraîchissement, utilisation du token existant'
+          })
+        }
+        
+        await supabase
+          .from('oauth_connections')
+          .update({
+            last_error: 'Timeout lors du rafraîchissement du token après plusieurs tentatives',
+            is_active: isExpired ? false : true
+          })
+          .eq('id', connection_id)
+        
+        return NextResponse.json({
+          error: 'Timeout lors du rafraîchissement',
+          details: 'Le serveur Google n\'a pas répondu à temps après plusieurs tentatives',
+          retry: true
+        }, { status: 504 })
+      }
+      
+      throw error // Relancer l'erreur pour qu'elle soit gérée par le catch global
+    }
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.json().catch(() => ({ error: 'Erreur inconnue' }))
@@ -204,8 +276,49 @@ export async function POST(request: NextRequest) {
       expires_at: newExpiresAt.toISOString() 
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erreur refresh:', error)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    
+    // Gérer les erreurs de timeout spécifiquement
+    if (error.name === 'AbortError' || error.cause?.code === 'ETIMEDOUT' || error.message?.includes('Timeout')) {
+      console.error('⏱️ Timeout lors du rafraîchissement du token')
+      
+      // Si le token n'est pas encore expiré, retourner le token actuel
+      const now = new Date()
+      const expiresAt = connection?.expires_at ? new Date(connection.expires_at) : null
+      const isExpired = expiresAt && expiresAt < now
+      
+      if (!isExpired && connection?.access_token) {
+        console.log('⚠️ Timeout mais token encore valide, utilisation du token existant')
+        return NextResponse.json({
+          success: true,
+          access_token: connection.access_token,
+          expires_at: connection.expires_at,
+          message: 'Timeout lors du rafraîchissement, utilisation du token existant'
+        })
+      }
+      
+      // Si le token est expiré et timeout, marquer comme erreur
+      if (connection_id) {
+        await supabase
+          .from('oauth_connections')
+          .update({
+            last_error: 'Timeout lors du rafraîchissement du token',
+            is_active: isExpired ? false : true
+          })
+          .eq('id', connection_id)
+      }
+      
+      return NextResponse.json({
+        error: 'Timeout lors du rafraîchissement',
+        details: 'Le serveur Google n\'a pas répondu à temps. Veuillez réessayer.',
+        retry: true
+      }, { status: 504 })
+    }
+    
+    return NextResponse.json({ 
+      error: 'Erreur serveur',
+      details: error.message || 'Erreur inconnue lors du rafraîchissement'
+    }, { status: 500 })
   }
 }

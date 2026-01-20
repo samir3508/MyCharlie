@@ -30,7 +30,7 @@ function generatePassword(length: number = 12): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, companyName, phone } = body
+    const { email, companyName, phone, address } = body
 
     if (!email || !companyName) {
       return NextResponse.json(
@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       user_metadata: {
         company_name: companyName,
         phone: phone || '',
+        address: address || '',
       },
     })
 
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest) {
         company_name: companyName,
         email: email,
         phone: phone || '',
+        address: address || '',
         subscription_status: 'trial',
         subscription_plan: 'starter',
         trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),

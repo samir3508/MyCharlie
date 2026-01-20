@@ -5,6 +5,18 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
 /**
+ * Helper pour extraire le message d'erreur de manière type-safe
+ */
+function getErrorMessage(error: unknown): string | null {
+  if (!error) return null
+  if (typeof error === 'string') return error
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return String(error.message)
+  }
+  return String(error)
+}
+
+/**
  * API de débogage pour vérifier les RDV dans Supabase
  * GET /api/debug/rdv?tenant_id=xxx
  */
@@ -36,13 +48,6 @@ export async function GET(request: NextRequest) {
       .eq('tenant_id', tenantId)
       .order('date_heure', { ascending: false })
       .limit(50)
-
-    if (allError) {
-      return NextResponse.json(
-        { success: false, error: 'QUERY_ERROR', message: allError.message, details: allError },
-        { status: 500 }
-      )
-    }
 
     // Récupérer les RDV d'aujourd'hui
     const today = new Date()
@@ -116,9 +121,9 @@ export async function GET(request: NextRequest) {
         upcoming_statuts: ['planifie', 'confirme', 'en_cours']
       },
       errors: {
-        all: allError ? String(allError.message || allError) : null,
-        today: todayError ? String(todayError.message || todayError) : null,
-        upcoming: upcomingError ? String(upcomingError.message || upcomingError) : null
+        all: getErrorMessage(allError),
+        today: getErrorMessage(todayError),
+        upcoming: getErrorMessage(upcomingError)
       }
     })
 

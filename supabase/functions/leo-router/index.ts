@@ -26,11 +26,11 @@ const getSupabaseUrl = (req: Request): string => {
   }
   
   // URL hardcodée pour ce projet spécifique (fallback fiable)
-  const PROJECT_REF = 'zhemkkukhxspakxvrmlr'
+  const PROJECT_REF = 'lawllirgeisuvanbvkcr'
   const hardcodedUrl = `https://${PROJECT_REF}.supabase.co`
   
   // Sinon, construire depuis l'URL de la requête
-  // Exemple: https://zhemkkukhxspakxvrmlr.supabase.co
+  // Exemple: https://lawllirgeisuvanbvkcr.supabase.co
   const url = new URL(req.url)
   const host = url.host
   
@@ -287,11 +287,11 @@ const getSupabaseUrl = (req: Request): string => {
   }
   
   // URL hardcodée pour ce projet spécifique (fallback fiable)
-  const PROJECT_REF = 'zhemkkukhxspakxvrmlr'
+  const PROJECT_REF = 'lawllirgeisuvanbvkcr'
   const hardcodedUrl = `https://${PROJECT_REF}.supabase.co`
   
   // Sinon, construire depuis l'URL de la requête
-  // Exemple: https://zhemkkukhxspakxvrmlr.supabase.co
+  // Exemple: https://lawllirgeisuvanbvkcr.supabase.co
   const url = new URL(req.url)
   const host = url.host
   

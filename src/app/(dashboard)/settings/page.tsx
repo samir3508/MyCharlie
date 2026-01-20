@@ -80,16 +80,26 @@ export default function SettingsPage() {
   }, [tenant])
 
   const handleSave = async () => {
-    if (!tenant?.id) return
+    if (!tenant?.id) {
+      toast.error('Erreur : Tenant non trouvé')
+      console.error('Tenant ID missing:', tenant)
+      return
+    }
 
     try {
-      await updateTenant.mutateAsync({
+      console.log('Saving tenant data:', { tenantId: tenant.id, updates: formData })
+      
+      const result = await updateTenant.mutateAsync({
         tenantId: tenant.id,
         updates: formData,
       })
-      toast.success('Paramètres sauvegardés')
-    } catch {
-      toast.error('Erreur lors de la sauvegarde')
+      
+      console.log('Save successful:', result)
+      toast.success('Paramètres sauvegardés avec succès')
+    } catch (error) {
+      console.error('Error saving tenant:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la sauvegarde'
+      toast.error(`Erreur : ${errorMessage}`)
     }
   }
 
