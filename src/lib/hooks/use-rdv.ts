@@ -39,9 +39,17 @@ export function useRdvList() {
         console.log('[useRdvList] Exemples de RDV:', data.slice(0, 3).map((r: any) => ({
           id: r.id,
           date: r.date_heure,
+          dateISO: new Date(r.date_heure).toISOString(),
           statut: r.statut,
           titre: r.titre,
-          dossier_id: r.dossier_id
+          dossier_id: r.dossier_id,
+          isInFuture: new Date(r.date_heure) > new Date(),
+          isInNext7Days: {
+            now: new Date().toISOString(),
+            rdvDate: new Date(r.date_heure).toISOString(),
+            in7Days: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            isInRange: new Date(r.date_heure) >= new Date() && new Date(r.date_heure) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+          }
         })))
       }
       
@@ -104,12 +112,13 @@ export function useRdvUpcoming(days: number = 7) {
       }
       
       const now = new Date()
-      now.setHours(0, 0, 0, 0) // Début de la journée
+      // Ne pas mettre à 00:00:00 car on veut les RDV à partir de maintenant, pas seulement ceux d'aujourd'hui
       const future = new Date()
       future.setDate(future.getDate() + days)
       future.setHours(23, 59, 59, 999) // Fin de la journée
 
       console.log('[useRdvUpcoming] Recherche RDV entre', now.toISOString(), 'et', future.toISOString())
+      console.log('[useRdvUpcoming] Statuts recherchés:', ['planifie', 'confirme', 'en_cours'])
 
       const { data, error } = await supabase
         .from('rdv')
@@ -184,12 +193,26 @@ export function useRdvMonth(year?: number, month?: number) {
       
       console.log(`[useRdvMonth] ${data?.length || 0} RDV trouvé(s) pour le mois`)
       if (data && data.length > 0) {
-        console.log('[useRdvMonth] RDV trouvés:', data.map((r: any) => ({
-          id: r.id,
-          date: r.date_heure,
-          statut: r.statut,
-          titre: r.titre
-        })))
+        console.log('[useRdvMonth] RDV trouvés:', data.map((r: any) => {
+          const rdvDate = new Date(r.date_heure)
+          const now = new Date()
+          const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+          return {
+            id: r.id,
+            date: r.date_heure,
+            dateISO: rdvDate.toISOString(),
+            statut: r.statut,
+            titre: r.titre,
+            isInPast: rdvDate < now,
+            isInNext7Days: rdvDate >= now && rdvDate <= in7Days,
+            statutInFilter: ['planifie', 'confirme', 'en_cours'].includes(r.statut),
+            whyNotInUpcoming: {
+              dateInRange: rdvDate >= now && rdvDate <= in7Days,
+              statutValid: ['planifie', 'confirme', 'en_cours'].includes(r.statut),
+              willAppear: rdvDate >= now && rdvDate <= in7Days && ['planifie', 'confirme', 'en_cours'].includes(r.statut)
+            }
+          }
+        }))
       }
       
       return data as (Rdv & { 
