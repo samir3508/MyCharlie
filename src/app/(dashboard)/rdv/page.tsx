@@ -574,11 +574,11 @@ export default function RdvPage() {
                                 if (client) {
                                   let displayName = 'Client';
                                   
-                                  // Priorité 1: Utiliser nom et prenom si disponibles
-                                  if (client.prenom && client.nom) {
+                                  // Priorité 1: Utiliser nom et prenom si disponibles ET différents (éviter doublons)
+                                  if (client.prenom && client.nom && client.prenom !== client.nom) {
                                     displayName = `${client.prenom} ${client.nom}`;
                                   } 
-                                  // Priorité 2: Extraire depuis nom_complet si possible (éviter les emails ou doublons)
+                                  // Priorité 2: Si nom === prenom (doublon), ignorer et utiliser nom_complet
                                   else if (client.nom_complet) {
                                     // Si nom_complet ressemble à un email ou est un doublon (ex: "adlbapp4 adlbapp4"), ne pas l'utiliser
                                     if (client.nom_complet.includes('@') || 
@@ -588,13 +588,19 @@ export default function RdvPage() {
                                       displayName = 'Client';
                                     } else {
                                       const parts = client.nom_complet.trim().split(/\s+/);
-                                      if (parts.length >= 2) {
+                                      if (parts.length >= 2 && parts[0] !== parts[1]) {
                                         // Si nom_complet contient plusieurs mots différents, utiliser comme prénom nom
                                         displayName = `${parts[0]} ${parts.slice(1).join(' ')}`;
+                                      } else if (parts.length === 1) {
+                                        displayName = parts[0];
                                       } else {
                                         displayName = client.nom_complet;
                                       }
                                     }
+                                  }
+                                  // Priorité 3: Si on a nom/prenom mais identiques, afficher "Client" plutôt que le doublon
+                                  else if (client.prenom && client.nom && client.prenom === client.nom) {
+                                    displayName = 'Client';
                                   }
                                   
                                   return (
@@ -722,11 +728,11 @@ export default function RdvPage() {
                                 if (client) {
                                   let displayName = 'Client';
                                   
-                                  // Priorité 1: Utiliser nom et prenom si disponibles
-                                  if (client.prenom && client.nom) {
+                                  // Priorité 1: Utiliser nom et prenom si disponibles ET différents (éviter doublons)
+                                  if (client.prenom && client.nom && client.prenom !== client.nom) {
                                     displayName = `${client.prenom} ${client.nom}`;
                                   } 
-                                  // Priorité 2: Extraire depuis nom_complet si possible (éviter les emails ou doublons)
+                                  // Priorité 2: Si nom === prenom (doublon), ignorer et utiliser nom_complet
                                   else if (client.nom_complet) {
                                     // Si nom_complet ressemble à un email ou est un doublon (ex: "adlbapp4 adlbapp4"), ne pas l'utiliser
                                     if (client.nom_complet.includes('@') || 
@@ -736,13 +742,19 @@ export default function RdvPage() {
                                       displayName = 'Client';
                                     } else {
                                       const parts = client.nom_complet.trim().split(/\s+/);
-                                      if (parts.length >= 2) {
+                                      if (parts.length >= 2 && parts[0] !== parts[1]) {
                                         // Si nom_complet contient plusieurs mots différents, utiliser comme prénom nom
                                         displayName = `${parts[0]} ${parts.slice(1).join(' ')}`;
+                                      } else if (parts.length === 1) {
+                                        displayName = parts[0];
                                       } else {
                                         displayName = client.nom_complet;
                                       }
                                     }
+                                  }
+                                  // Priorité 3: Si on a nom/prenom mais identiques, afficher "Client" plutôt que le doublon
+                                  else if (client.prenom && client.nom && client.prenom === client.nom) {
+                                    displayName = 'Client';
                                   }
                                   
                                   return (
