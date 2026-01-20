@@ -195,8 +195,27 @@ export async function GET(request: NextRequest) {
       }
       // Sinon, clientName reste "Client"
     }
+    
+    // Définir displayClientName et displayAddress une seule fois pour tous les usages (emails client et artisan)
+    let displayClientName = clientName;
+    if (client && client.prenom && client.nom) {
+      if (client.prenom !== client.nom) {
+        // Vrais noms
+        displayClientName = `${client.prenom} ${client.nom}`;
+      } else if (client.nom_complet && !client.nom_complet.includes('@')) {
+        // Si doublon, essayer nom_complet si valide
+        const parts = client.nom_complet.trim().split(/\s+/);
+        if (parts.length >= 2 && parts[0] !== parts[1]) {
+          displayClientName = client.nom_complet;
+        }
+      }
+    }
+    
+    // Récupérer l'adresse si elle n'est pas fournie
+    let displayAddress = client?.adresse_chantier || client?.adresse_facturation || null;
+    
     const clientPhone = client?.telephone || null;
-    const clientAddress = client?.adresse_facturation || null;
+    const clientAddress = displayAddress;
 
     // ════════════════════════════════════════════════════════════════════════════
     // 1. CRÉER LE RDV DANS SUPABASE
@@ -619,12 +638,13 @@ export async function GET(request: NextRequest) {
         // Créer l'email de confirmation
         const fromEmail = gmailConnection.email || 'noreply@example.com';
         
-        // Sujet sans emoji pour éviter les problèmes d'encodage UTF-8
+        // Sujet simple sans emoji pour éviter les problèmes d'encodage UTF-8
         const dateSujet = creneauDate.toLocaleDateString('fr-FR', {
           day: '2-digit',
           month: '2-digit',
           year: 'numeric'
         });
+        // Sujet sans caractères spéciaux pour éviter les problèmes d'encodage
         const subject = `Confirmation de votre visite de chantier - ${dateSujet}`;
         
         const dateFormatee = creneauDate.toLocaleString('fr-FR', {
@@ -637,26 +657,7 @@ export async function GET(request: NextRequest) {
           timeZone: 'Europe/Paris'
         });
 
-        // Vérifier que clientName n'est pas un doublon et récupérer le vrai nom si nécessaire
-        let displayClientName = clientName;
-        if (client && client.prenom && client.nom) {
-          if (client.prenom !== client.nom) {
-            // Vrais noms
-            displayClientName = `${client.prenom} ${client.nom}`;
-          } else if (client.nom_complet && !client.nom_complet.includes('@')) {
-            // Si doublon, essayer nom_complet si valide
-            const parts = client.nom_complet.trim().split(/\s+/);
-            if (parts.length >= 2 && parts[0] !== parts[1]) {
-              displayClientName = client.nom_complet;
-            }
-          }
-        }
-
-        // Récupérer l'adresse si elle n'est pas fournie
-        let displayAddress = clientAddress;
-        if (!displayAddress && client) {
-          displayAddress = client.adresse_chantier || client.adresse_facturation || null;
-        }
+        // displayClientName et displayAddress sont déjà définis plus haut
 
         const emailBody = `
 Bonjour ${displayClientName},
@@ -672,15 +673,22 @@ ${displayAddress || 'À confirmer avec vous'}
 Nous vous attendons à cette date et heure.
 
 Cordialement,
-${tenant.company_name}
+${tenant.company_name ? (tenant.company_name.toLowerCase() === 'nos artisan' ? 'L\'équipe' : tenant.company_name) : 'L\'équipe'}
         `.trim();
 
-        // Créer le message MIME
+        // Créer le message MIME avec encodage UTF-8 correct pour le sujet
+        // Encoder le sujet en base64 pour éviter les problèmes d'encodage
+        const encodedSubject = Buffer.from(subject, 'utf8').toString('base64')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+        
         const mimeEmail = [
           `From: ${fromEmail}`,
           `To: ${email}`,
-          `Subject: ${subject}`,
+          `Subject: =?UTF-8?B?${encodedSubject}?=`,
           `Content-Type: text/plain; charset=utf-8`,
+          `Content-Transfer-Encoding: 8bit`,
           '',
           emailBody
         ].join('\r\n');
@@ -764,7 +772,10 @@ ${tenant.company_name}
 
           // Créer l'email de notification pour l'artisan
           const fromEmail = gmailConnection.email || 'noreply@example.com';
-          const artisanSubject = `✅ Nouveau RDV confirmé - ${displayClientName} - ${creneauDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+          // Utiliser displayClientName défini plus haut, avec fallback sur clientName
+          const artisanClientName = displayClientName || clientName || 'Client';
+          // Sujet sans emoji pour éviter les problèmes d'encodage
+          const artisanSubject = `Nouveau RDV confirmé - ${artisanClientName} - ${creneauDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
           
           const dateFormateeArtisan = creneauDate.toLocaleString('fr-FR', {
             weekday: 'long',
@@ -784,7 +795,7 @@ Un nouveau rendez-vous a été confirmé par un client.
 📋 **INFORMATIONS DU RENDEZ-VOUS**
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👤 **Client :** ${displayClientName}
+👤 **Client :** ${artisanClientName || displayClientName || clientName || 'Client'}
 📧 **Email :** ${email}
 ${clientPhone ? `📞 **Téléphone :** ${clientPhone}` : ''}
 
@@ -863,7 +874,7 @@ Système MyCharlie
               creneau_end: creneauEnd.toISOString(),
               client_email: email,
               client_id: client?.id || null,
-              client_name: displayClientName,
+              client_name: displayClientName || clientName || 'Client',
               client_phone: clientPhone,
               client_address: displayAddress,
               type_rdv: 'visite',
@@ -900,7 +911,7 @@ Système MyCharlie
           data: {
             rdv_id: rdvId,
             client_id: client?.id,
-            client_name: displayClientName,
+            client_name: displayClientName || clientName || 'Client',
             client_email: email,
             client_phone: clientPhone,
             date_heure: creneau,
