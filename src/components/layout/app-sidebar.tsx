@@ -45,6 +45,8 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { getInitials } from '@/lib/utils'
+import { useUnreadNotificationsCount } from '@/lib/hooks/use-notifications'
+import { Badge } from '@/components/ui/badge'
 
 type SidebarNavItem = {
   title: string
@@ -106,6 +108,7 @@ export function AppSidebar() {
   const router = useRouter()
   const { tenant, user, signOut } = useAuth()
   const [mounted, setMounted] = useState(false)
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount()
 
   useEffect(() => {
     setMounted(true)

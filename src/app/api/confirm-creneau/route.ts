@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
-      .select('id, n8n_webhook_url, company_name')
+      .select('id, n8n_webhook_url, company_name, email, phone, whatsapp_phone')
       .eq('id', tenantId)
       .single();
 
@@ -715,14 +715,137 @@ ${tenant.company_name}
     }
 
     // ════════════════════════════════════════════════════════════════════════════
-    // 4. NOTIFIER L'ARTISAN VIA LE WEBHOOK N8N
+    // 4. NOTIFIER L'ARTISAN (MULTIPLE CANAUX)
     // ════════════════════════════════════════════════════════════════════════════
-    // ⚠️ IMPORTANT : Utiliser le webhook du tenant s'il existe, sinon utiliser le webhook par défaut
-    // Cette API ne retourne plus l'erreur N8N_NOT_CONFIGURED - elle utilise toujours un webhook
+    
+    // 4.1. ENVOYER UN EMAIL DIRECT À L'ARTISAN (si email disponible)
+    if (tenant?.email) {
+      try {
+        // Récupérer la connexion Gmail pour envoyer l'email
+        const { data: gmailConnection } = await supabase
+          .from('oauth_connections')
+          .select('id, email, access_token, refresh_token, expires_at')
+          .eq('tenant_id', tenantId)
+          .eq('provider', 'google')
+          .eq('service', 'gmail')
+          .eq('is_active', true)
+          .single();
+
+        if (gmailConnection?.access_token) {
+          let accessToken = gmailConnection.access_token;
+          
+          // Rafraîchir le token si nécessaire
+          const expiresAt = gmailConnection.expires_at ? new Date(gmailConnection.expires_at) : null;
+          const now = new Date();
+          
+          if (expiresAt && expiresAt < now && gmailConnection.refresh_token) {
+            try {
+              const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.fr'}/api/auth/google/refresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ connection_id: gmailConnection.id })
+              });
+              
+              if (refreshResponse.ok) {
+                const { data: updatedConnection } = await supabase
+                  .from('oauth_connections')
+                  .select('access_token')
+                  .eq('id', gmailConnection.id)
+                  .single();
+                
+                if (updatedConnection?.access_token) {
+                  accessToken = updatedConnection.access_token;
+                }
+              }
+            } catch (refreshErr) {
+              console.warn('Erreur rafraîchissement token Gmail pour artisan:', refreshErr);
+            }
+          }
+
+          // Créer l'email de notification pour l'artisan
+          const fromEmail = gmailConnection.email || 'noreply@example.com';
+          const artisanSubject = `✅ Nouveau RDV confirmé - ${displayClientName} - ${creneauDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+          
+          const dateFormateeArtisan = creneauDate.toLocaleString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Europe/Paris'
+          });
+
+          const artisanEmailBody = `
+Bonjour,
+
+Un nouveau rendez-vous a été confirmé par un client.
+
+📋 **INFORMATIONS DU RENDEZ-VOUS**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 **Client :** ${displayClientName}
+📧 **Email :** ${email}
+${clientPhone ? `📞 **Téléphone :** ${clientPhone}` : ''}
+
+📅 **Date et heure :** ${dateFormateeArtisan}
+${displayAddress ? `📍 **Adresse :** ${displayAddress}` : '📍 **Adresse :** À confirmer avec le client'}
+⏱️ **Durée :** 60 minutes
+
+${calendarEventId ? `📆 **Google Calendar :** Événement créé (ID: ${calendarEventId})` : ''}
+${rdvId ? `🆔 **RDV ID :** ${rdvId}` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Vous pouvez consulter ce rendez-vous dans votre agenda MyCharlie.
+
+Cordialement,
+Système MyCharlie
+          `.trim();
+
+          // Créer le message MIME
+          const mimeEmailArtisan = [
+            `From: ${fromEmail}`,
+            `To: ${tenant.email}`,
+            `Subject: ${artisanSubject}`,
+            `Content-Type: text/plain; charset=utf-8`,
+            '',
+            artisanEmailBody
+          ].join('\r\n');
+
+          // Encoder en base64 URL-safe
+          const encodedEmailArtisan = Buffer.from(mimeEmailArtisan, 'utf8').toString('base64')
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, '');
+
+          // Envoyer l'email via Gmail API
+          const artisanEmailResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ raw: encodedEmailArtisan })
+          });
+
+          if (artisanEmailResponse.ok) {
+            console.log('✅ Email de notification envoyé à l\'artisan');
+          } else {
+            const errorData = await artisanEmailResponse.json().catch(() => ({}));
+            console.error('Erreur envoi email artisan:', errorData);
+          }
+        }
+      } catch (artisanEmailErr: any) {
+        console.error('Erreur lors de l\'envoi de l\'email à l\'artisan:', artisanEmailErr);
+      }
+    }
+
+    // 4.2. NOTIFIER VIA LE WEBHOOK N8N (pour WhatsApp/autres canaux)
     const n8nWebhookUrl = tenant.n8n_webhook_url || 'https://n8n.srv1271213.hstgr.cloud/webhook/869b3ab3-b632-40de-acec-8f5e0312cb7d/webhook';
     
     try {
-      const message = `✅ CONFIRMATION DE CRÉNEAU : Le client ${clientName} a confirmé un créneau de visite de chantier. Le rendez-vous a été créé dans Google Calendar${calendarEventId ? ` (ID: ${calendarEventId})` : ''}${rdvId ? ` et dans le système (RDV ID: ${rdvId})` : ''}.`;
+      const message = `✅ CONFIRMATION DE CRÉNEAU : Le client ${displayClientName} a confirmé un créneau de visite de chantier. Le rendez-vous a été créé dans Google Calendar${calendarEventId ? ` (ID: ${calendarEventId})` : ''}${rdvId ? ` et dans le système (RDV ID: ${rdvId})` : ''}.`;
 
       const n8nResponse = await fetch(n8nWebhookUrl, {
         method: 'POST',
@@ -740,9 +863,9 @@ ${tenant.company_name}
               creneau_end: creneauEnd.toISOString(),
               client_email: email,
               client_id: client?.id || null,
-              client_name: clientName,
+              client_name: displayClientName,
               client_phone: clientPhone,
-              client_address: clientAddress,
+              client_address: displayAddress,
               type_rdv: 'visite',
               duree_minutes: 60,
               confirmed_at: new Date().toISOString(),
@@ -760,6 +883,41 @@ ${tenant.company_name}
       }
     } catch (n8nError: any) {
       console.error('Erreur lors de l\'appel n8n:', n8nError);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // 5. CRÉER UNE NOTIFICATION DANS L'APPLICATION
+    // ════════════════════════════════════════════════════════════════════════════
+    try {
+      const notificationResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.fr'}/api/notifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenant_id: tenantId,
+          type: 'rdv_confirme',
+          titre: `Nouveau RDV confirmé - ${displayClientName}`,
+          message: `Le client ${displayClientName} a confirmé un rendez-vous le ${creneauDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}${displayAddress ? ` à ${displayAddress}` : ''}.`,
+          data: {
+            rdv_id: rdvId,
+            client_id: client?.id,
+            client_name: displayClientName,
+            client_email: email,
+            client_phone: clientPhone,
+            date_heure: creneau,
+            adresse: displayAddress,
+            calendar_event_id: calendarEventId,
+            dossier_id: dossierId
+          }
+        })
+      });
+
+      if (notificationResponse.ok) {
+        console.log('✅ Notification créée dans l\'application');
+      } else {
+        console.warn('⚠️ Erreur création notification:', await notificationResponse.text());
+      }
+    } catch (notificationErr: any) {
+      console.error('Erreur lors de la création de la notification:', notificationErr);
     }
 
     // Retourner une page HTML de confirmation

@@ -3,14 +3,18 @@
 import React from 'react'
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 
 export function DashboardSidebarWrapper({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="bg-gradient-to-br from-black via-[#0A0A0A] to-[#1A0A00]">
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-gray-800 bg-black/50 backdrop-blur-sm px-4">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-gray-800 bg-black/50 backdrop-blur-sm px-4 justify-between">
           <SidebarTrigger className="-ml-1 text-white hover:bg-[#FF4D00]/20 hover:text-[#FF4D00]" />
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+          </div>
         </header>
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 bg-gradient-to-br from-black via-[#0A0A0A] to-[#1A0A00] min-h-screen">
           <div className="w-full max-w-7xl mx-auto">
