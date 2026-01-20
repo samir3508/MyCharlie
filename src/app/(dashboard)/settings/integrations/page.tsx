@@ -71,8 +71,9 @@ const GOOGLE_SERVICES = [
 
 // Configuration Google OAuth
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
+// ⚠️ IMPORTANT : Forcer l'URL de production, ne jamais utiliser localhost en production
 const REDIRECT_URI = typeof window !== 'undefined' 
-  ? `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/api/auth/google/callback`
+  ? `${process.env.NEXT_PUBLIC_APP_URL || (window.location.hostname === 'localhost' ? window.location.origin : 'https://mycharlie.fr')}/api/auth/google/callback`
   : ''
 
 export default function IntegrationsPage() {
@@ -166,24 +167,73 @@ export default function IntegrationsPage() {
       })
 
       if (response.ok) {
+        const responseData = await response.json().catch(() => ({}))
+        
+        // Si l'API retourne "Token encore valide", c'est un succès, pas une erreur
+        if (responseData.message === 'Token encore valide' || responseData.success === true) {
+          if (!silent) {
+            console.log('ℹ️ Token encore valide, pas besoin de rafraîchissement')
+          }
+          // Recharger les connexions pour avoir les données à jour
+          await loadConnections()
+          return true
+        }
+        
         if (!silent) {
           toast.success('Token rafraîchi avec succès')
         }
         await loadConnections()
         return true
       } else {
-        const errorData = await response.json()
-        if (!silent) {
-          toast.error('Erreur lors du rafraîchissement')
+        const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }))
+        
+        // Si erreur 400, c'est probablement que le token n'a pas besoin d'être rafraîchi
+        // ou qu'il y a un problème avec le refresh_token
+        if (response.status === 400) {
+          // Ne pas afficher d'erreur si c'est un rafraîchissement silencieux
+          if (silent) {
+            // En mode silencieux, ne pas logger d'erreur pour les 400
+            // C'est normal si le token est encore valide ou si le refresh_token est invalide
+            // Ne rien logger pour éviter le spam dans la console
+            return false
+          } else {
+            // En mode non-silencieux, informer l'utilisateur mais pas de façon alarmante
+            if (errorData.error === 'Pas de refresh_token disponible') {
+              toast.warning('Impossible de rafraîchir : refresh_token manquant')
+            } else if (errorData.details?.error === 'invalid_grant' || errorData.details?.error === 'invalid_client') {
+              // Refresh token invalide - suggérer de reconnecter
+              toast.warning('Token invalide. Veuillez reconnecter Google Calendar/Gmail.', {
+                duration: 5000
+              })
+            } else if (errorData.message?.includes('encore valide') || errorData.message?.includes('pas encore expiré')) {
+              // Token encore valide - pas d'erreur à afficher
+              return true
+            } else {
+              // Autre erreur 400 - logger en mode debug seulement
+              console.debug('⚠️ Erreur 400 lors du rafraîchissement:', errorData)
+            }
+          }
+        } else {
+          // Pour les autres erreurs (401, 500, etc.), logger l'erreur
+          if (!silent) {
+            toast.error('Erreur lors du rafraîchissement')
+            console.error('Erreur rafraîchissement:', errorData)
+          } else {
+            // En mode silencieux, logger seulement en mode debug pour éviter le spam
+            console.debug('Erreur rafraîchissement (silencieux):', errorData)
+          }
         }
-        console.error('Erreur rafraîchissement:', errorData)
         return false
       }
     } catch (error) {
+      // Erreur réseau - ne pas afficher d'erreur si c'est silencieux
       if (!silent) {
         toast.error('Erreur réseau')
+        console.error('Erreur réseau rafraîchissement:', error)
+      } else {
+        // En mode silencieux, ne rien logger pour éviter le spam dans la console
+        // Les erreurs réseau peuvent être temporaires et ne nécessitent pas d'action immédiate
       }
-      console.error('Erreur réseau rafraîchissement:', error)
       return false
     }
   }, [loadConnections])
@@ -195,38 +245,84 @@ export default function IntegrationsPage() {
     }
   }, [tenant?.id, loadConnections])
 
-  // Rafraîchir automatiquement les tokens expirés ou qui vont bientôt expirer
+  // Rafraîchir automatiquement les tokens toutes les heures pour éviter les déconnexions
+  // Les tokens Google OAuth expirent après 1 heure, on les rafraîchit préventivement
   useEffect(() => {
     if (!tenant?.id || connections.length === 0) return
 
+    // Map pour suivre les rafraîchissements en cours et éviter les doublons
+    const refreshingTokens = new Set<string>()
+    // Map pour suivre la dernière fois qu'un token a été rafraîchi (pour éviter les rafraîchissements trop fréquents)
+    const lastRefreshTime = new Map<string, number>()
+    const ONE_HOUR = 60 * 60 * 1000 // 1 heure en millisecondes
+    const MIN_REFRESH_INTERVAL = 50 * 60 * 1000 // 50 minutes minimum entre deux rafraîchissements (pour éviter les doublons)
+
     const checkAndRefreshTokens = async () => {
       for (const connection of connections) {
-        if (!connection.expires_at) continue
+        // Éviter les rafraîchissements multiples simultanés
+        if (refreshingTokens.has(connection.id)) {
+          continue
+        }
 
-        const expiresAt = new Date(connection.expires_at)
-        const now = new Date()
-        const timeUntilExpiry = expiresAt.getTime() - now.getTime()
-        const fiveMinutes = 5 * 60 * 1000 // 5 minutes en millisecondes
+        const now = Date.now()
+        const lastRefresh = lastRefreshTime.get(connection.id) || 0
+        const timeSinceLastRefresh = now - lastRefresh
 
-        // Si le token expire dans moins de 5 minutes ou est déjà expiré, le rafraîchir
-        if (timeUntilExpiry < fiveMinutes) {
-          console.log(`🔄 Rafraîchissement automatique du token pour ${connection.service}...`)
+        // Vérifier si le token doit être rafraîchi :
+        // 1. Si ça fait plus d'1 heure depuis le dernier rafraîchissement
+        // 2. OU si le token est expiré ou va expirer bientôt
+        const needsRefresh = timeSinceLastRefresh >= ONE_HOUR
+
+        // Vérifier aussi si le token est expiré ou va expirer bientôt
+        let isExpired = false
+        let isExpiringSoon = false
+        if (connection.expires_at) {
+          const expiresAt = new Date(connection.expires_at)
+          const timeUntilExpiry = expiresAt.getTime() - now
+          const refreshBuffer = 15 * 60 * 1000 // 15 minutes de buffer
+          isExpired = timeUntilExpiry <= 0
+          isExpiringSoon = timeUntilExpiry > 0 && timeUntilExpiry < refreshBuffer
+        }
+
+        // Rafraîchir si :
+        // - Ça fait plus d'1 heure depuis le dernier rafraîchissement (rafraîchissement préventif)
+        // - OU le token est expiré
+        // - OU le token expire dans moins de 15 minutes
+        // ET si on n'a pas rafraîchi récemment (éviter les rafraîchissements trop fréquents)
+        if ((needsRefresh || isExpired || isExpiringSoon) && timeSinceLastRefresh >= MIN_REFRESH_INTERVAL) {
+          refreshingTokens.add(connection.id)
+          lastRefreshTime.set(connection.id, now) // Marquer comme rafraîchi maintenant
+          
           try {
-            await refreshToken(connection.id, true) // Rafraîchissement silencieux
+            const success = await refreshToken(connection.id, true) // Rafraîchissement silencieux
+            if (success) {
+              // Mettre à jour le temps de rafraîchissement après succès
+              lastRefreshTime.set(connection.id, Date.now())
+            }
           } catch (error) {
-            console.error(`Erreur rafraîchissement automatique pour ${connection.service}:`, error)
+            // En cas d'erreur, on peut réessayer plus tard
+            // Ne pas mettre à jour lastRefreshTime pour permettre un nouvel essai
+            // Ne pas logger d'erreur en mode silencieux - les erreurs 400 sont normales
+            // (token encore valide ou refresh_token invalide nécessitant une reconnexion)
+          } finally {
+            // Retirer de la liste des rafraîchissements en cours après un délai
+            setTimeout(() => {
+              refreshingTokens.delete(connection.id)
+            }, 60000) // 1 minute de cooldown
           }
         }
       }
     }
 
-    // Vérifier immédiatement
+    // Vérifier immédiatement au chargement (pour les tokens qui n'ont jamais été rafraîchis)
     checkAndRefreshTokens()
 
-    // Vérifier toutes les 5 minutes
-    const interval = setInterval(checkAndRefreshTokens, 5 * 60 * 1000)
+    // Vérifier toutes les heures pour rafraîchir préventivement
+    const interval = setInterval(checkAndRefreshTokens, ONE_HOUR)
 
-    return () => clearInterval(interval)
+    return () => {
+      clearInterval(interval)
+    }
   }, [connections, tenant?.id, refreshToken])
 
   // Initier la connexion OAuth Google

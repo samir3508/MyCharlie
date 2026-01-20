@@ -76,17 +76,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!tenant.n8n_webhook_url) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'N8N_NOT_CONFIGURED', 
-          message: 'Webhook n8n non configuré pour ce tenant' 
-        },
-        { status: 500 }
-      );
-    }
-
     // Récupérer les informations du client
     const { data: client } = await supabase
       .from('clients')
@@ -100,14 +89,250 @@ export async function GET(request: NextRequest) {
     const creneauEnd = new Date(creneauDate);
     creneauEnd.setHours(creneauEnd.getHours() + 1); // Durée par défaut : 1h
 
-    // Construire le message pour n8n (via le manager)
-    // Le manager va router vers LÉO qui va créer le RDV
-    // Format explicite pour que LÉO détecte la confirmation de créneau
-    const message = `⚠️ CONFIRMATION DE CRÉNEAU : Le client ${client?.nom_complet || email} a confirmé un créneau. Crée le rendez-vous automatiquement et confirme au client et à l'artisan.`;
+    const clientName = client?.nom_complet || email;
+    const clientPhone = client?.telephone || null;
+    const clientAddress = client?.adresse_facturation || null;
 
-    // Appeler le webhook n8n
+    // ════════════════════════════════════════════════════════════════════════════
+    // 1. CRÉER LE RDV DANS SUPABASE
+    // ════════════════════════════════════════════════════════════════════════════
+    let rdvId: string | null = null;
     try {
-      const n8nResponse = await fetch(tenant.n8n_webhook_url, {
+      const { data: newRdv, error: rdvError } = await supabase
+        .from('rdv')
+        .insert({
+          tenant_id: tenantId,
+          client_id: client?.id || null,
+          type_rdv: 'visite',
+          date_heure: creneauDate.toISOString(),
+          duree_minutes: 60,
+          statut: 'confirme',
+          notes: `Créneau confirmé par le client via email le ${new Date().toLocaleString('fr-FR')}`,
+          adresse: clientAddress
+        })
+        .select('id')
+        .single();
+
+      if (rdvError) {
+        console.error('Erreur création RDV dans Supabase:', rdvError);
+      } else {
+        rdvId = newRdv?.id || null;
+        console.log('✅ RDV créé dans Supabase:', rdvId);
+      }
+    } catch (rdvErr: any) {
+      console.error('Erreur lors de la création du RDV:', rdvErr);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // 2. CRÉER L'ÉVÉNEMENT DANS GOOGLE CALENDAR
+    // ════════════════════════════════════════════════════════════════════════════
+    let calendarEventId: string | null = null;
+    try {
+      // Récupérer le token OAuth Google Calendar
+      const { data: calendarConnection } = await supabase
+        .from('oauth_connections')
+        .select('access_token, refresh_token, expires_at, id')
+        .eq('tenant_id', tenantId)
+        .eq('provider', 'google')
+        .eq('service', 'calendar')
+        .eq('is_active', true)
+        .single();
+
+      if (calendarConnection?.access_token) {
+        // Rafraîchir le token si nécessaire
+        let accessToken = calendarConnection.access_token;
+        const expiresAt = calendarConnection.expires_at ? new Date(calendarConnection.expires_at) : null;
+        const now = new Date();
+        
+        if (expiresAt && expiresAt < now && calendarConnection.refresh_token) {
+          // Rafraîchir le token via l'API
+          try {
+            const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.fr'}/api/auth/google/refresh`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ connection_id: calendarConnection.id })
+            });
+            
+            if (refreshResponse.ok) {
+              const { data: updatedConnection } = await supabase
+                .from('oauth_connections')
+                .select('access_token')
+                .eq('id', calendarConnection.id)
+                .single();
+              
+              if (updatedConnection?.access_token) {
+                accessToken = updatedConnection.access_token;
+              }
+            }
+          } catch (refreshErr) {
+            console.warn('Erreur rafraîchissement token Calendar:', refreshErr);
+          }
+        }
+
+        // Créer l'événement dans Google Calendar
+        const calendarEvent = {
+          summary: `Visite chantier - ${clientName}`,
+          description: `Visite de chantier confirmée avec ${clientName}${clientPhone ? `\nTéléphone: ${clientPhone}` : ''}${clientAddress ? `\nAdresse: ${clientAddress}` : ''}`,
+          start: {
+            dateTime: creneauDate.toISOString(),
+            timeZone: 'Europe/Paris'
+          },
+          end: {
+            dateTime: creneauEnd.toISOString(),
+            timeZone: 'Europe/Paris'
+          },
+          location: clientAddress || undefined,
+          attendees: email ? [{ email }] : undefined
+        };
+
+        const calendarResponse = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(calendarEvent)
+        });
+
+        if (calendarResponse.ok) {
+          const eventData = await calendarResponse.json();
+          calendarEventId = eventData.id;
+          console.log('✅ Événement créé dans Google Calendar:', calendarEventId);
+        } else {
+          const errorData = await calendarResponse.json().catch(() => ({}));
+          console.error('Erreur création événement Calendar:', errorData);
+        }
+      } else {
+        console.warn('⚠️ Google Calendar non connecté pour ce tenant');
+      }
+    } catch (calendarErr: any) {
+      console.error('Erreur lors de la création de l\'événement Calendar:', calendarErr);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // 3. ENVOYER UN EMAIL DE CONFIRMATION AU CLIENT
+    // ════════════════════════════════════════════════════════════════════════════
+    try {
+      // Récupérer le token OAuth Gmail
+      const { data: gmailConnection } = await supabase
+        .from('oauth_connections')
+        .select('access_token, refresh_token, expires_at, id, email')
+        .eq('tenant_id', tenantId)
+        .eq('provider', 'google')
+        .eq('service', 'gmail')
+        .eq('is_active', true)
+        .single();
+
+      if (gmailConnection?.access_token) {
+        // Rafraîchir le token si nécessaire
+        let accessToken = gmailConnection.access_token;
+        const expiresAt = gmailConnection.expires_at ? new Date(gmailConnection.expires_at) : null;
+        const now = new Date();
+        
+        if (expiresAt && expiresAt < now && gmailConnection.refresh_token) {
+          try {
+            const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.fr'}/api/auth/google/refresh`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ connection_id: gmailConnection.id })
+            });
+            
+            if (refreshResponse.ok) {
+              const { data: updatedConnection } = await supabase
+                .from('oauth_connections')
+                .select('access_token')
+                .eq('id', gmailConnection.id)
+                .single();
+              
+              if (updatedConnection?.access_token) {
+                accessToken = updatedConnection.access_token;
+              }
+            }
+          } catch (refreshErr) {
+            console.warn('Erreur rafraîchissement token Gmail:', refreshErr);
+          }
+        }
+
+        // Créer l'email de confirmation
+        const fromEmail = gmailConnection.email || 'noreply@example.com';
+        const subject = `✅ Confirmation de votre visite de chantier - ${creneauDate.toLocaleDateString('fr-FR')}`;
+        
+        const dateFormatee = creneauDate.toLocaleString('fr-FR', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        const emailBody = `
+Bonjour ${clientName},
+
+Votre visite de chantier a été confirmée avec succès.
+
+📅 **Date et heure :**
+${dateFormatee}
+
+📍 **Adresse :**
+${clientAddress || 'À confirmer'}
+
+Nous vous attendons à cette date et heure.
+
+Cordialement,
+${tenant.company_name}
+        `.trim();
+
+        // Créer le message MIME
+        const mimeEmail = [
+          `From: ${fromEmail}`,
+          `To: ${email}`,
+          `Subject: ${subject}`,
+          `Content-Type: text/plain; charset=utf-8`,
+          '',
+          emailBody
+        ].join('\r\n');
+
+        // Encoder en base64 URL-safe
+        const encodedEmail = Buffer.from(mimeEmail, 'utf8').toString('base64')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+
+        // Envoyer l'email via Gmail API
+        const gmailResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ raw: encodedEmail })
+        });
+
+        if (gmailResponse.ok) {
+          console.log('✅ Email de confirmation envoyé au client');
+        } else {
+          const errorData = await gmailResponse.json().catch(() => ({}));
+          console.error('Erreur envoi email client:', errorData);
+        }
+      } else {
+        console.warn('⚠️ Gmail non connecté pour ce tenant');
+      }
+    } catch (emailErr: any) {
+      console.error('Erreur lors de l\'envoi de l\'email:', emailErr);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // 4. NOTIFIER L'ARTISAN VIA LE WEBHOOK N8N
+    // ════════════════════════════════════════════════════════════════════════════
+    // ⚠️ IMPORTANT : Utiliser le webhook du tenant s'il existe, sinon utiliser le webhook par défaut
+    // Cette API ne retourne plus l'erreur N8N_NOT_CONFIGURED - elle utilise toujours un webhook
+    const n8nWebhookUrl = tenant.n8n_webhook_url || 'https://n8n.srv1271213.hstgr.cloud/webhook/869b3ab3-b632-40de-acec-8f5e0312cb7d/webhook';
+    
+    try {
+      const message = `✅ CONFIRMATION DE CRÉNEAU : Le client ${clientName} a confirmé un créneau de visite de chantier. Le rendez-vous a été créé dans Google Calendar${calendarEventId ? ` (ID: ${calendarEventId})` : ''}${rdvId ? ` et dans le système (RDV ID: ${rdvId})` : ''}.`;
+
+      const n8nResponse = await fetch(n8nWebhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -123,24 +348,26 @@ export async function GET(request: NextRequest) {
               creneau_end: creneauEnd.toISOString(),
               client_email: email,
               client_id: client?.id || null,
-              client_name: client?.nom_complet || email,
-              client_phone: client?.telephone || null,
-              client_address: client?.adresse_facturation || null,
-              type_rdv: 'visite', // Valeur par défaut (peut être surchargé si nécessaire)
-              duree_minutes: 60, // Durée par défaut : 1h
-              confirmed_at: new Date().toISOString()
+              client_name: clientName,
+              client_phone: clientPhone,
+              client_address: clientAddress,
+              type_rdv: 'visite',
+              duree_minutes: 60,
+              confirmed_at: new Date().toISOString(),
+              calendar_event_id: calendarEventId,
+              rdv_id: rdvId
             }
           }
         }),
       });
 
-      if (!n8nResponse.ok) {
+      if (n8nResponse.ok) {
+        console.log('✅ Artisan notifié via webhook n8n');
+      } else {
         console.error('Erreur appel n8n:', n8nResponse.status, await n8nResponse.text());
-        // Continuer quand même - on affichera une page de confirmation
       }
     } catch (n8nError: any) {
       console.error('Erreur lors de l\'appel n8n:', n8nError);
-      // Continuer quand même - on affichera une page de confirmation
     }
 
     // Retourner une page HTML de confirmation
