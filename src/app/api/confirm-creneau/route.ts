@@ -136,12 +136,22 @@ export async function GET(request: NextRequest) {
           console.log('✅ Dossier existant trouvé:', dossierId);
         } else {
           console.log('📝 Aucun dossier existant, création d\'un nouveau dossier...');
+          
+          // Générer le numéro de dossier
+          const { data: dossierNumero, error: numeroError } = await supabase
+            .rpc('generate_dossier_numero', { p_tenant_id: tenantId });
+          
+          if (numeroError) {
+            console.warn('⚠️ Erreur génération numéro dossier, utilisation d\'un numéro temporaire:', numeroError);
+          }
+          
           // Créer un dossier temporaire si aucun dossier n'existe
           const { data: newDossier, error: dossierError } = await supabase
             .from('dossiers')
             .insert({
               tenant_id: tenantId,
               client_id: client.id,
+              numero: dossierNumero || `DOS-${Date.now()}`,
               titre: `Visite - ${clientName || 'Client'}`,
               statut: 'en_cours',
               description: 'Dossier créé automatiquement lors de la confirmation d\'un créneau'
@@ -166,11 +176,21 @@ export async function GET(request: NextRequest) {
       // Si toujours pas de dossier (client non trouvé ou erreur), créer un dossier sans client_id
       if (!dossierId) {
         console.warn('⚠️ Aucun dossier trouvé, création d\'un dossier sans client_id...');
+        
+        // Générer le numéro de dossier
+        const { data: dossierNumero, error: numeroError } = await supabase
+          .rpc('generate_dossier_numero', { p_tenant_id: tenantId });
+        
+        if (numeroError) {
+          console.warn('⚠️ Erreur génération numéro dossier, utilisation d\'un numéro temporaire:', numeroError);
+        }
+        
         const { data: tempDossier, error: tempDossierError } = await supabase
           .from('dossiers')
           .insert({
             tenant_id: tenantId,
             client_id: client?.id || null,
+            numero: dossierNumero || `DOS-${Date.now()}`,
             titre: `Visite - ${clientName || 'Client'}`,
             statut: 'en_cours',
             description: 'Dossier créé automatiquement lors de la confirmation d\'un créneau'
@@ -184,7 +204,18 @@ export async function GET(request: NextRequest) {
           console.error('   Message:', tempDossierError.message);
           console.error('   Détails:', tempDossierError.details);
           console.error('   Hint:', tempDossierError.hint);
-          // Le RDV ne pourra pas être créé sans dossier_id
+          console.error('   Données envoyées:', {
+            tenant_id: tenantId,
+            client_id: client?.id || null,
+            titre: `Visite - ${clientName || 'Client'}`,
+            statut: 'en_cours'
+          });
+          
+          // Si c'est une erreur de permissions (RLS), donner plus d'infos
+          if (tempDossierError.code === '42501' || tempDossierError.message?.includes('permission') || tempDossierError.message?.includes('policy')) {
+            console.error('   ⚠️ PROBLÈME DE PERMISSIONS SUPABASE (RLS)');
+            console.error('   Vérifiez les politiques RLS sur la table "dossiers"');
+          }
         } else if (tempDossier) {
           dossierId = tempDossier.id;
           console.log('✅ Dossier temporaire créé (sans client_id):', dossierId);
@@ -197,14 +228,16 @@ export async function GET(request: NextRequest) {
       if (!dossierId) {
         console.error('❌ CRITIQUE: Impossible de créer un dossier, le RDV ne pourra pas être créé (dossier_id est requis et NOT NULL)');
         console.error('   Le RDV sera créé dans Google Calendar mais PAS dans Supabase');
-        console.error('   ACTION REQUISE: Vérifier les permissions Supabase ou créer un dossier manuellement');
+        console.error('   ACTION REQUISE: Vérifier les permissions Supabase (RLS) ou créer un dossier manuellement');
+        console.error('   Vérifiez les logs ci-dessus pour voir l\'erreur exacte de création de dossier');
         
-        // Retourner une erreur au lieu de continuer silencieusement
+        // Retourner une erreur avec plus de détails
         return NextResponse.json(
           {
             success: false,
             error: 'DOSSIER_CREATION_FAILED',
-            message: 'Impossible de créer un dossier pour ce RDV. Le RDV ne peut pas être créé sans dossier_id.'
+            message: 'Impossible de créer un dossier pour ce RDV. Le RDV ne peut pas être créé sans dossier_id.',
+            details: 'Vérifiez les logs serveur pour plus d\'informations. Cela peut être dû à des permissions Supabase (RLS) ou à un champ manquant dans la table dossiers.'
           },
           { status: 500 }
         );
