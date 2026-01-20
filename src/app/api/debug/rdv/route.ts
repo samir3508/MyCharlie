@@ -116,9 +116,9 @@ export async function GET(request: NextRequest) {
         upcoming_statuts: ['planifie', 'confirme', 'en_cours']
       },
       errors: {
-        all: allError?.message,
-        today: todayError?.message,
-        upcoming: upcomingError?.message
+        all: allError ? String(allError.message || allError) : null,
+        today: todayError ? String(todayError.message || todayError) : null,
+        upcoming: upcomingError ? String(upcomingError.message || upcomingError) : null
       }
     })
 
