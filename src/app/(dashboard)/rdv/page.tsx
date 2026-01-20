@@ -119,18 +119,34 @@ export default function RdvPage() {
       }
     })
 
-    // Si aucun RDV trouvé, appeler l'API de débogage
-    if (tenant?.id && !isLoading && (!allRdv || allRdv.length === 0)) {
-      console.log('🔍 Aucun RDV trouvé, appel de l\'API de débogage...')
+    // Si aucun RDV trouvé dans AUCUN hook après chargement, appeler l'API de débogage
+    const hasAnyRdv = (allRdv && allRdv.length > 0) || 
+                      (upcomingRdv && upcomingRdv.length > 0) || 
+                      (monthRdv && monthRdv.length > 0) ||
+                      (todayRdv && todayRdv.length > 0)
+    
+    if (tenant?.id && !isLoading && !hasAnyRdv) {
+      console.log('🔍 Aucun RDV trouvé dans aucun hook, appel de l\'API de débogage...')
       fetch(`/api/debug/rdv?tenant_id=${tenant.id}`)
         .then(res => res.json())
         .then(data => {
           console.log('🔍 [Debug API] Résultats:', data)
           if (data.success && data.all_rdv && data.all_rdv.length > 0) {
-            console.warn('⚠️ Des RDV existent dans Supabase mais ne sont pas récupérés par les hooks !')
-            console.warn('   RDV trouvés:', data.all_rdv)
-            console.warn('   Statistiques:', data.stats)
-            toast.error(`Des RDV existent (${data.stats.total}) mais ne s'affichent pas. Vérifiez les filtres.`)
+            // Vérifier à nouveau si des RDV sont maintenant disponibles (au cas où ils se chargent entre temps)
+            const stillNoRdv = (!allRdv || allRdv.length === 0) && 
+                               (!upcomingRdv || upcomingRdv.length === 0) && 
+                               (!monthRdv || monthRdv.length === 0) &&
+                               (!todayRdv || todayRdv.length === 0)
+            
+            if (stillNoRdv) {
+              console.warn('⚠️ Des RDV existent dans Supabase mais ne sont pas récupérés par les hooks !')
+              console.warn('   RDV trouvés:', data.all_rdv)
+              console.warn('   Statistiques:', data.stats)
+              console.warn('   Vérifiez les filtres de date et de statut dans les hooks')
+              toast.error(`Des RDV existent (${data.stats.total}) mais ne s'affichent pas. Vérifiez les filtres.`)
+            } else {
+              console.log('✅ Des RDV sont maintenant disponibles, pas besoin d\'afficher l\'erreur')
+            }
           } else if (data.success && data.all_rdv && data.all_rdv.length === 0) {
             console.log('ℹ️ Aucun RDV dans Supabase pour ce tenant')
           }
@@ -138,6 +154,9 @@ export default function RdvPage() {
         .catch(err => {
           console.error('Erreur appel API debug:', err)
         })
+    } else if (hasAnyRdv) {
+      // Si des RDV sont trouvés, ne pas afficher de message d'erreur
+      console.log('✅ Des RDV sont trouvés par au moins un hook, pas besoin de debug')
     }
   }, [tenant?.id, allRdv, todayRdv, upcomingRdv, monthRdv, isLoading, allRdvError, todayError, upcomingError, monthError])
 
