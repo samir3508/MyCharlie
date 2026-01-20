@@ -221,9 +221,10 @@ export async function GET(request: NextRequest) {
     // 1. CRÉER LE RDV DANS SUPABASE
     // ════════════════════════════════════════════════════════════════════════════
     let rdvId: string | null = null;
+    let dossierId: string | null = null; // Déclarer au niveau supérieur pour être accessible partout
+    let calendarEventId: string | null = null; // Déclarer aussi calendarEventId au niveau supérieur
     try {
       // Chercher ou créer un dossier pour ce client (OBLIGATOIRE car dossier_id est NOT NULL)
-      let dossierId: string | null = null;
       
       console.log('🔍 Recherche d\'un dossier pour le client:', {
         clientId: client?.id,
@@ -508,7 +509,7 @@ export async function GET(request: NextRequest) {
     // ════════════════════════════════════════════════════════════════════════════
     // 2. CRÉER L'ÉVÉNEMENT DANS GOOGLE CALENDAR
     // ════════════════════════════════════════════════════════════════════════════
-    let calendarEventId: string | null = null;
+    // calendarEventId est déjà déclaré au niveau supérieur
     try {
       // Récupérer le token OAuth Google Calendar (avec metadata pour calendar_id)
       const { data: calendarConnection } = await supabase
