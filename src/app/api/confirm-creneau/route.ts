@@ -618,7 +618,14 @@ export async function GET(request: NextRequest) {
 
         // Créer l'email de confirmation
         const fromEmail = gmailConnection.email || 'noreply@example.com';
-        const subject = `✅ Confirmation de votre visite de chantier - ${creneauDate.toLocaleDateString('fr-FR')}`;
+        
+        // Sujet sans emoji pour éviter les problèmes d'encodage UTF-8
+        const dateSujet = creneauDate.toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+        const subject = `Confirmation de votre visite de chantier - ${dateSujet}`;
         
         const dateFormatee = creneauDate.toLocaleString('fr-FR', {
           weekday: 'long',
@@ -626,11 +633,33 @@ export async function GET(request: NextRequest) {
           month: 'long',
           day: 'numeric',
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
+          timeZone: 'Europe/Paris'
         });
 
+        // Vérifier que clientName n'est pas un doublon et récupérer le vrai nom si nécessaire
+        let displayClientName = clientName;
+        if (client && client.prenom && client.nom) {
+          if (client.prenom !== client.nom) {
+            // Vrais noms
+            displayClientName = `${client.prenom} ${client.nom}`;
+          } else if (client.nom_complet && !client.nom_complet.includes('@')) {
+            // Si doublon, essayer nom_complet si valide
+            const parts = client.nom_complet.trim().split(/\s+/);
+            if (parts.length >= 2 && parts[0] !== parts[1]) {
+              displayClientName = client.nom_complet;
+            }
+          }
+        }
+
+        // Récupérer l'adresse si elle n'est pas fournie
+        let displayAddress = clientAddress;
+        if (!displayAddress && client) {
+          displayAddress = client.adresse_chantier || client.adresse_facturation || null;
+        }
+
         const emailBody = `
-Bonjour ${clientName},
+Bonjour ${displayClientName},
 
 Votre visite de chantier a été confirmée avec succès.
 
@@ -638,7 +667,7 @@ Votre visite de chantier a été confirmée avec succès.
 ${dateFormatee}
 
 📍 **Adresse :**
-${clientAddress || 'À confirmer'}
+${displayAddress || 'À confirmer avec vous'}
 
 Nous vous attendons à cette date et heure.
 

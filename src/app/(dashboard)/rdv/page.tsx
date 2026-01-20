@@ -617,15 +617,20 @@ export default function RdvPage() {
                               </span>
                               <p className="font-medium truncate">
                                 {(() => {
-                                  // Si le titre contient un doublon (ex: "Visite - adlbapp4 adlbapp4"), le nettoyer
+                                  // Afficher le titre du RDV ou du dossier, en nettoyant seulement les vrais doublons
                                   const titre = rdv.titre || rdv.dossiers?.titre || '';
                                   if (titre.includes(' - ')) {
                                     const parts = titre.split(' - ');
                                     if (parts.length === 2) {
                                       const clientPart = parts[1].trim();
                                       const nameParts = clientPart.split(/\s+/);
-                                      // Si c'est un doublon (ex: "adlbapp4 adlbapp4"), remplacer par "Client"
-                                      if (nameParts.length === 2 && nameParts[0] === nameParts[1]) {
+                                      // Si c'est un doublon évident (ex: "adlbapp4 adlbapp4"), remplacer par le nom du client
+                                      if (nameParts.length === 2 && nameParts[0] === nameParts[1] && nameParts[0].length < 15) {
+                                        // Essayer d'utiliser le nom du client si disponible
+                                        const client = rdv.clients || (rdv.dossiers as any)?.clients;
+                                        if (client && client.prenom && client.nom && client.prenom !== client.nom) {
+                                          return `${parts[0]} - ${client.prenom} ${client.nom}`;
+                                        }
                                         return `${parts[0]} - Client`;
                                       }
                                     }
@@ -819,15 +824,20 @@ export default function RdvPage() {
                               </span>
                               <p className="font-medium truncate">
                                 {(() => {
-                                  // Si le titre contient un doublon (ex: "Visite - adlbapp4 adlbapp4"), le nettoyer
+                                  // Afficher le titre du RDV ou du dossier, en nettoyant seulement les vrais doublons
                                   const titre = rdv.titre || rdv.dossiers?.titre || '';
                                   if (titre.includes(' - ')) {
                                     const parts = titre.split(' - ');
                                     if (parts.length === 2) {
                                       const clientPart = parts[1].trim();
                                       const nameParts = clientPart.split(/\s+/);
-                                      // Si c'est un doublon (ex: "adlbapp4 adlbapp4"), remplacer par "Client"
-                                      if (nameParts.length === 2 && nameParts[0] === nameParts[1]) {
+                                      // Si c'est un doublon évident (ex: "adlbapp4 adlbapp4"), remplacer par le nom du client
+                                      if (nameParts.length === 2 && nameParts[0] === nameParts[1] && nameParts[0].length < 15) {
+                                        // Essayer d'utiliser le nom du client si disponible
+                                        const client = rdv.clients || (rdv.dossiers as any)?.clients;
+                                        if (client && client.prenom && client.nom && client.prenom !== client.nom) {
+                                          return `${parts[0]} - ${client.prenom} ${client.nom}`;
+                                        }
                                         return `${parts[0]} - Client`;
                                       }
                                     }
