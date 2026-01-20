@@ -111,53 +111,67 @@ export async function GET(request: NextRequest) {
       console.warn('⚠️ Client non trouvé pour l\'email:', email);
       console.log('📝 Création d\'un nouveau client...');
       
-      // Extraire nom et prénom de l'email (partie avant @)
-      const emailPrefix = email.split('@')[0];
-      // Essayer de séparer nom.prénom ou nom_prenom
-      const nameParts = emailPrefix.split(/[._-]/);
-      const prenom = nameParts[0] || 'Client';
-      const nom = nameParts[1] || emailPrefix;
-      
-      const { data: newClient, error: createClientError } = await supabase
+      // Chercher d'abord un client existant avec le même email qui a de vrais noms (nom != prenom)
+      // On récupère tous les clients avec cet email et on filtre en JavaScript
+      const { data: allClientsWithEmail } = await supabase
         .from('clients')
-        .insert({
-          tenant_id: tenantId,
-          email: email,
-          nom: nom, // Requis
-          prenom: prenom, // Requis
-          // nom_complet n'est pas dans Insert, il est probablement calculé automatiquement
-        })
-        .select('id, nom_complet, nom, prenom, email, telephone, adresse_facturation')
-        .single();
+        .select('id, nom, prenom, nom_complet, email, telephone, adresse_facturation, created_at')
+        .eq('tenant_id', tenantId)
+        .eq('email', email)
+        .order('created_at', { ascending: true });
       
-      if (createClientError) {
-        console.error('❌ Erreur lors de la création du client:', createClientError);
-        console.error('   Code:', createClientError.code);
-        console.error('   Message:', createClientError.message);
-        console.error('   Détails:', createClientError.details);
-        
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'CLIENT_CREATION_FAILED',
-            message: 'Impossible de créer le client. Le client est requis pour créer un dossier.',
-            details: createClientError.message
-          },
-          { status: 500 }
-        );
-      } else if (newClient) {
-        client = newClient;
-        console.log('✅ Client créé avec succès:', client.id);
+      // Filtrer pour trouver un client avec de vrais noms (nom != prenom)
+      const existingClientWithRealName = allClientsWithEmail?.find(c => c.nom !== c.prenom);
+      
+      if (existingClientWithRealName) {
+        // Utiliser le client existant avec de vrais noms
+        client = existingClientWithRealName;
+        console.log('✅ Client existant avec vrais noms trouvé:', client.id, `${client.prenom} ${client.nom}`);
       } else {
-        console.error('❌ Client créé mais aucune donnée retournée');
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'CLIENT_CREATION_FAILED',
-            message: 'Le client a été créé mais aucune donnée n\'a été retournée.'
-          },
-          { status: 500 }
-        );
+        // Extraire nom et prénom de l'email (partie avant @)
+        const emailPrefix = email.split('@')[0];
+        // Essayer de séparer nom.prénom ou nom_prenom
+        const nameParts = emailPrefix.split(/[._-]/);
+        const prenom = nameParts[0] || 'Client';
+        const nom = nameParts[1] || emailPrefix;
+        
+        // Si nom === prenom (doublon potentiel), laisser tel quel mais le code d'affichage gérera
+        const { data: newClient, error: createClientError } = await supabase
+          .from('clients')
+          .insert({
+            tenant_id: tenantId,
+            email: email,
+            nom: nom,
+            prenom: prenom,
+          })
+          .select('id, nom_complet, nom, prenom, email, telephone, adresse_facturation')
+          .single();
+        
+        if (createClientError) {
+          console.error('❌ Erreur lors de la création du client:', createClientError);
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'CLIENT_CREATION_FAILED',
+              message: 'Impossible de créer le client. Le client est requis pour créer un dossier.',
+              details: createClientError.message
+            },
+            { status: 500 }
+          );
+        } else if (newClient) {
+          client = newClient;
+          console.log('✅ Client créé avec succès:', client.id);
+        } else {
+          console.error('❌ Client créé mais aucune donnée retournée');
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'CLIENT_CREATION_FAILED',
+              message: 'Le client a été créé mais aucune donnée n\'a été retournée.'
+            },
+            { status: 500 }
+          );
+        }
       }
     }
 
