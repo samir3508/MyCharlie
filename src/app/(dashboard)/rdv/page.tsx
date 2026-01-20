@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -42,8 +42,11 @@ import {
   FileSignature,
   MoreHorizontal
 } from 'lucide-react'
-import { useRdvList, useRdvToday, useRdvUpcoming, useCreateRdv, useUpdateRdv } from '@/lib/hooks/use-rdv'
+import { useRdvList, useRdvToday, useRdvUpcoming, useRdvMonth, useCreateRdv, useUpdateRdv } from '@/lib/hooks/use-rdv'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useDossiers } from '@/lib/hooks/use-dossiers'
+import { useAuth } from '@/lib/hooks/use-auth'
+import { RefreshCw, Calendar as CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TYPES_RDV, STATUTS_RDV } from '@/types/database'
 import Link from 'next/link'
@@ -69,16 +72,103 @@ const statutColors: Record<string, string> = {
   reporte: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
 }
 
+type ViewMode = 'today' | 'week' | 'month'
+
 export default function RdvPage() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [selectedDate, setSelectedDate] = useState(new Date())
+  const [viewMode, setViewMode] = useState<ViewMode>('today')
+  const [syncing, setSyncing] = useState(false)
   
-  const { data: allRdv, isLoading } = useRdvList()
-  const { data: todayRdv } = useRdvToday()
-  const { data: upcomingRdv } = useRdvUpcoming(7)
+  const { tenant } = useAuth()
+  const { data: allRdv, isLoading, refetch: refetchRdv, error: allRdvError } = useRdvList()
+  
+  // Rafraîchir automatiquement toutes les 30 secondes
+  useEffect(() => {
+    if (!tenant?.id) return
+    
+    const interval = setInterval(() => {
+      console.log('🔄 Rafraîchissement automatique des RDV...')
+      refetchRdv()
+    }, 30000) // 30 secondes
+    
+    return () => clearInterval(interval)
+  }, [tenant?.id, refetchRdv])
+  const { data: todayRdv, error: todayError } = useRdvToday()
+  const { data: upcomingRdv, error: upcomingError } = useRdvUpcoming(7)
+  const currentDate = new Date()
+  const { data: monthRdv, error: monthError } = useRdvMonth(currentDate.getFullYear(), currentDate.getMonth() + 1)
   const { data: dossiers } = useDossiers()
   const createRdv = useCreateRdv()
   const updateRdv = useUpdateRdv()
+
+  // Debug: Log des données pour comprendre pourquoi l'agenda est vide
+  useEffect(() => {
+    console.log('📅 [RDV Page Debug]', {
+      tenantId: tenant?.id,
+      allRdvCount: allRdv?.length || 0,
+      todayRdvCount: todayRdv?.length || 0,
+      upcomingRdvCount: upcomingRdv?.length || 0,
+      monthRdvCount: monthRdv?.length || 0,
+      isLoading,
+      errors: {
+        allRdv: allRdvError,
+        today: todayError,
+        upcoming: upcomingError,
+        month: monthError
+      }
+    })
+
+    // Si aucun RDV trouvé, appeler l'API de débogage
+    if (tenant?.id && !isLoading && (!allRdv || allRdv.length === 0)) {
+      console.log('🔍 Aucun RDV trouvé, appel de l\'API de débogage...')
+      fetch(`/api/debug/rdv?tenant_id=${tenant.id}`)
+        .then(res => res.json())
+        .then(data => {
+          console.log('🔍 [Debug API] Résultats:', data)
+          if (data.success && data.all_rdv && data.all_rdv.length > 0) {
+            console.warn('⚠️ Des RDV existent dans Supabase mais ne sont pas récupérés par les hooks !')
+            console.warn('   RDV trouvés:', data.all_rdv)
+            console.warn('   Statistiques:', data.stats)
+            toast.error(`Des RDV existent (${data.stats.total}) mais ne s'affichent pas. Vérifiez les filtres.`)
+          } else if (data.success && data.all_rdv && data.all_rdv.length === 0) {
+            console.log('ℹ️ Aucun RDV dans Supabase pour ce tenant')
+          }
+        })
+        .catch(err => {
+          console.error('Erreur appel API debug:', err)
+        })
+    }
+  }, [tenant?.id, allRdv, todayRdv, upcomingRdv, monthRdv, isLoading, allRdvError, todayError, upcomingError, monthError])
+
+  // Fonction pour synchroniser avec Google Calendar
+  const handleSyncCalendar = async () => {
+    if (!tenant?.id) {
+      toast.error('Tenant non trouvé')
+      return
+    }
+
+    try {
+      setSyncing(true)
+      const response = await fetch(`/api/calendar/sync?tenant_id=${tenant.id}`)
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success(
+          `Synchronisation réussie : ${data.stats.synced} nouveau(x), ${data.stats.updated} mis à jour`
+        )
+        // Rafraîchir les données
+        refetchRdv()
+      } else {
+        throw new Error(data.message || 'Erreur lors de la synchronisation')
+      }
+    } catch (error: any) {
+      console.error('Erreur synchronisation:', error)
+      toast.error(error.message || 'Erreur lors de la synchronisation avec Google Calendar')
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   const [formData, setFormData] = useState({
     dossier_id: '',
@@ -135,14 +225,24 @@ export default function RdvPage() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
   }
 
-  // Grouper les RDV par jour
+  // Grouper les RDV par jour (pour la vue 7 jours)
   type RdvItem = NonNullable<typeof upcomingRdv>[number]
-  const groupedRdv: Record<string, RdvItem[]> = upcomingRdv?.reduce((acc: Record<string, RdvItem[]>, rdv: RdvItem) => {
-    const date = new Date(rdv.date_heure).toDateString()
-    if (!acc[date]) acc[date] = []
-    acc[date].push(rdv)
-    return acc
-  }, {} as Record<string, RdvItem[]>) || {}
+  const groupedRdv: Record<string, RdvItem[]> = useMemo(() => {
+    if (!upcomingRdv || upcomingRdv.length === 0) {
+      console.log('[RdvPage] Aucun RDV à grouper pour la vue 7 jours')
+      return {}
+    }
+    
+    const grouped = upcomingRdv.reduce((acc: Record<string, RdvItem[]>, rdv: RdvItem) => {
+      const date = new Date(rdv.date_heure).toDateString()
+      if (!acc[date]) acc[date] = []
+      acc[date].push(rdv)
+      return acc
+    }, {} as Record<string, RdvItem[]>)
+    
+    console.log('[RdvPage] RDV groupés par jour:', Object.keys(grouped).length, 'jours')
+    return grouped
+  }, [upcomingRdv])
 
   // Données préparées pour l'export
   const exportData = useMemo(() => {
@@ -254,23 +354,49 @@ export default function RdvPage() {
         </Card>
       </div>
 
-      {/* Main Content */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* RDV du jour */}
-        <Card className="lg:col-span-1 border-border">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-orange-500" />
-              </div>
-              Aujourd'hui
-            </CardTitle>
-          </CardHeader>
+      {/* Onglets de vue avec Tabs */}
+      <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)} className="space-y-4">
+        <div className="flex items-center justify-between">
+          <TabsList className="bg-card border border-border">
+            <TabsTrigger value="today">Aujourd'hui</TabsTrigger>
+            <TabsTrigger value="week">7 jours</TabsTrigger>
+            <TabsTrigger value="month">Mois</TabsTrigger>
+          </TabsList>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSyncCalendar}
+            disabled={syncing || !tenant?.id}
+          >
+            <RefreshCw className={cn("w-4 h-4 mr-2", syncing && "animate-spin")} />
+            {syncing ? 'Synchronisation...' : 'Synchroniser Google Calendar'}
+          </Button>
+        </div>
+
+        {/* Main Content */}
+        <TabsContent value="today" className="mt-0">
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* RDV du jour */}
+            <Card className="lg:col-span-1 border-border">
+              <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-orange-500" />
+                </div>
+                Aujourd'hui
+              </CardTitle>
+            </CardHeader>
           <CardContent className="space-y-3">
             {isLoading ? (
               [...Array(3)].map((_, i) => (
                 <Skeleton key={i} className="h-20" />
               ))
+            ) : todayError ? (
+              <div className="text-center py-8 text-red-400">
+                <AlertCircle className="w-12 h-12 mx-auto mb-3" />
+                <p className="text-sm">Erreur lors du chargement</p>
+                <p className="text-xs text-muted-foreground mt-1">{todayError.message}</p>
+              </div>
             ) : todayRdv && todayRdv.length > 0 ? (
               todayRdv.map((rdv, index) => (
                 <motion.div
@@ -328,15 +454,17 @@ export default function RdvPage() {
                 </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
-        {/* Planning 7 jours */}
-        <Card className="lg:col-span-2 border-border">
+        <TabsContent value="week" className="mt-0">
+        <Card className="border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-purple-500" />
+                <CalendarIcon className="w-4 h-4 text-purple-500" />
               </div>
               7 prochains jours
             </CardTitle>
@@ -350,6 +478,12 @@ export default function RdvPage() {
                     <Skeleton className="h-16" />
                   </div>
                 ))}
+              </div>
+            ) : upcomingError ? (
+              <div className="text-center py-12 text-red-400">
+                <AlertCircle className="w-16 h-16 mx-auto mb-4" />
+                <p>Erreur lors du chargement des RDV</p>
+                <p className="text-sm text-muted-foreground mt-1">{upcomingError.message}</p>
               </div>
             ) : Object.keys(groupedRdv).length > 0 ? (
               <div className="space-y-6">
@@ -367,7 +501,12 @@ export default function RdvPage() {
                       {rdvs.map((rdv, index) => (
                         <div
                           key={rdv.id}
-                          className="flex items-center gap-4 p-3 rounded-lg bg-card/50 border border-border/50 hover:border-purple-500/30 transition-colors group"
+                          className={cn(
+                            "flex items-center gap-4 p-3 rounded-lg border transition-colors group",
+                            (rdv as any).source === 'google_calendar'
+                              ? "bg-blue-50/50 border-blue-200/50 hover:border-blue-300"
+                              : "bg-card/50 border-border/50 hover:border-purple-500/30"
+                          )}
                         >
                           <div className="flex-shrink-0 text-center">
                             <p className="text-lg font-bold text-purple-400">
@@ -382,6 +521,11 @@ export default function RdvPage() {
                                 {typeRdvIcons[rdv.type_rdv || 'autre']}
                               </span>
                               <p className="font-medium truncate">{rdv.titre || rdv.dossiers?.titre}</p>
+                              {(rdv as any).source === 'google_calendar' && (
+                                <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">
+                                  Google Calendar
+                                </Badge>
+                              )}
                             </div>
                             <div className="flex items-center gap-2 mt-1">
                               {rdv.clients && (
@@ -422,7 +566,124 @@ export default function RdvPage() {
             )}
           </CardContent>
         </Card>
-      </div>
+        </TabsContent>
+
+          <TabsContent value="month" className="mt-0">
+        <Card className="border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <CalendarIcon className="w-4 h-4 text-purple-500" />
+              </div>
+              Vue mensuelle - {currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i}>
+                    <Skeleton className="h-6 w-40 mb-2" />
+                    <Skeleton className="h-16" />
+                  </div>
+                ))}
+              </div>
+            ) : monthError ? (
+              <div className="text-center py-12 text-red-400">
+                <AlertCircle className="w-16 h-16 mx-auto mb-4" />
+                <p>Erreur lors du chargement des RDV</p>
+                <p className="text-sm text-muted-foreground mt-1">{monthError.message}</p>
+              </div>
+            ) : monthRdv && monthRdv.length > 0 ? (
+              <div className="space-y-6">
+                {Object.entries(
+                  monthRdv.reduce((acc: Record<string, typeof monthRdv>, rdv) => {
+                    const date = new Date(rdv.date_heure).toDateString()
+                    if (!acc[date]) acc[date] = []
+                    acc[date].push(rdv)
+                    return acc
+                  }, {} as Record<string, typeof monthRdv>)
+                ).map(([date, rdvs], dayIndex) => (
+                  <motion.div
+                    key={date}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: dayIndex * 0.05 }}
+                  >
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3 capitalize">
+                      {formatDate(rdvs[0].date_heure)}
+                    </h3>
+                    <div className="space-y-2">
+                      {rdvs.map((rdv, index) => (
+                        <div
+                          key={rdv.id}
+                          className={cn(
+                            "flex items-center gap-4 p-3 rounded-lg border transition-colors group",
+                            (rdv as any).source === 'google_calendar'
+                              ? "bg-blue-50/50 border-blue-200/50 hover:border-blue-300"
+                              : "bg-card/50 border-border/50 hover:border-purple-500/30"
+                          )}
+                        >
+                          <div className="flex-shrink-0 text-center">
+                            <p className="text-lg font-bold text-purple-400">
+                              {formatTime(rdv.date_heure)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{rdv.duree_minutes}min</p>
+                          </div>
+                          <div className="h-12 w-px bg-border" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-purple-400">
+                                {typeRdvIcons[rdv.type_rdv || 'autre']}
+                              </span>
+                              <p className="font-medium truncate">{rdv.titre || rdv.dossiers?.titre}</p>
+                              {(rdv as any).source === 'google_calendar' && (
+                                <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">
+                                  Google Calendar
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              {rdv.clients && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <User className="w-3 h-3" />
+                                  {rdv.clients.nom_complet}
+                                </div>
+                              )}
+                              {rdv.adresse && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <MapPin className="w-3 h-3" />
+                                  <span className="truncate max-w-[150px]">{rdv.adresse}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <Badge variant="outline" className={statutColors[rdv.statut || 'planifie']}>
+                            {rdv.statut?.replace(/_/g, ' ')}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p>Aucun RDV prévu ce mois-ci</p>
+                <Button 
+                  className="mt-4"
+                  onClick={() => setShowCreateForm(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Planifier un RDV
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Create RDV Dialog */}
       <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>

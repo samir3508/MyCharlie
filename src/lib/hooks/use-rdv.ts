@@ -12,8 +12,13 @@ export function useRdvList() {
   return useQuery({
     queryKey: ['rdv-list', tenant?.id],
     queryFn: async () => {
-      if (!tenant?.id) return []
+      if (!tenant?.id) {
+        console.warn('[useRdvList] Pas de tenant_id')
+        return []
+      }
       
+      console.log('[useRdvList] Recherche de tous les RDV pour tenant:', tenant.id)
+
       const { data, error } = await supabase
         .from('rdv')
         .select(`
@@ -24,13 +29,29 @@ export function useRdvList() {
         .eq('tenant_id', tenant.id)
         .order('date_heure', { ascending: true })
 
-      if (error) throw error
+      if (error) {
+        console.error('[useRdvList] Erreur:', error)
+        throw error
+      }
+      
+      console.log(`[useRdvList] ${data?.length || 0} RDV trouvé(s) au total`)
+      if (data && data.length > 0) {
+        console.log('[useRdvList] Exemples de RDV:', data.slice(0, 3).map(r => ({
+          id: r.id,
+          date: r.date_heure,
+          statut: r.statut,
+          titre: r.titre,
+          dossier_id: r.dossier_id
+        })))
+      }
+      
       return data as (Rdv & { 
         dossiers: { id: string; numero: string; titre: string; client_id: string } | null;
         clients: { id: string; nom_complet: string; telephone: string | null } | null;
       })[]
     },
     enabled: !!tenant?.id,
+    refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
   })
 }
 
@@ -77,11 +98,18 @@ export function useRdvUpcoming(days: number = 7) {
   return useQuery({
     queryKey: ['rdv-upcoming', tenant?.id, days],
     queryFn: async () => {
-      if (!tenant?.id) return []
+      if (!tenant?.id) {
+        console.warn('[useRdvUpcoming] Pas de tenant_id')
+        return []
+      }
       
       const now = new Date()
+      now.setHours(0, 0, 0, 0) // Début de la journée
       const future = new Date()
       future.setDate(future.getDate() + days)
+      future.setHours(23, 59, 59, 999) // Fin de la journée
+
+      console.log('[useRdvUpcoming] Recherche RDV entre', now.toISOString(), 'et', future.toISOString())
 
       const { data, error } = await supabase
         .from('rdv')
@@ -93,13 +121,84 @@ export function useRdvUpcoming(days: number = 7) {
         .eq('tenant_id', tenant.id)
         .gte('date_heure', now.toISOString())
         .lte('date_heure', future.toISOString())
-        .in('statut', ['planifie', 'confirme'])
+        .in('statut', ['planifie', 'confirme', 'en_cours']) // Ajouter 'en_cours' aussi
         .order('date_heure', { ascending: true })
 
-      if (error) throw error
+      if (error) {
+        console.error('[useRdvUpcoming] Erreur:', error)
+        throw error
+      }
+      
+      console.log(`[useRdvUpcoming] ${data?.length || 0} RDV trouvé(s)`)
+      if (data && data.length > 0) {
+        console.log('[useRdvUpcoming] RDV trouvés:', data.map(r => ({
+          id: r.id,
+          date: r.date_heure,
+          statut: r.statut,
+          titre: r.titre
+        })))
+      }
+      
       return data
     },
     enabled: !!tenant?.id,
+  })
+}
+
+export function useRdvMonth(year?: number, month?: number) {
+  const { tenant } = useAuth()
+  const supabase = getSupabaseClient()
+
+  return useQuery({
+    queryKey: ['rdv-month', tenant?.id, year, month],
+    queryFn: async () => {
+      if (!tenant?.id) {
+        console.warn('[useRdvMonth] Pas de tenant_id')
+        return []
+      }
+      
+      const targetDate = year && month ? new Date(year, month - 1, 1) : new Date()
+      const startOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1)
+      startOfMonth.setHours(0, 0, 0, 0)
+      const endOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0)
+      endOfMonth.setHours(23, 59, 59, 999)
+
+      console.log('[useRdvMonth] Recherche RDV entre', startOfMonth.toISOString(), 'et', endOfMonth.toISOString())
+
+      const { data, error } = await supabase
+        .from('rdv')
+        .select(`
+          *,
+          dossiers (id, numero, titre),
+          clients (id, nom_complet, telephone)
+        `)
+        .eq('tenant_id', tenant.id)
+        .gte('date_heure', startOfMonth.toISOString())
+        .lte('date_heure', endOfMonth.toISOString())
+        .order('date_heure', { ascending: true })
+
+      if (error) {
+        console.error('[useRdvMonth] Erreur:', error)
+        throw error
+      }
+      
+      console.log(`[useRdvMonth] ${data?.length || 0} RDV trouvé(s) pour le mois`)
+      if (data && data.length > 0) {
+        console.log('[useRdvMonth] RDV trouvés:', data.map(r => ({
+          id: r.id,
+          date: r.date_heure,
+          statut: r.statut,
+          titre: r.titre
+        })))
+      }
+      
+      return data as (Rdv & { 
+        dossiers: { id: string; numero: string; titre: string } | null;
+        clients: { id: string; nom_complet: string; telephone: string | null } | null;
+      })[]
+    },
+    enabled: !!tenant?.id,
+    refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
   })
 }
 

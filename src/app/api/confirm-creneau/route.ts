@@ -77,12 +77,21 @@ export async function GET(request: NextRequest) {
     }
 
     // Récupérer les informations du client
-    const { data: client } = await supabase
+    const { data: client, error: clientError } = await supabase
       .from('clients')
       .select('id, nom_complet, nom, prenom, email, telephone, adresse_facturation')
       .eq('tenant_id', tenantId)
       .eq('email', email)
-      .single();
+      .maybeSingle(); // Utiliser maybeSingle() au lieu de single() pour éviter l'erreur si client non trouvé
+    
+    if (clientError) {
+      console.warn('⚠️ Erreur lors de la recherche du client:', clientError);
+    }
+    
+    if (!client) {
+      console.warn('⚠️ Client non trouvé pour l\'email:', email);
+      console.warn('   Un dossier sera créé sans client_id');
+    }
 
     // Récupérer les informations du créneau
     const creneauDate = new Date(creneau);
@@ -98,29 +107,187 @@ export async function GET(request: NextRequest) {
     // ════════════════════════════════════════════════════════════════════════════
     let rdvId: string | null = null;
     try {
-      const { data: newRdv, error: rdvError } = await supabase
-        .from('rdv')
-        .insert({
+      // Chercher ou créer un dossier pour ce client (OBLIGATOIRE car dossier_id est NOT NULL)
+      let dossierId: string | null = null;
+      
+      console.log('🔍 Recherche d\'un dossier pour le client:', {
+        clientId: client?.id,
+        clientName: clientName,
+        tenantId: tenantId
+      });
+
+      if (client?.id) {
+        // Chercher un dossier existant pour ce client
+        const { data: existingDossier, error: searchError } = await supabase
+          .from('dossiers')
+          .select('id')
+          .eq('tenant_id', tenantId)
+          .eq('client_id', client.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(); // Utiliser maybeSingle() pour éviter l'erreur si aucun résultat
+        
+        if (searchError) {
+          console.warn('⚠️ Erreur lors de la recherche de dossier:', searchError);
+        }
+        
+        if (existingDossier) {
+          dossierId = existingDossier.id;
+          console.log('✅ Dossier existant trouvé:', dossierId);
+        } else {
+          console.log('📝 Aucun dossier existant, création d\'un nouveau dossier...');
+          // Créer un dossier temporaire si aucun dossier n'existe
+          const { data: newDossier, error: dossierError } = await supabase
+            .from('dossiers')
+            .insert({
+              tenant_id: tenantId,
+              client_id: client.id,
+              titre: `Visite - ${clientName || 'Client'}`,
+              statut: 'en_cours',
+              description: 'Dossier créé automatiquement lors de la confirmation d\'un créneau'
+            })
+            .select('id')
+            .single();
+          
+          if (dossierError) {
+            console.error('❌ Erreur création dossier temporaire:', dossierError);
+            console.error('   Code:', dossierError.code);
+            console.error('   Message:', dossierError.message);
+            console.error('   Détails:', dossierError.details);
+          } else if (newDossier) {
+            dossierId = newDossier.id;
+            console.log('✅ Dossier temporaire créé avec succès:', dossierId);
+          } else {
+            console.error('❌ Dossier créé mais aucune donnée retournée');
+          }
+        }
+      }
+      
+      // Si toujours pas de dossier (client non trouvé ou erreur), créer un dossier sans client_id
+      if (!dossierId) {
+        console.warn('⚠️ Aucun dossier trouvé, création d\'un dossier sans client_id...');
+        const { data: tempDossier, error: tempDossierError } = await supabase
+          .from('dossiers')
+          .insert({
+            tenant_id: tenantId,
+            client_id: client?.id || null,
+            titre: `Visite - ${clientName || 'Client'}`,
+            statut: 'en_cours',
+            description: 'Dossier créé automatiquement lors de la confirmation d\'un créneau'
+          })
+          .select('id')
+          .single();
+        
+        if (tempDossierError) {
+          console.error('❌ CRITIQUE: Impossible de créer un dossier temporaire:', tempDossierError);
+          console.error('   Code:', tempDossierError.code);
+          console.error('   Message:', tempDossierError.message);
+          console.error('   Détails:', tempDossierError.details);
+          console.error('   Hint:', tempDossierError.hint);
+          // Le RDV ne pourra pas être créé sans dossier_id
+        } else if (tempDossier) {
+          dossierId = tempDossier.id;
+          console.log('✅ Dossier temporaire créé (sans client_id):', dossierId);
+        } else {
+          console.error('❌ Dossier créé mais aucune donnée retournée');
+        }
+      }
+
+      // Vérifier que dossierId est bien défini avant de créer le RDV
+      if (!dossierId) {
+        console.error('❌ CRITIQUE: Impossible de créer un dossier, le RDV ne pourra pas être créé (dossier_id est requis et NOT NULL)');
+        console.error('   Le RDV sera créé dans Google Calendar mais PAS dans Supabase');
+        console.error('   ACTION REQUISE: Vérifier les permissions Supabase ou créer un dossier manuellement');
+        
+        // Retourner une erreur au lieu de continuer silencieusement
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'DOSSIER_CREATION_FAILED',
+            message: 'Impossible de créer un dossier pour ce RDV. Le RDV ne peut pas être créé sans dossier_id.'
+          },
+          { status: 500 }
+        );
+      } else {
+        const rdvData = {
           tenant_id: tenantId,
+          dossier_id: dossierId,
           client_id: client?.id || null,
-          type_rdv: 'visite',
+          type_rdv: 'visite' as const,
           date_heure: creneauDate.toISOString(),
           duree_minutes: 60,
-          statut: 'confirme',
+          statut: 'confirme' as const,
           notes: `Créneau confirmé par le client via email le ${new Date().toLocaleString('fr-FR')}`,
-          adresse: clientAddress
-        })
-        .select('id')
-        .single();
+          adresse: clientAddress || null
+        };
 
-      if (rdvError) {
-        console.error('Erreur création RDV dans Supabase:', rdvError);
-      } else {
-        rdvId = newRdv?.id || null;
-        console.log('✅ RDV créé dans Supabase:', rdvId);
+        console.log('📝 Tentative de création du RDV avec les données:', {
+          tenant_id: rdvData.tenant_id,
+          dossier_id: rdvData.dossier_id,
+          client_id: rdvData.client_id,
+          date_heure: rdvData.date_heure,
+          statut: rdvData.statut
+        });
+
+        console.log('🔍 [DEBUG] Avant insertion RDV - Vérification des données:', {
+          tenant_id: rdvData.tenant_id,
+          dossier_id: rdvData.dossier_id,
+          client_id: rdvData.client_id,
+          date_heure: rdvData.date_heure,
+          statut: rdvData.statut,
+          type_rdv: rdvData.type_rdv
+        });
+
+        const { data: newRdv, error: rdvError } = await supabase
+          .from('rdv')
+          .insert(rdvData)
+          .select('id, date_heure, statut, titre, dossier_id, tenant_id')
+          .single();
+
+        if (rdvError) {
+          console.error('❌ ERREUR CRITIQUE - Création RDV dans Supabase a ÉCHOUÉ:', rdvError);
+          console.error('   Code:', rdvError.code);
+          console.error('   Message:', rdvError.message);
+          console.error('   Détails:', rdvError.details);
+          console.error('   Hint:', rdvError.hint);
+          console.error('   Données envoyées:', JSON.stringify(rdvData, null, 2));
+          
+          // Ne pas continuer silencieusement - retourner l'erreur
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'RDV_CREATION_FAILED',
+              message: 'Impossible de créer le RDV dans Supabase',
+              details: rdvError.message,
+              code: rdvError.code
+            },
+            { status: 500 }
+          );
+        } else if (newRdv) {
+          rdvId = newRdv.id;
+          console.log('✅ RDV créé avec succès dans Supabase:', {
+            id: rdvId,
+            tenant_id: newRdv.tenant_id,
+            dossier_id: newRdv.dossier_id,
+            date_heure: newRdv.date_heure,
+            statut: newRdv.statut,
+            titre: newRdv.titre
+          });
+        } else {
+          console.error('❌ CRITIQUE: RDV créé mais aucune donnée retournée');
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'RDV_CREATION_NO_DATA',
+              message: 'Le RDV a été créé mais aucune donnée n\'a été retournée'
+            },
+            { status: 500 }
+          );
+        }
       }
     } catch (rdvErr: any) {
-      console.error('Erreur lors de la création du RDV:', rdvErr);
+      console.error('❌ Erreur lors de la création du RDV:', rdvErr);
+      console.error('   Stack:', rdvErr.stack);
     }
 
     // ════════════════════════════════════════════════════════════════════════════
@@ -128,10 +295,10 @@ export async function GET(request: NextRequest) {
     // ════════════════════════════════════════════════════════════════════════════
     let calendarEventId: string | null = null;
     try {
-      // Récupérer le token OAuth Google Calendar
+      // Récupérer le token OAuth Google Calendar (avec metadata pour calendar_id)
       const { data: calendarConnection } = await supabase
         .from('oauth_connections')
-        .select('access_token, refresh_token, expires_at, id')
+        .select('access_token, refresh_token, expires_at, id, metadata')
         .eq('tenant_id', tenantId)
         .eq('provider', 'google')
         .eq('service', 'calendar')
