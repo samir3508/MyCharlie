@@ -131,7 +131,7 @@ export function useRdvUpcoming(days: number = 7) {
       
       console.log(`[useRdvUpcoming] ${data?.length || 0} RDV trouvé(s)`)
       if (data && data.length > 0) {
-        console.log('[useRdvUpcoming] RDV trouvés:', data.map(r => ({
+        console.log('[useRdvUpcoming] RDV trouvés:', data.map((r: any) => ({
           id: r.id,
           date: r.date_heure,
           statut: r.statut,
@@ -184,7 +184,7 @@ export function useRdvMonth(year?: number, month?: number) {
       
       console.log(`[useRdvMonth] ${data?.length || 0} RDV trouvé(s) pour le mois`)
       if (data && data.length > 0) {
-        console.log('[useRdvMonth] RDV trouvés:', data.map(r => ({
+        console.log('[useRdvMonth] RDV trouvés:', data.map((r: any) => ({
           id: r.id,
           date: r.date_heure,
           statut: r.statut,
