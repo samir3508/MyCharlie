@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,7 +18,7 @@ interface GoogleCalendar {
   primary?: boolean
 }
 
-export default function SelectCalendarPage() {
+function SelectCalendarContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const connectionId = searchParams.get('connection_id')
@@ -201,5 +203,31 @@ export default function SelectCalendarPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function SelectCalendarPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+        <Card className="w-full max-w-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              Chargement...
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <SelectCalendarContent />
+    </Suspense>
   )
 }
