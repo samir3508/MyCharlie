@@ -8,6 +8,10 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
 export async function POST(request: NextRequest) {
+  let connection_id: string | undefined
+  let connection: any = null
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+  
   try {
     // Vérifier que les credentials Google sont configurés
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
@@ -18,20 +22,21 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
     
-    const { connection_id } = await request.json()
+    const body = await request.json()
+    connection_id = body.connection_id
 
     if (!connection_id) {
       return NextResponse.json({ error: 'connection_id requis' }, { status: 400 })
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-
     // Récupérer la connexion
-    const { data: connection, error: fetchError } = await supabase
+    const { data: connectionData, error: fetchError } = await supabase
       .from('oauth_connections')
       .select('*')
       .eq('id', connection_id)
       .single()
+    
+    connection = connectionData
 
     if (fetchError || !connection) {
       return NextResponse.json({ error: 'Connexion non trouvée' }, { status: 404 })
@@ -283,30 +288,42 @@ export async function POST(request: NextRequest) {
     if (error.name === 'AbortError' || error.cause?.code === 'ETIMEDOUT' || error.message?.includes('Timeout')) {
       console.error('⏱️ Timeout lors du rafraîchissement du token')
       
-      // Si le token n'est pas encore expiré, retourner le token actuel
-      const now = new Date()
-      const expiresAt = connection?.expires_at ? new Date(connection.expires_at) : null
-      const isExpired = expiresAt && expiresAt < now
-      
-      if (!isExpired && connection?.access_token) {
-        console.log('⚠️ Timeout mais token encore valide, utilisation du token existant')
-        return NextResponse.json({
-          success: true,
-          access_token: connection.access_token,
-          expires_at: connection.expires_at,
-          message: 'Timeout lors du rafraîchissement, utilisation du token existant'
-        })
+      // Si on n'a pas la connexion, essayer de la récupérer
+      if (!connection && connection_id) {
+        const { data: connectionData } = await supabase
+          .from('oauth_connections')
+          .select('*')
+          .eq('id', connection_id)
+          .single()
+        connection = connectionData
       }
       
-      // Si le token est expiré et timeout, marquer comme erreur
-      if (connection_id) {
-        await supabase
-          .from('oauth_connections')
-          .update({
-            last_error: 'Timeout lors du rafraîchissement du token',
-            is_active: isExpired ? false : true
+      // Si le token n'est pas encore expiré, retourner le token actuel
+      if (connection) {
+        const now = new Date()
+        const expiresAt = connection.expires_at ? new Date(connection.expires_at) : null
+        const isExpired = expiresAt && expiresAt < now
+        
+        if (!isExpired && connection.access_token) {
+          console.log('⚠️ Timeout mais token encore valide, utilisation du token existant')
+          return NextResponse.json({
+            success: true,
+            access_token: connection.access_token,
+            expires_at: connection.expires_at,
+            message: 'Timeout lors du rafraîchissement, utilisation du token existant'
           })
-          .eq('id', connection_id)
+        }
+        
+        // Si le token est expiré et timeout, marquer comme erreur
+        if (connection_id) {
+          await supabase
+            .from('oauth_connections')
+            .update({
+              last_error: 'Timeout lors du rafraîchissement du token',
+              is_active: isExpired ? false : true
+            })
+            .eq('id', connection_id)
+        }
       }
       
       return NextResponse.json({
