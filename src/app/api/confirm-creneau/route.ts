@@ -819,7 +819,7 @@ ${tenant.company_name ? (tenant.company_name.toLowerCase() === 'nos artisan' ? '
           // Utiliser displayClientName défini plus haut, avec fallback sur clientName
           const artisanClientName = displayClientName || clientName || 'Client';
           // Sujet sans emoji pour éviter les problèmes d'encodage
-          const artisanSubject = `Nouveau RDV confirmé - ${artisanClientName} - ${creneauDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+          const artisanSubject = `Nouveau RDV confirmé - ${artisanClientName} - ${creneauDateForDisplay.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Paris' })}`;
           
           // Utiliser creneauDateForDisplay pour l'affichage (déjà en heure locale)
           const dateFormateeArtisan = creneauDateForDisplay.toLocaleString('fr-FR', {
