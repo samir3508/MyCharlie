@@ -97,14 +97,21 @@ export async function GET(request: NextRequest) {
       console.warn('⚠️ Client non trouvé pour l\'email:', email);
       console.log('📝 Création d\'un nouveau client...');
       
+      // Extraire nom et prénom de l'email (partie avant @)
+      const emailPrefix = email.split('@')[0];
+      // Essayer de séparer nom.prénom ou nom_prenom
+      const nameParts = emailPrefix.split(/[._-]/);
+      const prenom = nameParts[0] || 'Client';
+      const nom = nameParts[1] || emailPrefix;
+      
       const { data: newClient, error: createClientError } = await supabase
         .from('clients')
         .insert({
           tenant_id: tenantId,
           email: email,
-          nom_complet: email.split('@')[0], // Utiliser la partie avant @ comme nom par défaut
-          nom: email.split('@')[0],
-          prenom: '',
+          nom: nom, // Requis
+          prenom: prenom, // Requis
+          // nom_complet n'est pas dans Insert, il est probablement calculé automatiquement
         })
         .select('id, nom_complet, nom, prenom, email, telephone, adresse_facturation')
         .single();
