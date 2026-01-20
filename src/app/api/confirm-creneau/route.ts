@@ -172,9 +172,10 @@ export async function GET(request: NextRequest) {
 
       if (client?.id) {
         // Chercher un dossier existant pour ce client
+        console.log('🔍 Recherche d\'un dossier existant pour client_id:', client.id);
         const { data: existingDossier, error: searchError } = await supabase
           .from('dossiers')
-          .select('id')
+          .select('id, numero, titre, statut')
           .eq('tenant_id', tenantId)
           .eq('client_id', client.id)
           .order('created_at', { ascending: false })
@@ -182,12 +183,20 @@ export async function GET(request: NextRequest) {
           .maybeSingle(); // Utiliser maybeSingle() pour éviter l'erreur si aucun résultat
         
         if (searchError) {
-          console.warn('⚠️ Erreur lors de la recherche de dossier:', searchError);
+          console.error('❌ Erreur lors de la recherche de dossier:', searchError);
+          console.error('   Code:', searchError.code);
+          console.error('   Message:', searchError.message);
+          console.error('   Détails:', searchError.details);
         }
         
         if (existingDossier) {
           dossierId = existingDossier.id;
-          console.log('✅ Dossier existant trouvé:', dossierId);
+          console.log('✅ Dossier existant trouvé:', {
+            id: dossierId,
+            numero: existingDossier.numero,
+            titre: existingDossier.titre,
+            statut: existingDossier.statut
+          });
         } else {
           console.log('📝 Aucun dossier existant, création d\'un nouveau dossier...');
           
@@ -207,7 +216,7 @@ export async function GET(request: NextRequest) {
               client_id: client.id,
               numero: dossierNumero || `DOS-${Date.now()}`,
               titre: `Visite - ${clientName || 'Client'}`,
-              statut: 'en_cours',
+              statut: 'rdv_confirme' as const,
               description: 'Dossier créé automatiquement lors de la confirmation d\'un créneau'
             })
             .select('id')
@@ -218,6 +227,31 @@ export async function GET(request: NextRequest) {
             console.error('   Code:', dossierError.code);
             console.error('   Message:', dossierError.message);
             console.error('   Détails:', dossierError.details);
+            console.error('   Hint:', dossierError.hint);
+            console.error('   Données envoyées:', JSON.stringify({
+              tenant_id: tenantId,
+              client_id: client.id,
+              numero: dossierNumero,
+              titre: `Visite - ${clientName || 'Client'}`,
+              statut: 'rdv_confirme'
+            }, null, 2));
+            
+            // Si c'est une erreur de permissions (RLS), donner plus d'infos
+            if (dossierError.code === '42501' || dossierError.message?.includes('permission') || dossierError.message?.includes('policy')) {
+              console.error('   ⚠️ PROBLÈME DE PERMISSIONS SUPABASE (RLS)');
+              console.error('   Vérifiez les politiques RLS sur la table "dossiers"');
+            }
+            
+            // Si c'est une erreur de contrainte, donner plus d'infos
+            if (dossierError.code === '23505') {
+              console.error('   ⚠️ ERREUR DE CONTRAINTE UNIQUE');
+              console.error('   Un dossier avec ce numéro existe peut-être déjà');
+            }
+            
+            if (dossierError.code === '23502') {
+              console.error('   ⚠️ ERREUR: Champ NOT NULL manquant');
+              console.error('   Vérifiez que tous les champs requis sont fournis');
+            }
           } else if (newDossier) {
             dossierId = newDossier.id;
             console.log('✅ Dossier temporaire créé avec succès:', dossierId);
@@ -273,7 +307,7 @@ export async function GET(request: NextRequest) {
           client_id: client.id, // client_id est requis, on utilise celui du client trouvé
           numero: dossierNumero,
           titre: `Visite - ${clientName || 'Client'}`,
-          statut: 'en_cours' as const,
+          statut: 'rdv_confirme' as const, // Utiliser un statut valide selon le type
           description: 'Dossier créé automatiquement lors de la confirmation d\'un créneau'
         };
         
@@ -295,7 +329,7 @@ export async function GET(request: NextRequest) {
             tenant_id: tenantId,
             client_id: client?.id || null,
             titre: `Visite - ${clientName || 'Client'}`,
-            statut: 'en_cours'
+            statut: 'rdv_confirme' as const
           });
           
           // Si c'est une erreur de permissions (RLS), donner plus d'infos
