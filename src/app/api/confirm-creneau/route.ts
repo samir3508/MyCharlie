@@ -166,10 +166,21 @@ export async function GET(request: NextRequest) {
     const creneauEnd = new Date(creneauDate);
     creneauEnd.setHours(creneauEnd.getHours() + 1); // Durée par défaut : 1h
 
-    // Utiliser prénom et nom si disponibles, sinon nom_complet, sinon email
-    const clientName = client?.prenom && client?.nom 
-      ? `${client.prenom} ${client.nom}`
-      : client?.nom_complet || email;
+    // Utiliser prénom et nom si disponibles ET différents (éviter doublons), sinon nom_complet valide, sinon "Client"
+    let clientName = 'Client';
+    if (client?.prenom && client?.nom && client.prenom !== client.nom) {
+      // Nom et prénom valides et différents
+      clientName = `${client.prenom} ${client.nom}`;
+    } else if (client?.nom_complet) {
+      // Vérifier si nom_complet est un doublon (ex: "adlbapp4 adlbapp4")
+      const parts = client.nom_complet.trim().split(/\s+/);
+      if (!client.nom_complet.includes('@') && 
+          !(parts.length === 2 && parts[0] === parts[1])) {
+        // nom_complet valide (pas un email, pas un doublon)
+        clientName = client.nom_complet;
+      }
+      // Sinon, clientName reste "Client"
+    }
     const clientPhone = client?.telephone || null;
     const clientAddress = client?.adresse_facturation || null;
 

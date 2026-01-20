@@ -615,7 +615,24 @@ export default function RdvPage() {
                               <span className="text-purple-400">
                                 {typeRdvIcons[rdv.type_rdv || 'autre']}
                               </span>
-                              <p className="font-medium truncate">{rdv.titre || rdv.dossiers?.titre}</p>
+                              <p className="font-medium truncate">
+                                {(() => {
+                                  // Si le titre contient un doublon (ex: "Visite - adlbapp4 adlbapp4"), le nettoyer
+                                  const titre = rdv.titre || rdv.dossiers?.titre || '';
+                                  if (titre.includes(' - ')) {
+                                    const parts = titre.split(' - ');
+                                    if (parts.length === 2) {
+                                      const clientPart = parts[1].trim();
+                                      const nameParts = clientPart.split(/\s+/);
+                                      // Si c'est un doublon (ex: "adlbapp4 adlbapp4"), remplacer par "Client"
+                                      if (nameParts.length === 2 && nameParts[0] === nameParts[1]) {
+                                        return `${parts[0]} - Client`;
+                                      }
+                                    }
+                                  }
+                                  return titre;
+                                })()}
+                              </p>
                               {(rdv as any).source === 'google_calendar' && (
                                 <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">
                                   Google Calendar
@@ -774,7 +791,24 @@ export default function RdvPage() {
                               <span className="text-purple-400">
                                 {typeRdvIcons[rdv.type_rdv || 'autre']}
                               </span>
-                              <p className="font-medium truncate">{rdv.titre || rdv.dossiers?.titre}</p>
+                              <p className="font-medium truncate">
+                                {(() => {
+                                  // Si le titre contient un doublon (ex: "Visite - adlbapp4 adlbapp4"), le nettoyer
+                                  const titre = rdv.titre || rdv.dossiers?.titre || '';
+                                  if (titre.includes(' - ')) {
+                                    const parts = titre.split(' - ');
+                                    if (parts.length === 2) {
+                                      const clientPart = parts[1].trim();
+                                      const nameParts = clientPart.split(/\s+/);
+                                      // Si c'est un doublon (ex: "adlbapp4 adlbapp4"), remplacer par "Client"
+                                      if (nameParts.length === 2 && nameParts[0] === nameParts[1]) {
+                                        return `${parts[0]} - Client`;
+                                      }
+                                    }
+                                  }
+                                  return titre;
+                                })()}
+                              </p>
                               {(rdv as any).source === 'google_calendar' && (
                                 <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">
                                   Google Calendar
