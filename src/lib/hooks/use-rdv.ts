@@ -55,7 +55,7 @@ export function useRdvList() {
       
       return data as (Rdv & { 
         dossiers: { id: string; numero: string; titre: string; client_id: string } | null;
-        clients: { id: string; nom_complet: string; telephone: string | null } | null;
+        clients: { id: string; nom: string; prenom: string; nom_complet: string | null; telephone: string | null } | null;
       })[]
     },
     enabled: !!tenant?.id,
@@ -82,7 +82,7 @@ export function useRdvToday() {
         .select(`
           *,
           dossiers (id, numero, titre),
-          clients (id, nom_complet, telephone)
+          clients (id, nom, prenom, nom_complet, telephone)
         `)
         .eq('tenant_id', tenant.id)
         .gte('date_heure', today.toISOString())
@@ -92,7 +92,7 @@ export function useRdvToday() {
       if (error) throw error
       return data as (Rdv & { 
         dossiers: { id: string; numero: string; titre: string } | null;
-        clients: { id: string; nom_complet: string; telephone: string | null } | null;
+        clients: { id: string; nom: string; prenom: string; nom_complet: string | null; telephone: string | null } | null;
       })[]
     },
     enabled: !!tenant?.id,
@@ -125,7 +125,7 @@ export function useRdvUpcoming(days: number = 7) {
         .select(`
           *,
           dossiers (id, numero, titre),
-          clients (id, nom_complet, telephone)
+          clients (id, nom, prenom, nom_complet, telephone)
         `)
         .eq('tenant_id', tenant.id)
         .gte('date_heure', now.toISOString())
@@ -179,7 +179,7 @@ export function useRdvMonth(year?: number, month?: number) {
         .select(`
           *,
           dossiers (id, numero, titre),
-          clients (id, nom_complet, telephone)
+          clients (id, nom, prenom, nom_complet, telephone)
         `)
         .eq('tenant_id', tenant.id)
         .gte('date_heure', startOfMonth.toISOString())
@@ -217,7 +217,7 @@ export function useRdvMonth(year?: number, month?: number) {
       
       return data as (Rdv & { 
         dossiers: { id: string; numero: string; titre: string } | null;
-        clients: { id: string; nom_complet: string; telephone: string | null } | null;
+        clients: { id: string; nom: string; prenom: string; nom_complet: string | null; telephone: string | null } | null;
       })[]
     },
     enabled: !!tenant?.id,

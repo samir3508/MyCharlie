@@ -152,7 +152,10 @@ export async function GET(request: NextRequest) {
     const creneauEnd = new Date(creneauDate);
     creneauEnd.setHours(creneauEnd.getHours() + 1); // Durée par défaut : 1h
 
-    const clientName = client?.nom_complet || email;
+    // Utiliser prénom et nom si disponibles, sinon nom_complet, sinon email
+    const clientName = client?.prenom && client?.nom 
+      ? `${client.prenom} ${client.nom}`
+      : client?.nom_complet || email;
     const clientPhone = client?.telephone || null;
     const clientAddress = client?.adresse_facturation || null;
 

@@ -104,6 +104,12 @@ export default function RdvPage() {
 
   // Debug: Log des données pour comprendre pourquoi l'agenda est vide
   useEffect(() => {
+    // Vérifier si au moins un hook a trouvé des RDV
+    const hasAnyRdv = (allRdv && allRdv.length > 0) || 
+                      (upcomingRdv && upcomingRdv.length > 0) || 
+                      (monthRdv && monthRdv.length > 0) ||
+                      (todayRdv && todayRdv.length > 0)
+    
     console.log('📅 [RDV Page Debug]', {
       tenantId: tenant?.id,
       allRdvCount: allRdv?.length || 0,
@@ -111,6 +117,7 @@ export default function RdvPage() {
       upcomingRdvCount: upcomingRdv?.length || 0,
       monthRdvCount: monthRdv?.length || 0,
       isLoading,
+      hasAnyRdv,
       errors: {
         allRdv: allRdvError,
         today: todayError,
@@ -119,44 +126,56 @@ export default function RdvPage() {
       }
     })
 
-    // Si aucun RDV trouvé dans AUCUN hook après chargement, appeler l'API de débogage
-    const hasAnyRdv = (allRdv && allRdv.length > 0) || 
-                      (upcomingRdv && upcomingRdv.length > 0) || 
-                      (monthRdv && monthRdv.length > 0) ||
-                      (todayRdv && todayRdv.length > 0)
-    
-    if (tenant?.id && !isLoading && !hasAnyRdv) {
-      console.log('🔍 Aucun RDV trouvé dans aucun hook, appel de l\'API de débogage...')
-      fetch(`/api/debug/rdv?tenant_id=${tenant.id}`)
-        .then(res => res.json())
-        .then(data => {
-          console.log('🔍 [Debug API] Résultats:', data)
-          if (data.success && data.all_rdv && data.all_rdv.length > 0) {
-            // Vérifier à nouveau si des RDV sont maintenant disponibles (au cas où ils se chargent entre temps)
-            const stillNoRdv = (!allRdv || allRdv.length === 0) && 
-                               (!upcomingRdv || upcomingRdv.length === 0) && 
-                               (!monthRdv || monthRdv.length === 0) &&
-                               (!todayRdv || todayRdv.length === 0)
-            
-            if (stillNoRdv) {
-              console.warn('⚠️ Des RDV existent dans Supabase mais ne sont pas récupérés par les hooks !')
-              console.warn('   RDV trouvés:', data.all_rdv)
-              console.warn('   Statistiques:', data.stats)
-              console.warn('   Vérifiez les filtres de date et de statut dans les hooks')
-              toast.error(`Des RDV existent (${data.stats.total}) mais ne s'affichent pas. Vérifiez les filtres.`)
-            } else {
-              console.log('✅ Des RDV sont maintenant disponibles, pas besoin d\'afficher l\'erreur')
-            }
-          } else if (data.success && data.all_rdv && data.all_rdv.length === 0) {
-            console.log('ℹ️ Aucun RDV dans Supabase pour ce tenant')
-          }
-        })
-        .catch(err => {
-          console.error('Erreur appel API debug:', err)
-        })
-    } else if (hasAnyRdv) {
-      // Si des RDV sont trouvés, ne pas afficher de message d'erreur
+    // Si des RDV sont trouvés, ne pas afficher de message d'erreur
+    if (hasAnyRdv) {
       console.log('✅ Des RDV sont trouvés par au moins un hook, pas besoin de debug')
+      return // Sortir immédiatement si des RDV sont trouvés
+    }
+
+    // Si aucun RDV trouvé dans AUCUN hook après chargement, appeler l'API de débogage
+    // MAIS seulement après un délai pour laisser le temps aux hooks de se charger
+    if (tenant?.id && !isLoading) {
+      const timeoutId = setTimeout(() => {
+        // Vérifier à nouveau avant d'appeler l'API (les hooks peuvent avoir chargé entre temps)
+        const stillNoRdv = (!allRdv || allRdv.length === 0) && 
+                           (!upcomingRdv || upcomingRdv.length === 0) && 
+                           (!monthRdv || monthRdv.length === 0) &&
+                           (!todayRdv || todayRdv.length === 0)
+        
+        if (stillNoRdv) {
+          console.log('🔍 Aucun RDV trouvé dans aucun hook après délai, appel de l\'API de débogage...')
+          fetch(`/api/debug/rdv?tenant_id=${tenant.id}`)
+            .then(res => res.json())
+            .then(data => {
+              console.log('🔍 [Debug API] Résultats:', data)
+              if (data.success && data.all_rdv && data.all_rdv.length > 0) {
+                // Vérifier une dernière fois si des RDV sont maintenant disponibles
+                const finalCheck = (allRdv && allRdv.length > 0) || 
+                                  (upcomingRdv && upcomingRdv.length > 0) || 
+                                  (monthRdv && monthRdv.length > 0) ||
+                                  (todayRdv && todayRdv.length > 0)
+                
+                if (!finalCheck) {
+                  console.warn('⚠️ Des RDV existent dans Supabase mais ne sont pas récupérés par les hooks !')
+                  console.warn('   RDV trouvés:', data.all_rdv)
+                  console.warn('   Statistiques:', data.stats)
+                  console.warn('   Vérifiez les filtres de date et de statut dans les hooks')
+                  // Ne PAS afficher le toast automatiquement - seulement dans la console
+                  // L'utilisateur peut utiliser le bouton Debug s'il veut plus d'infos
+                } else {
+                  console.log('✅ Des RDV sont maintenant disponibles après vérification')
+                }
+              } else if (data.success && data.all_rdv && data.all_rdv.length === 0) {
+                console.log('ℹ️ Aucun RDV dans Supabase pour ce tenant')
+              }
+            })
+            .catch(err => {
+              console.error('Erreur appel API debug:', err)
+            })
+        }
+      }, 3000) // Attendre 3 secondes pour que les hooks se chargent complètement
+      
+      return () => clearTimeout(timeoutId)
     }
   }, [tenant?.id, allRdv, todayRdv, upcomingRdv, monthRdv, isLoading, allRdvError, todayError, upcomingError, monthError])
 
@@ -270,7 +289,9 @@ export default function RdvPage() {
       titre: rdv.titre || '',
       date_heure: rdv.date_heure ? new Date(rdv.date_heure).toLocaleString('fr-FR') : '',
       type_rdv: rdv.type_rdv || '',
-      client_nom: rdv.clients?.nom_complet || '',
+      client_nom: rdv.clients?.prenom && rdv.clients?.nom 
+        ? `${rdv.clients.prenom} ${rdv.clients.nom}`
+        : rdv.clients?.nom_complet || '',
       dossier_numero: rdv.dossiers?.numero || '',
       adresse: rdv.adresse || '',
       statut: rdv.statut || '',
