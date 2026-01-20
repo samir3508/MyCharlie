@@ -36,7 +36,7 @@ export function useRdvList() {
       
       console.log(`[useRdvList] ${data?.length || 0} RDV trouvé(s) au total`)
       if (data && data.length > 0) {
-        console.log('[useRdvList] Exemples de RDV:', data.slice(0, 3).map(r => ({
+        console.log('[useRdvList] Exemples de RDV:', data.slice(0, 3).map((r: any) => ({
           id: r.id,
           date: r.date_heure,
           statut: r.statut,
