@@ -77,7 +77,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Récupérer les informations du client
-    const { data: client, error: clientError } = await supabase
+    let client: any = null;
+    const { data: existingClient, error: clientError } = await supabase
       .from('clients')
       .select('id, nom_complet, nom, prenom, email, telephone, adresse_facturation')
       .eq('tenant_id', tenantId)
@@ -88,9 +89,55 @@ export async function GET(request: NextRequest) {
       console.warn('⚠️ Erreur lors de la recherche du client:', clientError);
     }
     
-    if (!client) {
+    if (existingClient) {
+      client = existingClient;
+      console.log('✅ Client trouvé:', client.id);
+    } else {
+      // Créer le client s'il n'existe pas (car client_id est requis pour créer un dossier)
       console.warn('⚠️ Client non trouvé pour l\'email:', email);
-      console.warn('   Un dossier sera créé sans client_id');
+      console.log('📝 Création d\'un nouveau client...');
+      
+      const { data: newClient, error: createClientError } = await supabase
+        .from('clients')
+        .insert({
+          tenant_id: tenantId,
+          email: email,
+          nom_complet: email.split('@')[0], // Utiliser la partie avant @ comme nom par défaut
+          nom: email.split('@')[0],
+          prenom: '',
+        })
+        .select('id, nom_complet, nom, prenom, email, telephone, adresse_facturation')
+        .single();
+      
+      if (createClientError) {
+        console.error('❌ Erreur lors de la création du client:', createClientError);
+        console.error('   Code:', createClientError.code);
+        console.error('   Message:', createClientError.message);
+        console.error('   Détails:', createClientError.details);
+        
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'CLIENT_CREATION_FAILED',
+            message: 'Impossible de créer le client. Le client est requis pour créer un dossier.',
+            details: createClientError.message
+          },
+          { status: 500 }
+        );
+      } else if (newClient) {
+        client = newClient;
+        console.log('✅ Client créé avec succès:', client.id);
+      } else {
+        console.error('❌ Client créé mais aucune donnée retournée');
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'CLIENT_CREATION_FAILED',
+            message: 'Le client a été créé mais aucune donnée n\'a été retournée.'
+          },
+          { status: 500 }
+        );
+      }
     }
 
     // Récupérer les informations du créneau
@@ -173,28 +220,61 @@ export async function GET(request: NextRequest) {
         }
       }
       
-      // Si toujours pas de dossier (client non trouvé ou erreur), créer un dossier sans client_id
+      // Si toujours pas de dossier (client non trouvé ou erreur), créer un client d'abord si nécessaire
       if (!dossierId) {
-        console.warn('⚠️ Aucun dossier trouvé, création d\'un dossier sans client_id...');
+        console.warn('⚠️ Aucun dossier trouvé, vérification du client...');
+        
+        // Si le client n'existe pas, on ne peut pas créer de dossier (client_id est requis)
+        if (!client?.id) {
+          console.error('❌ CRITIQUE: Impossible de créer un dossier car le client n\'existe pas et client_id est requis');
+          console.error('   Le client devrait avoir été créé ou trouvé plus tôt dans le processus');
+          
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'CLIENT_NOT_FOUND',
+              message: 'Le client n\'a pas été trouvé et est requis pour créer un dossier.'
+            },
+            { status: 400 }
+          );
+        }
+        
+        // Si le client existe mais la création du dossier a échoué, réessayer
+        console.warn('⚠️ Réessai de création de dossier pour le client existant...');
         
         // Générer le numéro de dossier
-        const { data: dossierNumero, error: numeroError } = await supabase
-          .rpc('generate_dossier_numero', { p_tenant_id: tenantId });
-        
-        if (numeroError) {
-          console.warn('⚠️ Erreur génération numéro dossier, utilisation d\'un numéro temporaire:', numeroError);
+        let dossierNumero: string = `DOS-${Date.now()}`;
+        try {
+          const { data: numeroData, error: numeroError } = await supabase
+            .rpc('generate_dossier_numero', { p_tenant_id: tenantId });
+          
+          if (numeroError) {
+            console.warn('⚠️ Erreur génération numéro dossier via RPC, utilisation d\'un numéro temporaire:', numeroError);
+            console.warn('   Code:', numeroError.code);
+            console.warn('   Message:', numeroError.message);
+          } else if (numeroData) {
+            dossierNumero = numeroData;
+            console.log('✅ Numéro de dossier généré:', dossierNumero);
+          }
+        } catch (rpcError: any) {
+          console.warn('⚠️ Exception lors de l\'appel RPC generate_dossier_numero:', rpcError);
+          // On continue avec le numéro temporaire
         }
+        
+        const dossierData = {
+          tenant_id: tenantId,
+          client_id: client.id, // client_id est requis, on utilise celui du client trouvé
+          numero: dossierNumero,
+          titre: `Visite - ${clientName || 'Client'}`,
+          statut: 'en_cours' as const,
+          description: 'Dossier créé automatiquement lors de la confirmation d\'un créneau'
+        };
+        
+        console.log('📝 Tentative de création de dossier (réessai) avec les données:', dossierData);
         
         const { data: tempDossier, error: tempDossierError } = await supabase
           .from('dossiers')
-          .insert({
-            tenant_id: tenantId,
-            client_id: client?.id || null,
-            numero: dossierNumero || `DOS-${Date.now()}`,
-            titre: `Visite - ${clientName || 'Client'}`,
-            statut: 'en_cours',
-            description: 'Dossier créé automatiquement lors de la confirmation d\'un créneau'
-          })
+          .insert(dossierData)
           .select('id')
           .single();
         
