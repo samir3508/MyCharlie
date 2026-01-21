@@ -230,28 +230,48 @@ BEGIN
       END IF;
 
     WHEN 'relances' THEN
-      IF TG_OP = 'INSERT' THEN
-        -- Relance envoyée
-        v_tenant_id := NEW.tenant_id;
-        v_dossier_id := NEW.dossier_id;
-        v_type := 'autre';
-        v_titre := 'Relance envoyée';
-        v_contenu := format(
-          'Relance %s envoyée%s',
-          NEW.type_relance,
-          CASE WHEN NEW.cible = 'devis' AND NEW.devis_id IS NOT NULL
-            THEN format(' pour le devis %s', (SELECT numero FROM devis WHERE id = NEW.devis_id))
-            WHEN NEW.cible = 'facture' AND NEW.facture_id IS NOT NULL
-            THEN format(' pour la facture %s', (SELECT numero FROM factures WHERE id = NEW.facture_id))
-            ELSE ''
-          END
-        );
-        v_metadata := jsonb_build_object(
-          'relance_id', NEW.id,
-          'relance_type', NEW.type_relance,
-          'relance_cible', NEW.cible,
-          'relance_date', NEW.date_envoi
-        );
+      IF TG_OP = 'INSERT' AND NEW.statut = 'envoye' THEN
+        -- Relance envoyée - récupérer le dossier_id depuis facture ou devis
+        IF NEW.facture_id IS NOT NULL THEN
+          SELECT dossier_id INTO v_dossier_id FROM factures WHERE id = NEW.facture_id;
+        ELSIF NEW.devis_id IS NOT NULL THEN
+          SELECT dossier_id INTO v_dossier_id FROM devis WHERE id = NEW.devis_id;
+        END IF;
+        
+        IF v_dossier_id IS NOT NULL THEN
+          v_tenant_id := NEW.tenant_id;
+          v_type := 'autre';
+          v_titre := 'Relance envoyée';
+          
+          -- Construire le contenu selon le type de relance
+          IF NEW.facture_id IS NOT NULL THEN
+            v_contenu := format(
+              'Relance %s envoyée pour la facture %s',
+              NEW.type,
+              (SELECT numero FROM factures WHERE id = NEW.facture_id)
+            );
+          ELSIF NEW.devis_id IS NOT NULL THEN
+            v_contenu := format(
+              'Relance %s envoyée pour le devis %s',
+              NEW.type,
+              (SELECT numero FROM devis WHERE id = NEW.devis_id)
+            );
+          ELSE
+            v_contenu := format('Relance %s envoyée', NEW.type);
+          END IF;
+          
+          v_metadata := jsonb_build_object(
+            'relance_id', NEW.id,
+            'relance_type', NEW.type,
+            'relance_niveau', NEW.niveau,
+            'relance_date_envoi', NEW.date_envoi,
+            'facture_id', NEW.facture_id,
+            'devis_id', NEW.devis_id
+          );
+        ELSE
+          -- Pas de dossier_id trouvé, ne pas créer d'entrée
+          RETURN NEW;
+        END IF;
       END IF;
 
     ELSE
