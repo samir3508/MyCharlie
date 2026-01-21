@@ -457,15 +457,16 @@ export default function RdvPage() {
               </div>
             ) : todayRdv && todayRdv.length > 0 ? (
               todayRdv.map((rdv, index) => (
-                <Link key={rdv.id} href={`/rdv/${rdv.id}`}>
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="p-3 rounded-xl bg-gradient-to-r from-orange-500/10 to-orange-600/5 border border-orange-500/20 hover:border-orange-500/40 transition-colors cursor-pointer"
-                  >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
+                <motion.div
+                  key={rdv.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Link href={`/rdv/${rdv.id}`}>
+                    <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500/10 to-orange-600/5 border border-orange-500/20 hover:border-orange-500/40 transition-colors cursor-pointer">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400">
                         {typeRdvIcons[rdv.type_rdv || 'autre']}
                       </div>
@@ -511,34 +512,33 @@ export default function RdvPage() {
                           }
                           return null;
                         })()}
+                        </div>
                       </div>
+                      <Badge variant="outline" className={statutColors[rdv.statut || 'planifie']}>
+                        {rdv.statut}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className={statutColors[rdv.statut || 'planifie']}>
-                      {rdv.statut}
-                    </Badge>
-                  </div>
-                  {rdv.adresse && (
-                    <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="w-3 h-3" />
-                      <span className="line-clamp-1">{rdv.adresse}</span>
-                    </div>
-                  )}
-                  {rdv.statut !== 'realise' && (
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="mt-2 w-full text-xs hover:bg-green-500/10 hover:text-green-400"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        handleMarkAsRealise(rdv.id)
-                      }}
-                    >
-                      <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Marquer comme réalisé
-                    </Button>
-                  )}
+                    {rdv.adresse && (
+                      <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="w-3 h-3" />
+                        <span className="line-clamp-1">{rdv.adresse}</span>
                       </div>
+                    )}
+                    {rdv.statut !== 'realise' && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="mt-2 w-full text-xs hover:bg-green-500/10 hover:text-green-400"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleMarkAsRealise(rdv.id)
+                        }}
+                      >
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Marquer comme réalisé
+                      </Button>
+                    )}
                     </div>
                   </Link>
                 </motion.div>
