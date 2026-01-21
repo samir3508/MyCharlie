@@ -457,13 +457,13 @@ export default function RdvPage() {
               </div>
             ) : todayRdv && todayRdv.length > 0 ? (
               todayRdv.map((rdv, index) => (
-                <motion.div
-                  key={rdv.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="p-3 rounded-xl bg-gradient-to-r from-orange-500/10 to-orange-600/5 border border-orange-500/20 hover:border-orange-500/40 transition-colors"
-                >
+                <Link key={rdv.id} href={`/rdv/${rdv.id}`}>
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="p-3 rounded-xl bg-gradient-to-r from-orange-500/10 to-orange-600/5 border border-orange-500/20 hover:border-orange-500/40 transition-colors cursor-pointer"
+                  >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400">
@@ -538,9 +538,11 @@ export default function RdvPage() {
                       Marquer comme réalisé
                     </Button>
                   )}
-                  </motion.div>
-                </Link>
-                ))
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))
               ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -737,6 +739,7 @@ export default function RdvPage() {
                             {rdv.statut?.replace(/_/g, ' ')}
                           </Badge>
                         </div>
+                        </Link>
                       ))}
                     </div>
                   </motion.div>
