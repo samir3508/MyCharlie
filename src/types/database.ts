@@ -577,7 +577,7 @@ export type Database = {
           titre: string
           description: string | null
           adresse_chantier: string | null
-          statut: 'contact_recu' | 'qualification' | 'rdv_a_planifier' | 'rdv_planifie' | 'rdv_confirme' | 'visite_realisee' | 'devis_en_cours' | 'devis_pret' | 'devis_envoye' | 'en_negociation' | 'signe' | 'perdu' | 'annule' | null
+          statut: 'contact_recu' | 'qualification' | 'rdv_a_planifier' | 'rdv_planifie' | 'rdv_confirme' | 'visite_realisee' | 'devis_en_cours' | 'devis_pret' | 'devis_envoye' | 'en_negociation' | 'signe' | 'perdu' | 'annule' | 'facture_a_creer' | 'facture_envoyee' | 'facture_en_retard' | 'facture_payee' | null
           source: 'whatsapp' | 'instagram' | 'appel' | 'email' | 'site_web' | 'bouche_a_oreille' | 'autre' | null
           type_travaux: string | null
           montant_estime: number | null
@@ -1108,7 +1108,11 @@ export const STATUTS_DOSSIER = [
   'en_negociation',
   'signe',
   'perdu',
-  'annule'
+  'annule',
+  'facture_a_creer',
+  'facture_envoyee',
+  'facture_en_retard',
+  'facture_payee'
 ] as const
 
 export const STATUTS_DEVIS = [
@@ -1169,18 +1173,22 @@ export const PRIORITES = [
 
 export const LABELS_STATUT_DOSSIER: Record<string, string> = {
   contact_recu: '📥 Contact reçu',
-  qualification: '🔍 Qualification',
+  qualification: '🔍 À qualifier',
   rdv_a_planifier: '📅 RDV à planifier',
   rdv_planifie: '📆 RDV planifié',
   rdv_confirme: '✅ RDV confirmé',
   visite_realisee: '🏠 Visite réalisée',
-  devis_en_cours: '📝 Devis en cours',
+  devis_en_cours: '📝 Devis en préparation',
   devis_pret: '📄 Devis prêt',
   devis_envoye: '📤 Devis envoyé',
   en_negociation: '💬 En négociation',
-  signe: '🎉 Signé',
-  perdu: '❌ Perdu',
-  annule: '🚫 Annulé'
+  signe: '🎉 Devis signé',
+  perdu: '❌ Devis perdu',
+  annule: '🚫 Annulé',
+  facture_a_creer: '💰 Facture à créer',
+  facture_envoyee: '📧 Facture envoyée',
+  facture_en_retard: '⚠️ Facture en retard',
+  facture_payee: '✅ Facture payée'
 }
 
 export const LABELS_STATUT_DEVIS: Record<string, string> = {

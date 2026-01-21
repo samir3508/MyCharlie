@@ -37,10 +37,12 @@ import {
   History,
   CheckCircle2,
   AlertTriangle,
-  Send
+  Send,
+  Receipt
 } from 'lucide-react'
 import { useDossier, useUpdateDossier } from '@/lib/hooks/use-dossiers'
 import { STATUTS_DOSSIER, LABELS_STATUT_DOSSIER, PRIORITES, LABELS_PRIORITE } from '@/types/database'
+import { ProchaineAction } from '@/components/dossiers/prochaine-action'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
@@ -58,6 +60,10 @@ const statutColors: Record<string, string> = {
   signe: 'bg-green-500/10 text-green-400 border-green-500/30',
   perdu: 'bg-red-500/10 text-red-400 border-red-500/30',
   annule: 'bg-gray-500/10 text-gray-400 border-gray-500/30',
+  facture_a_creer: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+  facture_envoyee: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+  facture_en_retard: 'bg-red-500/10 text-red-400 border-red-500/30',
+  facture_payee: 'bg-green-500/10 text-green-400 border-green-500/30',
 }
 
 const prioriteColors: Record<string, string> = {
@@ -180,6 +186,14 @@ export default function DossierDetailPage() {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Prochaine Action - Bloc crucial */}
+          <ProchaineAction 
+            dossier={dossier}
+            devis={(dossier.devis as any[]) || []}
+            factures={(dossier.factures as any[]) || []}
+            rdv={(dossier.rdv as any[]) || []}
+          />
+
           {/* Status & Priority Cards */}
           <div className="grid sm:grid-cols-2 gap-4">
             <Card className="border-border">
@@ -226,6 +240,7 @@ export default function DossierDetailPage() {
               <TabsTrigger value="rdv">RDV ({(dossier.rdv as any[])?.length || 0})</TabsTrigger>
               <TabsTrigger value="fiches">Fiches ({(dossier.fiches_visite as any[])?.length || 0})</TabsTrigger>
               <TabsTrigger value="devis">Devis ({(dossier.devis as any[])?.length || 0})</TabsTrigger>
+              <TabsTrigger value="factures">Factures ({(dossier.factures as any[])?.length || 0})</TabsTrigger>
               <TabsTrigger value="journal">Journal</TabsTrigger>
             </TabsList>
 
@@ -376,26 +391,100 @@ export default function DossierDetailPage() {
                   {(dossier.devis as any[])?.length > 0 ? (
                     <div className="space-y-3">
                       {(dossier.devis as any[]).map((devis: any) => (
-                        <div key={devis.id} className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/50">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                              <FileText className="w-5 h-5 text-orange-400" />
+                        <Link key={devis.id} href={`/devis/${devis.id}`}>
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/50 hover:bg-card/80 transition-colors cursor-pointer">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-orange-400" />
+                              </div>
+                              <div>
+                                <p className="font-medium">{devis.numero}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatMontant(devis.montant_ttc || 0)}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-medium">{devis.numero}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {formatMontant(devis.montant_ttc || 0)}
-                              </p>
-                            </div>
+                            <Badge variant="outline">{devis.statut}</Badge>
                           </div>
-                          <Badge variant="outline">{devis.statut}</Badge>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8">
                       <FileText className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-                      <p className="text-muted-foreground">Aucun devis</p>
+                      <p className="text-muted-foreground mb-4">Aucun devis</p>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/devis/nouveau?dossier_id=${dossier.id}`}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Créer un devis
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="factures">
+              <Card className="border-border">
+                <CardContent className="p-6">
+                  {(dossier.factures as any[])?.length > 0 ? (
+                    <div className="space-y-3">
+                      {(dossier.factures as any[]).map((facture: any) => {
+                        const isEnRetard = facture.statut === 'en_retard' || 
+                          (facture.statut === 'envoyee' && facture.date_echeance && new Date(facture.date_echeance) < new Date())
+                        return (
+                          <Link key={facture.id} href={`/factures/${facture.id}`}>
+                            <div className={`flex items-center justify-between p-3 rounded-lg bg-card/50 border transition-colors cursor-pointer ${
+                              isEnRetard ? 'border-red-500/50 bg-red-500/5' : 'border-border/50 hover:bg-card/80'
+                            }`}>
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                  isEnRetard ? 'bg-red-500/10' : 'bg-green-500/10'
+                                }`}>
+                                  <Euro className={`w-5 h-5 ${isEnRetard ? 'text-red-400' : 'text-green-400'}`} />
+                                </div>
+                                <div>
+                                  <p className="font-medium">{facture.numero}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {formatMontant(facture.montant_ttc || 0)}
+                                    {facture.date_echeance && (
+                                      <span className="ml-2">
+                                        • Échéance: {new Date(facture.date_echeance).toLocaleDateString('fr-FR')}
+                                      </span>
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {isEnRetard && (
+                                  <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30">
+                                    En retard
+                                  </Badge>
+                                )}
+                                <Badge variant="outline">
+                                  {facture.statut === 'payee' ? 'Payée' : 
+                                   facture.statut === 'envoyee' ? 'Envoyée' :
+                                   facture.statut === 'en_retard' ? 'En retard' : 'Brouillon'}
+                                </Badge>
+                              </div>
+                            </div>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Euro className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+                      <p className="text-muted-foreground mb-4">Aucune facture</p>
+                      {(dossier.devis as any[])?.length > 0 && (
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/factures/nouveau?dossier_id=${dossier.id}`}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Créer une facture
+                          </Link>
+                        </Button>
+                      )}
                     </div>
                   )}
                 </CardContent>

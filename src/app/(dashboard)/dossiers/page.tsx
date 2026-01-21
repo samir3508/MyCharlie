@@ -9,6 +9,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
+  Calendar,
+  FileText,
+  Receipt,
+  AlertTriangle,
+  CheckCircle2,
+  Clock as ClockIcon
+} from 'lucide-react'
+import { 
   FolderKanban, 
   Plus, 
   Search, 
@@ -32,16 +40,68 @@ export default function DossiersPage() {
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [activeView, setActiveView] = useState<string>('tous')
   
   const { data: dossiers, isLoading } = useDossiers()
   const { data: stats } = useDossiersStats()
   const updateDossier = useUpdateDossier()
 
-  const filteredDossiers = dossiers?.filter(d => 
+  // Calculer les vues filtrées
+  const vuesFiltrees = useMemo(() => {
+    if (!dossiers) return {}
+    
+    const maintenant = new Date()
+    
+    return {
+      tous: dossiers,
+      nouveaux: dossiers.filter(d => 
+        d.statut === 'contact_recu' || d.statut === 'qualification'
+      ),
+      rdv_a_venir: dossiers.filter(d => {
+        const rdv = (d as any).rdv || []
+        return rdv.some((r: any) => {
+          if (r.statut !== 'confirme' && r.statut !== 'planifie') return false
+          const dateRdv = new Date(r.date_heure)
+          return dateRdv > maintenant
+        })
+      }),
+      visites_devis_a_faire: dossiers.filter(d => {
+        if (d.statut !== 'visite_realisee') return false
+        const devis = (d as any).devis || []
+        return devis.length === 0
+      }),
+      devis_en_attente: dossiers.filter(d => {
+        if (d.statut !== 'devis_envoye') return false
+        const devis = (d as any).devis || []
+        return devis.some((devis: any) => devis.statut === 'envoye')
+      }),
+      factures_a_creer: dossiers.filter(d => {
+        if (d.statut !== 'signe') return false
+        const factures = (d as any).factures || []
+        return factures.length === 0
+      }),
+      factures_en_retard: dossiers.filter(d => {
+        const factures = (d as any).factures || []
+        return factures.some((f: any) => {
+          if (f.statut !== 'envoyee' && f.statut !== 'en_retard') return false
+          if (!f.date_echeance) return false
+          const echeance = new Date(f.date_echeance)
+          return echeance < maintenant
+        })
+      }),
+      clotures: dossiers.filter(d => 
+        d.statut === 'facture_payee' || d.statut === 'perdu' || d.statut === 'annule'
+      )
+    }
+  }, [dossiers])
+
+  const dossiersAffiches = vuesFiltrees[activeView as keyof typeof vuesFiltrees] || []
+
+  const filteredDossiers = dossiersAffiches.filter((d: any) => 
     d.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
     d.clients?.nom_complet?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     d.numero.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || []
+  )
 
   const handleUpdateStatut = (dossierId: string, newStatut: string) => {
     updateDossier.mutate({ id: dossierId, statut: newStatut as any })
