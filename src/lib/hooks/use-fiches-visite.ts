@@ -84,17 +84,7 @@ export function useCreateFicheVisite() {
 
       if (error) throw error
 
-      // Journal
-      if (fiche.dossier_id) {
-        await supabase.from('journal_dossier').insert({
-          tenant_id: tenant.id,
-          dossier_id: fiche.dossier_id,
-          type: 'visite',
-          titre: 'Fiche de visite créée',
-          contenu: fiche.constat?.substring(0, 100) || 'Nouvelle fiche de visite',
-          auteur: 'artisan',
-        })
-      }
+      // Note: L'entrée de journal est créée automatiquement par le trigger Supabase
 
       return data
     },

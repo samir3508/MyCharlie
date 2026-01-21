@@ -73,17 +73,28 @@ export default function FichesVisitePage() {
   ) || []
 
   const handleCreateFiche = async () => {
-    if (!formData.dossier_id) return
+    if (!formData.dossier_id) {
+      toast.error('Veuillez sélectionner un dossier')
+      return
+    }
     
     try {
+      // Convertir materiaux_necessaires en tableau si nécessaire
+      const materiauxArray = formData.materiaux_necessaires
+        ? formData.materiaux_necessaires.split(',').map(m => m.trim()).filter(m => m.length > 0)
+        : null
+
       await createFiche.mutateAsync({
         dossier_id: formData.dossier_id,
-        date_visite: formData.date_visite,
+        date_visite: formData.date_visite || null,
         constat: formData.constat || null,
         difficultes: formData.problemes_detectes || null,
         notes: formData.recommandations || null,
         estimation_heures: formData.estimation_duree ? parseInt(formData.estimation_duree) : null,
+        materiaux_necessaires: materiauxArray,
       })
+      
+      toast.success('Fiche de visite créée avec succès')
       setShowCreateForm(false)
       setFormData({
         dossier_id: '',
@@ -95,8 +106,9 @@ export default function FichesVisitePage() {
         recommandations: '',
         estimation_duree: '',
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur création fiche:', error)
+      toast.error(error?.message || 'Erreur lors de la création de la fiche de visite')
     }
   }
 
@@ -386,18 +398,32 @@ export default function FichesVisitePage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Dossier *</Label>
-                <Select onValueChange={(value) => setFormData({ ...formData, dossier_id: value })}>
+                <Select 
+                  value={formData.dossier_id} 
+                  onValueChange={(value) => setFormData({ ...formData, dossier_id: value })}
+                >
                   <SelectTrigger className="bg-background border-border">
                     <SelectValue placeholder="Sélectionner un dossier" />
                   </SelectTrigger>
                   <SelectContent>
-                    {dossiers?.map((dossier) => (
-                      <SelectItem key={dossier.id} value={dossier.id}>
-                        {dossier.numero} - {dossier.titre}
-                      </SelectItem>
-                    ))}
+                    {dossiers && dossiers.length > 0 ? (
+                      dossiers.map((dossier) => (
+                        <SelectItem key={dossier.id} value={dossier.id}>
+                          {dossier.numero} - {dossier.titre}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-4 text-sm text-muted-foreground text-center">
+                        Aucun dossier disponible. Créez d'abord un dossier.
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
+                {!dossiers || dossiers.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    ⚠️ Vous devez créer un dossier avant de créer une fiche de visite
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">

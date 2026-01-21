@@ -130,18 +130,7 @@ export function useUpdateDossier() {
 
       if (error) throw error
 
-      // Si le statut a changé, créer une entrée dans le journal
-      if (oldDossier?.statut !== updates.statut && updates.statut) {
-        await supabase.from('journal_dossier').insert({
-          tenant_id: tenant.id,
-          dossier_id: id,
-          type: 'changement_statut',
-          titre: 'Statut modifié',
-          ancien_statut: oldDossier?.statut,
-          nouveau_statut: updates.statut,
-          auteur: 'artisan',
-        })
-      }
+      // Note: L'entrée de journal est créée automatiquement par le trigger Supabase lors du changement de statut
 
       return data
     },

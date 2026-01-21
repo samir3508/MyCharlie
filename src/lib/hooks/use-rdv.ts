@@ -252,15 +252,7 @@ export function useCreateRdv() {
           .update({ statut: 'rdv_planifie' })
           .eq('id', rdv.dossier_id)
 
-        // Journal
-        await supabase.from('journal_dossier').insert({
-          tenant_id: tenant.id,
-          dossier_id: rdv.dossier_id,
-          type: 'rdv_cree',
-          titre: 'RDV planifié',
-          contenu: `RDV ${rdv.type_rdv} prévu le ${new Date(rdv.date_heure).toLocaleDateString('fr-FR')}`,
-          auteur: 'artisan',
-        })
+        // Note: L'entrée de journal est créée automatiquement par le trigger Supabase
       }
 
       return data

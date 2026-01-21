@@ -602,7 +602,7 @@ export type Database = {
           titre: string
           description?: string | null
           adresse_chantier?: string | null
-          statut?: 'contact_recu' | 'qualification' | 'rdv_a_planifier' | 'rdv_planifie' | 'rdv_confirme' | 'visite_realisee' | 'devis_en_cours' | 'devis_pret' | 'devis_envoye' | 'en_negociation' | 'signe' | 'perdu' | 'annule' | null
+          statut?: 'contact_recu' | 'qualification' | 'rdv_a_planifier' | 'rdv_planifie' | 'rdv_confirme' | 'visite_realisee' | 'devis_en_cours' | 'devis_pret' | 'devis_envoye' | 'en_negociation' | 'signe' | 'perdu' | 'annule' | 'facture_a_creer' | 'facture_envoyee' | 'facture_en_retard' | 'facture_payee' | null
           source?: 'whatsapp' | 'instagram' | 'appel' | 'email' | 'site_web' | 'bouche_a_oreille' | 'autre' | null
           type_travaux?: string | null
           montant_estime?: number | null
@@ -627,7 +627,7 @@ export type Database = {
           titre?: string
           description?: string | null
           adresse_chantier?: string | null
-          statut?: 'contact_recu' | 'qualification' | 'rdv_a_planifier' | 'rdv_planifie' | 'rdv_confirme' | 'visite_realisee' | 'devis_en_cours' | 'devis_pret' | 'devis_envoye' | 'en_negociation' | 'signe' | 'perdu' | 'annule' | null
+          statut?: 'contact_recu' | 'qualification' | 'rdv_a_planifier' | 'rdv_planifie' | 'rdv_confirme' | 'visite_realisee' | 'devis_en_cours' | 'devis_pret' | 'devis_envoye' | 'en_negociation' | 'signe' | 'perdu' | 'annule' | 'facture_a_creer' | 'facture_envoyee' | 'facture_en_retard' | 'facture_payee' | null
           source?: 'whatsapp' | 'instagram' | 'appel' | 'email' | 'site_web' | 'bouche_a_oreille' | 'autre' | null
           type_travaux?: string | null
           montant_estime?: number | null

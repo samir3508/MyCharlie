@@ -41,10 +41,15 @@ import {
   Receipt
 } from 'lucide-react'
 import { useDossier, useUpdateDossier } from '@/lib/hooks/use-dossiers'
+import { useUpdateDevisStatus } from '@/lib/hooks/use-devis'
+import { useCreateFactureFromDevis } from '@/lib/hooks/use-factures'
 import { STATUTS_DOSSIER, LABELS_STATUT_DOSSIER, PRIORITES, LABELS_PRIORITE } from '@/types/database'
 import { ProchaineAction } from '@/components/dossiers/prochaine-action'
+import { RelancesAlertes } from '@/components/dossiers/relances-alertes'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 
 const statutColors: Record<string, string> = {
   contact_recu: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
@@ -90,6 +95,9 @@ export default function DossierDetailPage() {
   
   const { data: dossier, isLoading } = useDossier(dossierId)
   const updateDossier = useUpdateDossier()
+  const updateDevisStatus = useUpdateDevisStatus()
+  const createFactureFromDevis = useCreateFactureFromDevis()
+  const queryClient = useQueryClient()
 
   const handleStatutChange = (newStatut: string) => {
     updateDossier.mutate({ id: dossierId, statut: newStatut as any })
@@ -97,6 +105,56 @@ export default function DossierDetailPage() {
 
   const handlePrioriteChange = (newPriorite: string) => {
     updateDossier.mutate({ id: dossierId, priorite: newPriorite as any })
+  }
+
+  const handleEnvoyerDevis = async () => {
+    const devisEnvoyable = (dossier.devis as any[])?.find((d: any) => 
+      d.statut === 'brouillon' || d.statut === 'en_preparation'
+    )
+    if (!devisEnvoyable) {
+      toast.error('Aucun devis à envoyer')
+      return
+    }
+    updateDevisStatus.mutate(
+      { devisId: devisEnvoyable.id, statut: 'envoye' },
+      {
+        onSuccess: () => {
+          toast.success('Devis envoyé')
+          queryClient.invalidateQueries({ queryKey: ['dossier', dossierId] })
+        }
+      }
+    )
+  }
+
+  const handleCreerFacture = async () => {
+    const devisSigne = (dossier.devis as any[])?.find((d: any) => 
+      d.statut === 'accepte' || d.statut === 'signe'
+    )
+    if (!devisSigne) {
+      toast.error('Aucun devis signé pour créer une facture')
+      return
+    }
+    createFactureFromDevis.mutate(devisSigne.id, {
+      onSuccess: (facture) => {
+        toast.success('Facture créée')
+        queryClient.invalidateQueries({ queryKey: ['dossier', dossierId] })
+        router.push(`/factures/${facture.id}`)
+      },
+      onError: (error: any) => {
+        toast.error(error?.message || 'Erreur lors de la création de la facture')
+      }
+    })
+  }
+
+  const handleCloturerDossier = () => {
+    updateDossier.mutate(
+      { id: dossierId, statut: 'facture_payee' },
+      {
+        onSuccess: () => {
+          toast.success('Dossier clôturé')
+        }
+      }
+    )
   }
 
   const formatDate = (dateStr: string) => {
@@ -182,6 +240,61 @@ export default function DossierDetailPage() {
         </div>
       </div>
 
+      {/* Actions Rapides */}
+      <Card className="border-border bg-gradient-to-br from-orange-500/5 to-orange-600/10">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/devis/nouveau?dossier_id=${dossierId}`}>
+                <Plus className="w-4 h-4 mr-2" />
+                Créer devis
+              </Link>
+            </Button>
+            
+            {(dossier.devis as any[])?.some((d: any) => 
+              d.statut === 'brouillon' || d.statut === 'en_preparation'
+            ) && (
+              <Button variant="outline" size="sm" onClick={handleEnvoyerDevis}>
+                <Send className="w-4 h-4 mr-2" />
+                Envoyer devis
+              </Button>
+            )}
+            
+            {(dossier.devis as any[])?.some((d: any) => 
+              d.statut === 'accepte' || d.statut === 'signe'
+            ) && (dossier.factures as any[])?.length === 0 && (
+              <Button variant="outline" size="sm" onClick={handleCreerFacture}>
+                <Euro className="w-4 h-4 mr-2" />
+                Créer facture
+              </Button>
+            )}
+            
+            {(dossier.factures as any[])?.some((f: any) => 
+              f.statut === 'envoyee' && (!f.date_echeance || new Date(f.date_echeance) < new Date())
+            ) && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/factures?dossier_id=${dossierId}`}>
+                  <Send className="w-4 h-4 mr-2" />
+                  Relancer paiement
+                </Link>
+              </Button>
+            )}
+            
+            {dossier.statut !== 'facture_payee' && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleCloturerDossier}
+                className="ml-auto"
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Clôturer dossier
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Main Content */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Left Column */}
@@ -236,6 +349,7 @@ export default function DossierDetailPage() {
               <TabsTrigger value="fiches">Fiches ({(dossier.fiches_visite as any[])?.length || 0})</TabsTrigger>
               <TabsTrigger value="devis">Devis ({(dossier.devis as any[])?.length || 0})</TabsTrigger>
               <TabsTrigger value="factures">Factures ({(dossier.factures as any[])?.length || 0})</TabsTrigger>
+              <TabsTrigger value="relances">Relances & Alertes</TabsTrigger>
               <TabsTrigger value="journal">Journal</TabsTrigger>
             </TabsList>
 
@@ -486,6 +600,10 @@ export default function DossierDetailPage() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="relances">
+              <RelancesAlertes dossier={dossier} />
             </TabsContent>
 
             <TabsContent value="journal">
