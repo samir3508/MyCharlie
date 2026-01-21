@@ -126,7 +126,7 @@ BEGIN
         v_metadata := jsonb_build_object(
           'fiche_id', NEW.id,
           'date_visite', NEW.date_visite,
-          'a_visite', COALESCE(NEW.a_visite, false)
+          'valide_par_artisan', COALESCE(NEW.valide_par_artisan, false)
         );
       END IF;
 
