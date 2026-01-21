@@ -528,15 +528,20 @@ export default function RdvPage() {
                       size="sm" 
                       variant="ghost" 
                       className="mt-2 w-full text-xs hover:bg-green-500/10 hover:text-green-400"
-                      onClick={() => handleMarkAsRealise(rdv.id)}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleMarkAsRealise(rdv.id)
+                      }}
                     >
                       <CheckCircle2 className="w-3 h-3 mr-1" />
                       Marquer comme réalisé
                     </Button>
                   )}
-                </motion.div>
-              ))
-            ) : (
+                  </motion.div>
+                </Link>
+                ))
+              ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p className="text-sm">Aucun RDV aujourd'hui</p>

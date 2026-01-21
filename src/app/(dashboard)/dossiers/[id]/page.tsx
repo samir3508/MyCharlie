@@ -325,20 +325,22 @@ export default function DossierDetailPage() {
                   {(dossier.rdv as any[])?.length > 0 ? (
                     <div className="space-y-3">
                       {(dossier.rdv as any[]).map((rdv: any) => (
-                        <div key={rdv.id} className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/50">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                              <Calendar className="w-5 h-5 text-purple-400" />
+                        <Link key={rdv.id} href={`/rdv/${rdv.id}`}>
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/50 hover:bg-card/80 transition-colors cursor-pointer">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                <Calendar className="w-5 h-5 text-purple-400" />
+                              </div>
+                              <div>
+                                <p className="font-medium">{rdv.titre}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatDate(rdv.date_heure)}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-medium">{rdv.titre}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {formatDate(rdv.date_heure)}
-                              </p>
-                            </div>
+                            <Badge variant="outline">{rdv.statut}</Badge>
                           </div>
-                          <Badge variant="outline">{rdv.statut}</Badge>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   ) : (
