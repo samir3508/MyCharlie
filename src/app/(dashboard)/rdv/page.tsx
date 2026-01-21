@@ -601,15 +601,223 @@ export default function RdvPage() {
                     </h3>
                     <div className="space-y-2">
                       {rdvs.map((rdv, index) => (
-                        <div
-                          key={rdv.id}
-                          className={cn(
-                            "flex items-center gap-4 p-3 rounded-lg border transition-colors group",
-                            (rdv as any).source === 'google_calendar'
-                              ? "bg-blue-50/50 border-blue-200/50 hover:border-blue-300"
-                              : "bg-card/50 border-border/50 hover:border-purple-500/30"
-                          )}
-                        >
+                        <Link key={rdv.id} href={`/rdv/${rdv.id}`}>
+                          <div
+                            className={cn(
+                              "flex items-center gap-4 p-3 rounded-lg border transition-colors group cursor-pointer",
+                              (rdv as any).source === 'google_calendar'
+                                ? "bg-blue-50/50 border-blue-200/50 hover:border-blue-300"
+                                : "bg-card/50 border-border/50 hover:border-purple-500/30"
+                            )}
+                          >
+                            <div className="flex-shrink-0 text-center">
+                              <p className="text-lg font-bold text-purple-400">
+                                {formatTime(rdv.date_heure)}
+                              </p>
+                              <p className="text-xs text-muted-foreground">{rdv.duree_minutes}min</p>
+                            </div>
+                            <div className="h-12 w-px bg-border" />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-purple-400">
+                                  {typeRdvIcons[rdv.type_rdv || 'autre']}
+                                </span>
+                                <p className="font-medium truncate">
+                                  {(() => {
+                                    // Afficher le titre du RDV ou du dossier, en nettoyant seulement les vrais doublons
+                                    const titre = rdv.titre || rdv.dossiers?.titre || '';
+                                    if (titre.includes(' - ')) {
+                                      const parts = titre.split(' - ');
+                                      if (parts.length === 2) {
+                                        const clientPart = parts[1].trim();
+                                        const nameParts = clientPart.split(/\s+/);
+                                        // Si c'est un doublon évident (ex: "adlbapp4 adlbapp4"), remplacer par le nom du client
+                                        if (nameParts.length === 2 && nameParts[0] === nameParts[1] && nameParts[0].length < 15) {
+                                          // Essayer d'utiliser le nom du client si disponible
+                                          const client = rdv.clients || (rdv.dossiers as any)?.clients;
+                                          if (client && client.prenom && client.nom && client.prenom !== client.nom) {
+                                            return `${parts[0]} - ${client.prenom} ${client.nom}`;
+                                          }
+                                          return `${parts[0]} - Client`;
+                                        }
+                                      }
+                                    }
+                                    return titre;
+                                  })()}
+                                </p>
+                                {(rdv as any).source === 'google_calendar' && (
+                                  <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">
+                                    Google Calendar
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                {(() => {
+                                  // Essayer d'abord le client direct, puis via le dossier
+                                  const client = rdv.clients || (rdv.dossiers as any)?.clients;
+                                  // Debug: log les données client pour comprendre
+                                  if (process.env.NODE_ENV === 'development' && client) {
+                                    console.log('[RDV Client Debug]', {
+                                      rdvId: rdv.id,
+                                      hasDirectClient: !!rdv.clients,
+                                      hasDossierClient: !!(rdv.dossiers as any)?.clients,
+                                      client: {
+                                        id: client.id,
+                                        nom: client.nom,
+                                        prenom: client.prenom,
+                                        nom_complet: client.nom_complet,
+                                        isDoublon: client.nom === client.prenom
+                                      }
+                                    });
+                                  }
+                                  if (client) {
+                                    let displayName = 'Client';
+                                    
+                                    // Priorité 1: Utiliser nom et prenom si disponibles ET différents (vrais noms)
+                                    if (client.prenom && client.nom && client.prenom !== client.nom) {
+                                      displayName = `${client.prenom} ${client.nom}`;
+                                    } 
+                                    // Priorité 2: Si nom === prenom (doublon), essayer nom_complet si valide
+                                    else if (client.prenom && client.nom && client.prenom === client.nom) {
+                                      // C'est un doublon, vérifier si nom_complet est valide
+                                      if (client.nom_complet) {
+                                        const parts = client.nom_complet.trim().split(/\s+/);
+                                        if (!client.nom_complet.includes('@') && 
+                                            parts.length >= 2 && parts[0] !== parts[1]) {
+                                          // nom_complet valide avec deux mots différents
+                                          displayName = client.nom_complet;
+                                        } else {
+                                          displayName = 'Client';
+                                        }
+                                      } else {
+                                        displayName = 'Client';
+                                      }
+                                    }
+                                    // Priorité 3: Si pas de nom/prenom, utiliser nom_complet (mais vérifier les doublons)
+                                    else if (client.nom_complet) {
+                                      const parts = client.nom_complet.trim().split(/\s+/);
+                                      if (client.nom_complet.includes('@') || 
+                                          (parts.length === 2 && parts[0] === parts[1])) {
+                                        // C'est probablement un email ou un doublon
+                                        displayName = 'Client';
+                                      } else if (parts.length >= 2 && parts[0] !== parts[1]) {
+                                        // Si nom_complet contient plusieurs mots différents, utiliser comme prénom nom
+                                        displayName = client.nom_complet;
+                                      } else if (parts.length === 1) {
+                                        displayName = parts[0];
+                                      } else {
+                                        displayName = client.nom_complet;
+                                      }
+                                    }
+                                    
+                                    return (
+                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        <div className="flex items-center gap-1">
+                                          <User className="w-3 h-3" />
+                                          <span>{displayName}</span>
+                                        </div>
+                                        {rdv.dossiers?.numero && (
+                                          <div className="flex items-center gap-1">
+                                            <span className="text-muted-foreground/60">•</span>
+                                            <span className="font-medium text-purple-400">{rdv.dossiers.numero}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })()}
+                                {rdv.adresse && (
+                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    <MapPin className="w-3 h-3" />
+                                    <span className="truncate max-w-[150px]">{rdv.adresse}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <Badge variant="outline" className={statutColors[rdv.statut || 'planifie']}>
+                              {rdv.statut?.replace(/_/g, ' ')}
+                            </Badge>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p>Aucun RDV prévu dans les 7 prochains jours</p>
+                <Button 
+                  className="mt-4"
+                  onClick={() => setShowCreateForm(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Planifier un RDV
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        </TabsContent>
+
+          <TabsContent value="month" className="mt-0">
+        <Card className="border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <CalendarIcon className="w-4 h-4 text-purple-500" />
+              </div>
+              Vue mensuelle - {currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i}>
+                    <Skeleton className="h-6 w-40 mb-2" />
+                    <Skeleton className="h-16" />
+                  </div>
+                ))}
+              </div>
+            ) : monthError ? (
+              <div className="text-center py-12 text-red-400">
+                <AlertCircle className="w-16 h-16 mx-auto mb-4" />
+                <p>Erreur lors du chargement des RDV</p>
+                <p className="text-sm text-muted-foreground mt-1">{monthError.message}</p>
+              </div>
+            ) : monthRdv && monthRdv.length > 0 ? (
+              <div className="space-y-6">
+                {Object.entries(
+                  monthRdv.reduce((acc: Record<string, typeof monthRdv>, rdv) => {
+                    const date = new Date(rdv.date_heure).toDateString()
+                    if (!acc[date]) acc[date] = []
+                    acc[date].push(rdv)
+                    return acc
+                  }, {} as Record<string, typeof monthRdv>)
+                ).map(([date, rdvs], dayIndex) => (
+                  <motion.div
+                    key={date}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: dayIndex * 0.05 }}
+                  >
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3 capitalize">
+                      {formatDate(rdvs[0].date_heure)}
+                    </h3>
+                    <div className="space-y-2">
+                      {rdvs.map((rdv, index) => (
+                        <Link key={rdv.id} href={`/rdv/${rdv.id}`}>
+                          <div
+                            className={cn(
+                              "flex items-center gap-4 p-3 rounded-lg border transition-colors group cursor-pointer",
+                              (rdv as any).source === 'google_calendar'
+                                ? "bg-blue-50/50 border-blue-200/50 hover:border-blue-300"
+                                : "bg-card/50 border-border/50 hover:border-purple-500/30"
+                            )}
+                          >
                           <div className="flex-shrink-0 text-center">
                             <p className="text-lg font-bold text-purple-400">
                               {formatTime(rdv.date_heure)}
@@ -740,213 +948,6 @@ export default function RdvPage() {
                           </Badge>
                         </div>
                         </Link>
-                      ))}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p>Aucun RDV prévu dans les 7 prochains jours</p>
-                <Button 
-                  className="mt-4"
-                  onClick={() => setShowCreateForm(true)}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Planifier un RDV
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        </TabsContent>
-
-          <TabsContent value="month" className="mt-0">
-        <Card className="border-border">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                <CalendarIcon className="w-4 h-4 text-purple-500" />
-              </div>
-              Vue mensuelle - {currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i}>
-                    <Skeleton className="h-6 w-40 mb-2" />
-                    <Skeleton className="h-16" />
-                  </div>
-                ))}
-              </div>
-            ) : monthError ? (
-              <div className="text-center py-12 text-red-400">
-                <AlertCircle className="w-16 h-16 mx-auto mb-4" />
-                <p>Erreur lors du chargement des RDV</p>
-                <p className="text-sm text-muted-foreground mt-1">{monthError.message}</p>
-              </div>
-            ) : monthRdv && monthRdv.length > 0 ? (
-              <div className="space-y-6">
-                {Object.entries(
-                  monthRdv.reduce((acc: Record<string, typeof monthRdv>, rdv) => {
-                    const date = new Date(rdv.date_heure).toDateString()
-                    if (!acc[date]) acc[date] = []
-                    acc[date].push(rdv)
-                    return acc
-                  }, {} as Record<string, typeof monthRdv>)
-                ).map(([date, rdvs], dayIndex) => (
-                  <motion.div
-                    key={date}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: dayIndex * 0.05 }}
-                  >
-                    <h3 className="text-sm font-medium text-muted-foreground mb-3 capitalize">
-                      {formatDate(rdvs[0].date_heure)}
-                    </h3>
-                    <div className="space-y-2">
-                      {rdvs.map((rdv, index) => (
-                        <div
-                          key={rdv.id}
-                          className={cn(
-                            "flex items-center gap-4 p-3 rounded-lg border transition-colors group",
-                            (rdv as any).source === 'google_calendar'
-                              ? "bg-blue-50/50 border-blue-200/50 hover:border-blue-300"
-                              : "bg-card/50 border-border/50 hover:border-purple-500/30"
-                          )}
-                        >
-                          <div className="flex-shrink-0 text-center">
-                            <p className="text-lg font-bold text-purple-400">
-                              {formatTime(rdv.date_heure)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{rdv.duree_minutes}min</p>
-                          </div>
-                          <div className="h-12 w-px bg-border" />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-purple-400">
-                                {typeRdvIcons[rdv.type_rdv || 'autre']}
-                              </span>
-                              <p className="font-medium truncate">
-                                {(() => {
-                                  // Afficher le titre du RDV ou du dossier, en nettoyant seulement les vrais doublons
-                                  const titre = rdv.titre || rdv.dossiers?.titre || '';
-                                  if (titre.includes(' - ')) {
-                                    const parts = titre.split(' - ');
-                                    if (parts.length === 2) {
-                                      const clientPart = parts[1].trim();
-                                      const nameParts = clientPart.split(/\s+/);
-                                      // Si c'est un doublon évident (ex: "adlbapp4 adlbapp4"), remplacer par le nom du client
-                                      if (nameParts.length === 2 && nameParts[0] === nameParts[1] && nameParts[0].length < 15) {
-                                        // Essayer d'utiliser le nom du client si disponible
-                                        const client = rdv.clients || (rdv.dossiers as any)?.clients;
-                                        if (client && client.prenom && client.nom && client.prenom !== client.nom) {
-                                          return `${parts[0]} - ${client.prenom} ${client.nom}`;
-                                        }
-                                        return `${parts[0]} - Client`;
-                                      }
-                                    }
-                                  }
-                                  return titre;
-                                })()}
-                              </p>
-                              {(rdv as any).source === 'google_calendar' && (
-                                <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">
-                                  Google Calendar
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              {(() => {
-                                // Essayer d'abord le client direct, puis via le dossier
-                                const client = rdv.clients || (rdv.dossiers as any)?.clients;
-                                // Debug: log les données client pour comprendre
-                                if (process.env.NODE_ENV === 'development' && client) {
-                                  console.log('[RDV Client Debug]', {
-                                    rdvId: rdv.id,
-                                    hasDirectClient: !!rdv.clients,
-                                    hasDossierClient: !!(rdv.dossiers as any)?.clients,
-                                    client: {
-                                      id: client.id,
-                                      nom: client.nom,
-                                      prenom: client.prenom,
-                                      nom_complet: client.nom_complet,
-                                      isDoublon: client.nom === client.prenom
-                                    }
-                                  });
-                                }
-                                if (client) {
-                                  let displayName = 'Client';
-                                  
-                                  // Priorité 1: Utiliser nom et prenom si disponibles ET différents (vrais noms)
-                                  if (client.prenom && client.nom && client.prenom !== client.nom) {
-                                    displayName = `${client.prenom} ${client.nom}`;
-                                  } 
-                                  // Priorité 2: Si nom === prenom (doublon), essayer nom_complet si valide
-                                  else if (client.prenom && client.nom && client.prenom === client.nom) {
-                                    // C'est un doublon, vérifier si nom_complet est valide
-                                    if (client.nom_complet) {
-                                      const parts = client.nom_complet.trim().split(/\s+/);
-                                      if (!client.nom_complet.includes('@') && 
-                                          parts.length >= 2 && parts[0] !== parts[1]) {
-                                        // nom_complet valide avec deux mots différents
-                                        displayName = client.nom_complet;
-                                      } else {
-                                        displayName = 'Client';
-                                      }
-                                    } else {
-                                      displayName = 'Client';
-                                    }
-                                  }
-                                  // Priorité 3: Si pas de nom/prenom, utiliser nom_complet (mais vérifier les doublons)
-                                  else if (client.nom_complet) {
-                                    const parts = client.nom_complet.trim().split(/\s+/);
-                                    if (client.nom_complet.includes('@') || 
-                                        (parts.length === 2 && parts[0] === parts[1])) {
-                                      // C'est probablement un email ou un doublon
-                                      displayName = 'Client';
-                                    } else if (parts.length >= 2 && parts[0] !== parts[1]) {
-                                      // Si nom_complet contient plusieurs mots différents, utiliser comme prénom nom
-                                      displayName = client.nom_complet;
-                                    } else if (parts.length === 1) {
-                                      displayName = parts[0];
-                                    } else {
-                                      displayName = client.nom_complet;
-                                    }
-                                  }
-                                  
-                                  return (
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                      <div className="flex items-center gap-1">
-                                        <User className="w-3 h-3" />
-                                        <span>{displayName}</span>
-                                      </div>
-                                      {rdv.dossiers?.numero && (
-                                        <div className="flex items-center gap-1">
-                                          <span className="text-muted-foreground/60">•</span>
-                                          <span className="font-medium text-purple-400">{rdv.dossiers.numero}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                }
-                                return null;
-                              })()}
-                              {rdv.adresse && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <MapPin className="w-3 h-3" />
-                                  <span className="truncate max-w-[150px]">{rdv.adresse}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <Badge variant="outline" className={statutColors[rdv.statut || 'planifie']}>
-                            {rdv.statut?.replace(/_/g, ' ')}
-                          </Badge>
-                        </div>
                       ))}
                     </div>
                   </motion.div>
