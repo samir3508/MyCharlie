@@ -16,19 +16,17 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import Link from 'next/link'
-import type { DossierWithClient } from '@/lib/hooks/use-dossiers'
-
 interface ProchaineActionProps {
-  dossier: DossierWithClient
+  dossier: any
 }
 
-export function ProchaineAction({ dossier, devis: devisProp, factures: facturesProp, rdv: rdvProp }: ProchaineActionProps) {
+export function ProchaineAction({ dossier }: ProchaineActionProps) {
   // Calcul de la prochaine action basé sur le statut et les données du dossier
   const calculerProchaineAction = () => {
     const statut = dossier.statut
-    const rdv = rdvProp || (dossier.rdv as any[]) || []
-    const devis = devisProp || (dossier.devis as any[]) || []
-    const factures = facturesProp || (dossier.factures as any[]) || []
+    const rdv = (dossier.rdv as any[]) || []
+    const devis = (dossier.devis as any[]) || []
+    const factures = (dossier.factures as any[]) || []
     
     // Vérifier les factures en retard
     const facturesEnRetard = factures.filter((f: any) => {

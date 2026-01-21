@@ -187,12 +187,7 @@ export default function DossierDetailPage() {
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           {/* Prochaine Action - Bloc crucial */}
-          <ProchaineAction 
-            dossier={dossier}
-            devis={(dossier.devis as any[]) || []}
-            factures={(dossier.factures as any[]) || []}
-            rdv={(dossier.rdv as any[]) || []}
-          />
+          <ProchaineAction dossier={dossier} />
 
           {/* Status & Priority Cards */}
           <div className="grid sm:grid-cols-2 gap-4">
