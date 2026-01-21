@@ -5,8 +5,8 @@
 CREATE OR REPLACE FUNCTION create_journal_entry()
 RETURNS TRIGGER AS $$
 DECLARE
-  v_tenant_id TEXT;
-  v_dossier_id TEXT;
+  v_tenant_id UUID;
+  v_dossier_id UUID;
   v_type TEXT;
   v_titre TEXT;
   v_contenu TEXT;
