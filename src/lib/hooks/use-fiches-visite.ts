@@ -43,9 +43,17 @@ export function useFicheVisite(id: string) {
   const supabase = getSupabaseClient()
 
   return useQuery({
-    queryKey: ['fiche-visite', id],
+    queryKey: ['fiche-visite', id, tenant?.id],
     queryFn: async () => {
-      if (!tenant?.id || !id) return null
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/7bbffab8-4f6e-4eb2-bd56-111314e8f2b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-fiches-visite.ts:47',message:'Query function entry',data:{id,hasTenant:!!tenant?.id,tenantId:tenant?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
+      if (!tenant?.id || !id) {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/7bbffab8-4f6e-4eb2-bd56-111314e8f2b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-fiches-visite.ts:49',message:'Missing tenant or id',data:{id,hasTenant:!!tenant?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
+        return null
+      }
       
       const { data, error } = await supabase
         .from('fiches_visite')
@@ -55,9 +63,23 @@ export function useFicheVisite(id: string) {
           rdv (*)
         `)
         .eq('id', id)
+        .eq('tenant_id', tenant.id)
         .single()
 
-      if (error) throw error
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/7bbffab8-4f6e-4eb2-bd56-111314e8f2b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-fiches-visite.ts:61',message:'Query result',data:{id,hasData:!!data,hasError:!!error,errorCode:error?.code,errorMessage:error?.message},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
+
+      if (error) {
+        // Si l'erreur est "PGRST116" (not found), retourner null au lieu de throw
+        if (error.code === 'PGRST116') {
+          // #region agent log
+          fetch('http://127.0.0.1:7243/ingest/7bbffab8-4f6e-4eb2-bd56-111314e8f2b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-fiches-visite.ts:65',message:'Fiche not found (PGRST116)',data:{id,tenantId:tenant.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+          // #endregion
+          return null
+        }
+        throw error
+      }
       return data
     },
     enabled: !!tenant?.id && !!id,

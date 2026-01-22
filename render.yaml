@@ -22,4 +22,4 @@ services:
       - key: SUPPORT_EMAIL
         value: support@example.com  # Remplacez par votre email
     healthCheckPath: /
-    autoDeploy: false  # Changez à true pour auto-deploy depuis Git
+    autoDeploy: true  # Auto-deploy depuis Git activé
