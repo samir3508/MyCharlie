@@ -62,6 +62,9 @@ import { toast } from 'sonner'
 
 type FilterType = 'tous' | 'aujourdhui' | 'semaine' | 'sans_devis' | 'avec_vocal' | 'urgent'
 
+type TypeVisite = 'premiere_visite' | 'contre_visite' | 'reception'
+type Urgence = 'basse' | 'normale' | 'haute' | 'critique'
+
 const FILTERS: { key: FilterType; label: string; icon: React.ReactNode }[] = [
   { key: 'tous', label: 'Tous', icon: <ClipboardList className="w-4 h-4" /> },
   { key: 'aujourdhui', label: "Aujourd'hui", icon: <Clock className="w-4 h-4" /> },
@@ -89,7 +92,13 @@ export default function FichesVisitePage() {
   const { data: devis } = useDevis(tenant?.id)
   const createFiche = useCreateFicheVisite()
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    dossier_id: string
+    date_visite: string
+    type_visite: TypeVisite
+    urgence: Urgence
+    constat: string
+  }>({
     dossier_id: '',
     date_visite: new Date().toISOString().split('T')[0],
     type_visite: 'premiere_visite',
@@ -564,7 +573,7 @@ export default function FichesVisitePage() {
                 <Label>Type de visite</Label>
                 <Select 
                   value={formData.type_visite} 
-                  onValueChange={(value) => setFormData({ ...formData, type_visite: value })}
+                  onValueChange={(value) => setFormData({ ...formData, type_visite: value as TypeVisite })}
                 >
                   <SelectTrigger className="bg-background border-border">
                     <SelectValue />
@@ -582,7 +591,7 @@ export default function FichesVisitePage() {
               <Label>Urgence</Label>
               <Select 
                 value={formData.urgence} 
-                onValueChange={(value) => setFormData({ ...formData, urgence: value })}
+                onValueChange={(value) => setFormData({ ...formData, urgence: value as Urgence })}
               >
                 <SelectTrigger className="bg-background border-border">
                   <SelectValue />
