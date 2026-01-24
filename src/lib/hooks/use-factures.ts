@@ -159,7 +159,7 @@ export function useUpdateFactureStatus() {
         .from('factures')
         .update(updates)
         .eq('id', factureId)
-        .select('*, devis_id')
+        .select('*, devis_id, dossier_id')
         .single()
 
       if (error) throw error
@@ -186,11 +186,47 @@ export function useUpdateFactureStatus() {
         }
       }
 
+      // ═══════════════════════════════════════════════════════════════════════
+      // 🔄 MISE À JOUR AUTOMATIQUE DU STATUT DU DOSSIER selon le statut de la facture
+      // ═══════════════════════════════════════════════════════════════════════
+      if (facture.dossier_id) {
+        let newDossierStatut: string | null = null
+
+        if (statut === 'payee') {
+          // Vérifier si c'est la dernière facture du dossier
+          const { data: allFacturesDossier } = await supabase
+            .from('factures')
+            .select('statut')
+            .eq('dossier_id', facture.dossier_id)
+
+          const allPaidDossier = allFacturesDossier?.every((f: any) => f.statut === 'payee') || false
+
+          if (allPaidDossier) {
+            newDossierStatut = 'facture_payee'
+          }
+        } else if (statut === 'envoyee') {
+          newDossierStatut = 'facture_envoyee'
+        } else if (statut === 'en_retard') {
+          newDossierStatut = 'facture_en_retard'
+        }
+
+        if (newDossierStatut) {
+          await supabase
+            .from('dossiers')
+            .update({ 
+              statut: newDossierStatut,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', facture.dossier_id)
+        }
+      }
+
       return facture
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['factures'] })
       queryClient.invalidateQueries({ queryKey: ['facture', data.id] })
+      queryClient.invalidateQueries({ queryKey: ['dossiers'] })
       // Invalider aussi les queries du devis si la facture est liée à un devis
       if (data.devis_id) {
         queryClient.invalidateQueries({ queryKey: ['devis', data.devis_id] })

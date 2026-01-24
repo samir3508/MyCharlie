@@ -95,18 +95,37 @@ export function useCreateFicheVisite() {
     mutationFn: async (fiche: Omit<InsertTables<'fiches_visite'>, 'tenant_id'>) => {
       if (!tenant?.id) throw new Error('Tenant non trouvé')
 
+      // Calculer la date limite pour créer le devis (J+3 par défaut)
+      const devisAvant = fiche.devis_a_faire_avant || (() => {
+        const date = new Date()
+        date.setDate(date.getDate() + 3)
+        return date.toISOString().split('T')[0]
+      })()
+
       const { data, error } = await supabase
         .from('fiches_visite')
         .insert({
           ...fiche,
           tenant_id: tenant.id,
+          devis_a_faire_avant: devisAvant,
         })
         .select()
         .single()
 
       if (error) throw error
 
-      // Note: L'entrée de journal est créée automatiquement par le trigger Supabase
+      // ═══════════════════════════════════════════════════════════════════════
+      // 🔄 MISE À JOUR AUTOMATIQUE DU STATUT DU DOSSIER → visite_realisee
+      // ═══════════════════════════════════════════════════════════════════════
+      if (fiche.dossier_id) {
+        await supabase
+          .from('dossiers')
+          .update({ 
+            statut: 'visite_realisee',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', fiche.dossier_id)
+      }
 
       return data
     },

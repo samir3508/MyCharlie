@@ -251,11 +251,26 @@ export function useCreateDevis() {
         })
         .eq('id', newDevis.id)
 
+      // ═══════════════════════════════════════════════════════════════════════
+      // 🔄 MISE À JOUR AUTOMATIQUE DU STATUT DU DOSSIER → devis_en_cours
+      // ═══════════════════════════════════════════════════════════════════════
+      if (newDevis.dossier_id) {
+        await supabase
+          .from('dossiers')
+          .update({ 
+            statut: 'devis_en_cours',
+            devis_cree: true,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', newDevis.dossier_id)
+      }
+
       return newDevis
     },
     onSuccess: (data) => {
       console.log('🔄 Invalidation des queries pour le devis:', data.id)
       queryClient.invalidateQueries({ queryKey: ['devis'] })
+      queryClient.invalidateQueries({ queryKey: ['dossiers'] })
       // Précharger le devis créé dans le cache
       queryClient.setQueryData(['devis', data.id], data)
     },
@@ -383,15 +398,45 @@ export function useUpdateDevisStatus() {
         .from('devis')
         .update(updates)
         .eq('id', devisId)
-        .select()
+        .select('*, dossier_id')
         .single()
 
       if (error) throw error
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // 🔄 MISE À JOUR AUTOMATIQUE DU STATUT DU DOSSIER selon le statut du devis
+      // ═══════════════════════════════════════════════════════════════════════
+      if (data.dossier_id) {
+        let newDossierStatut: string | null = null
+        let additionalUpdates: Record<string, any> = {}
+
+        if (statut === 'envoye') {
+          newDossierStatut = 'devis_envoye'
+          additionalUpdates = { devis_envoye: true }
+        } else if (statut === 'accepte') {
+          newDossierStatut = 'signe'
+        } else if (statut === 'refuse') {
+          newDossierStatut = 'perdu'
+        }
+
+        if (newDossierStatut) {
+          await supabase
+            .from('dossiers')
+            .update({ 
+              statut: newDossierStatut,
+              ...additionalUpdates,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', data.dossier_id)
+        }
+      }
+
       return data
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['devis'] })
       queryClient.invalidateQueries({ queryKey: ['devis', data.id] })
+      queryClient.invalidateQueries({ queryKey: ['dossiers'] })
     },
   })
 }

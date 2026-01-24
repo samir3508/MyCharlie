@@ -734,6 +734,24 @@ export type Database = {
           notes: string | null
           created_at: string | null
           updated_at: string | null
+          // Nouveaux champs UX
+          type_visite: 'premiere_visite' | 'contre_visite' | 'reception' | null
+          urgence: 'basse' | 'normale' | 'haute' | 'critique' | null
+          presence_client: boolean | null
+          contraintes_techniques: string | null
+          contraintes_client: string | null
+          preconisations: string | null
+          complexite: 'simple' | 'moyenne' | 'complexe' | null
+          devis_a_faire_avant: string | null
+          priorite: 'basse' | 'normale' | 'haute' | null
+          hauteur_plafond: number | null
+          longueur: number | null
+          largeur: number | null
+          autres_mesures: string | null
+          budget_estime: string | null
+          delai_souhaite: string | null
+          sous_traitance_requise: boolean | null
+          evacuation_dechets: string | null
         }
         Insert: {
           id?: string
@@ -761,6 +779,24 @@ export type Database = {
           notes?: string | null
           created_at?: string | null
           updated_at?: string | null
+          // Nouveaux champs UX
+          type_visite?: 'premiere_visite' | 'contre_visite' | 'reception' | null
+          urgence?: 'basse' | 'normale' | 'haute' | 'critique' | null
+          presence_client?: boolean | null
+          contraintes_techniques?: string | null
+          contraintes_client?: string | null
+          preconisations?: string | null
+          complexite?: 'simple' | 'moyenne' | 'complexe' | null
+          devis_a_faire_avant?: string | null
+          priorite?: 'basse' | 'normale' | 'haute' | null
+          hauteur_plafond?: number | null
+          longueur?: number | null
+          largeur?: number | null
+          autres_mesures?: string | null
+          budget_estime?: string | null
+          delai_souhaite?: string | null
+          sous_traitance_requise?: boolean | null
+          evacuation_dechets?: string | null
         }
         Update: {
           id?: string
@@ -788,6 +824,24 @@ export type Database = {
           notes?: string | null
           created_at?: string | null
           updated_at?: string | null
+          // Nouveaux champs UX
+          type_visite?: 'premiere_visite' | 'contre_visite' | 'reception' | null
+          urgence?: 'basse' | 'normale' | 'haute' | 'critique' | null
+          presence_client?: boolean | null
+          contraintes_techniques?: string | null
+          contraintes_client?: string | null
+          preconisations?: string | null
+          complexite?: 'simple' | 'moyenne' | 'complexe' | null
+          devis_a_faire_avant?: string | null
+          priorite?: 'basse' | 'normale' | 'haute' | null
+          hauteur_plafond?: number | null
+          longueur?: number | null
+          largeur?: number | null
+          autres_mesures?: string | null
+          budget_estime?: string | null
+          delai_souhaite?: string | null
+          sous_traitance_requise?: boolean | null
+          evacuation_dechets?: string | null
         }
       }
       journal_dossier: {
