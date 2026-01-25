@@ -300,6 +300,25 @@ export async function GET(request: NextRequest) {
             titre: existingDossier.titre,
             statut: existingDossier.statut
           });
+          
+          // ═══════════════════════════════════════════════════════════════════════
+          // 🔄 MISE À JOUR AUTOMATIQUE DU STATUT DU DOSSIER → rdv_confirme
+          // ═══════════════════════════════════════════════════════════════════════
+          if (existingDossier.statut !== 'rdv_confirme') {
+            const { error: updateError } = await supabase
+              .from('dossiers')
+              .update({ 
+                statut: 'rdv_confirme',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', existingDossier.id);
+            
+            if (updateError) {
+              console.warn('⚠️ Erreur lors de la mise à jour du statut du dossier:', updateError);
+            } else {
+              console.log('✅ Statut du dossier mis à jour à "rdv_confirme"');
+            }
+          }
         } else {
           console.log('📝 Aucun dossier existant, création d\'un nouveau dossier...');
           
