@@ -823,11 +823,27 @@ try {
       
       const clientCheck = await supabaseRequest.call(this, 'clients', 'GET', {
         filters: { id: client_id },
-        select: 'id,nom,prenom'
+        select: 'id,nom,prenom,nom_complet'
       });
       
       if (!clientCheck.success || clientCheck.count === 0) {
-        result = { success: false, error: 'CLIENT_NOT_FOUND', message: 'Client non trouvé' };
+        // Récupérer quelques clients pour aider au debug
+        const clientsList = await supabaseRequest.call(this, 'clients', 'GET', {
+          select: 'id,nom_complet,email',
+          limit: 5
+        });
+        
+        const clientsInfo = clientsList.success && clientsList.data 
+          ? clientsList.data.map(c => `- ${c.nom_complet || 'Sans nom'} (${c.id.substring(0, 8)}...)`).join('\n')
+          : 'Aucun client trouvé';
+        
+        result = { 
+          success: false, 
+          error: 'CLIENT_NOT_FOUND', 
+          message: `Client non trouvé avec l'ID: ${client_id.substring(0, 8)}...`,
+          hint: `Clients disponibles pour ce tenant:\n${clientsInfo}`,
+          provided_client_id: client_id
+        };
         break;
       }
       
