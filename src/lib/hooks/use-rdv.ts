@@ -245,14 +245,31 @@ export function useCreateRdv() {
 
       if (error) throw error
 
-      // Mettre à jour le statut du dossier
+      // ═══════════════════════════════════════════════════════════════════════
+      // 🔄 MISE À JOUR AUTOMATIQUE DU STATUT DU DOSSIER selon le statut du RDV
+      // ═══════════════════════════════════════════════════════════════════════
       if (rdv.dossier_id) {
-        await supabase
-          .from('dossiers')
-          .update({ statut: 'rdv_planifie' })
-          .eq('id', rdv.dossier_id)
+        let newDossierStatut: string | null = null
 
-        // Note: L'entrée de journal est créée automatiquement par le trigger Supabase
+        // Si le RDV est créé directement avec statut 'confirme' (client a accepté)
+        if (rdv.statut === 'confirme') {
+          newDossierStatut = 'rdv_confirme'
+        } else {
+          // Sinon, par défaut → rdv_planifie
+          newDossierStatut = 'rdv_planifie'
+        }
+
+        if (newDossierStatut) {
+          await supabase
+            .from('dossiers')
+            .update({ 
+              statut: newDossierStatut,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', rdv.dossier_id)
+
+          // Note: L'entrée de journal est créée automatiquement par le trigger Supabase
+        }
       }
 
       return data
@@ -284,12 +301,32 @@ export function useUpdateRdv() {
 
       if (error) throw error
 
-      // Si le RDV est marqué comme réalisé, mettre à jour le dossier
-      if (updates.statut === 'realise' && data.dossier_id) {
-        await supabase
-          .from('dossiers')
-          .update({ statut: 'visite_realisee' })
-          .eq('id', data.dossier_id)
+      // ═══════════════════════════════════════════════════════════════════════
+      // 🔄 MISE À JOUR AUTOMATIQUE DU STATUT DU DOSSIER selon le statut du RDV
+      // ═══════════════════════════════════════════════════════════════════════
+      if (data.dossier_id) {
+        let newDossierStatut: string | null = null
+
+        if (updates.statut === 'confirme') {
+          // RDV confirmé par le client → dossier passe à rdv_confirme
+          newDossierStatut = 'rdv_confirme'
+        } else if (updates.statut === 'realise') {
+          // RDV réalisé → dossier passe à visite_realisee
+          newDossierStatut = 'visite_realisee'
+        } else if (updates.statut === 'planifie') {
+          // RDV planifié → dossier passe à rdv_planifie
+          newDossierStatut = 'rdv_planifie'
+        }
+
+        if (newDossierStatut) {
+          await supabase
+            .from('dossiers')
+            .update({ 
+              statut: newDossierStatut,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', data.dossier_id)
+        }
       }
 
       return data
