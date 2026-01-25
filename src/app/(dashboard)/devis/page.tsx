@@ -161,7 +161,7 @@ export default function DevisPage() {
       total: list.length,
       brouillon: list.filter((d) => d.statut === 'brouillon').length,
       envoye: list.filter((d) => d.statut === 'envoye').length,
-      accepte: list.filter((d) => d.statut === 'accepte' || d.statut === 'paye').length,
+      accepte: list.filter((d) => d.statut === 'accepte').length,
       totalAmount: list.reduce((sum, d) => sum + (d.montant_ttc || 0), 0),
     }
   }, [devis])
