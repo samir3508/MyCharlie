@@ -577,7 +577,7 @@ export type Database = {
           titre: string
           description: string | null
           adresse_chantier: string | null
-          statut: 'contact_recu' | 'qualification' | 'rdv_a_planifier' | 'rdv_planifie' | 'rdv_confirme' | 'visite_realisee' | 'devis_en_cours' | 'devis_pret' | 'devis_envoye' | 'en_negociation' | 'signe' | 'perdu' | 'annule' | 'facture_a_creer' | 'facture_envoyee' | 'facture_en_retard' | 'facture_payee' | null
+          statut: 'contact_recu' | 'qualification' | 'rdv_a_planifier' | 'rdv_planifie' | 'rdv_confirme' | 'visite_realisee' | 'devis_en_cours' | 'devis_pret' | 'devis_envoye' | 'en_negociation' | 'signe' | 'chantier_en_cours' | 'chantier_termine' | 'perdu' | 'annule' | 'facture_a_creer' | 'facture_envoyee' | 'facture_en_retard' | 'facture_payee' | null
           source: 'whatsapp' | 'instagram' | 'appel' | 'email' | 'site_web' | 'bouche_a_oreille' | 'autre' | null
           type_travaux: string | null
           montant_estime: number | null
@@ -1161,6 +1161,8 @@ export const STATUTS_DOSSIER = [
   'devis_envoye',
   'en_negociation',
   'signe',
+  'chantier_en_cours',
+  'chantier_termine',
   'perdu',
   'annule',
   'facture_a_creer',
@@ -1233,6 +1235,8 @@ export const LABELS_STATUT_DOSSIER: Record<string, string> = {
   rdv_confirme: '✅ RDV confirmé',
   visite_realisee: '🏠 Visite réalisée',
   devis_en_cours: '📝 Devis en préparation',
+  chantier_en_cours: '🔨 Chantier en cours',
+  chantier_termine: '✅ Chantier terminé',
   devis_pret: '📄 Devis prêt',
   devis_envoye: '📤 Devis envoyé',
   en_negociation: '💬 En négociation',

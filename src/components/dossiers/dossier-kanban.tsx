@@ -96,6 +96,14 @@ const columns: KanbanColumn[] = [
     statuts: ['signe'],
   },
   {
+    id: 'chantier',
+    title: 'Chantiers',
+    icon: <Home className="w-4 h-4" />,
+    color: 'text-indigo-400',
+    bgColor: 'bg-indigo-500/10 border-indigo-500/30',
+    statuts: ['chantier_en_cours', 'chantier_termine'],
+  },
+  {
     id: 'perdu',
     title: 'Perdus',
     icon: <XCircle className="w-4 h-4" />,

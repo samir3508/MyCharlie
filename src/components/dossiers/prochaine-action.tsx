@@ -65,38 +65,61 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
       }
     }
     
-    // Vérifier si devis signé sans facture
+    // ═══════════════════════════════════════════════════════════════════════
+    // PRIORITÉ 0 : Gestion des phases chantier (après devis accepté)
+    // ═══════════════════════════════════════════════════════════════════════
     const devisSigne = devis.find((d: any) => d.statut === 'accepte' || d.statut === 'signe')
-    if (devisSigne && factures.length === 0) {
+    
+    // Si devis signé et statut = signe → Démarrer le chantier
+    if (devisSigne && statut === 'signe') {
       return {
-        action: 'Créer la facture',
-        description: `Devis ${devisSigne.numero || devisSigne.id.substring(0, 8)} signé, facture à créer`,
+        action: 'Démarrer le chantier',
+        description: `Devis ${devisSigne.numero || devisSigne.id.substring(0, 8)} signé, démarrer les travaux`,
         urgence: 'haute' as const,
         dateLimite: null,
-        icon: <Euro className="w-5 h-5 text-orange-400" />,
-        couleur: 'bg-orange-500/10 border-orange-500/30 text-orange-400',
+        icon: <FileText className="w-5 h-5 text-blue-400" />,
+        couleur: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
         actionButton: {
-          label: 'Créer facture',
-          href: `/factures/nouveau?devis_id=${devisSigne.id}`
+          label: 'Démarrer chantier',
+          href: `/dossiers/${dossier.id}?action=demarrer_chantier`
         }
       }
     }
     
-    // Vérifier si devis accepté mais pas encore de facture créée
-    if (devisSigne && factures.length === 0 && dossier.statut === 'signe') {
+    // Si chantier en cours → Terminer le chantier
+    if (statut === 'chantier_en_cours') {
+      return {
+        action: 'Terminer le chantier',
+        description: 'Travaux en cours, terminer le chantier pour créer la facture',
+        urgence: 'normale' as const,
+        dateLimite: null,
+        icon: <CheckCircle2 className="w-5 h-5 text-green-400" />,
+        couleur: 'bg-green-500/10 border-green-500/30 text-green-400',
+        actionButton: {
+          label: 'Terminer chantier',
+          href: `/dossiers/${dossier.id}?action=terminer_chantier`
+        }
+      }
+    }
+    
+    // Si chantier terminé et pas de facture → Créer la facture
+    if (statut === 'chantier_termine' && factures.length === 0) {
       return {
         action: 'Créer la facture',
-        description: `Devis ${devisSigne.numero || 'accepté'} signé, créer la première facture`,
+        description: `Chantier terminé, créer la facture${devisSigne ? ` pour le devis ${devisSigne.numero || devisSigne.id.substring(0, 8)}` : ''}`,
         urgence: 'haute' as const,
         dateLimite: null,
         icon: <Euro className="w-5 h-5 text-orange-400" />,
         couleur: 'bg-orange-500/10 border-orange-500/30 text-orange-400',
         actionButton: {
           label: 'Créer facture',
-          href: `/factures/nouveau?devis_id=${devisSigne.id}`
+          href: devisSigne ? `/factures/nouveau?devis_id=${devisSigne.id}` : `/factures/nouveau?dossier_id=${dossier.id}`
         }
       }
     }
+    
+    // Si devis signé, chantier terminé ou facture déjà créée → Vérifier factures en retard
+    // (Cette logique est déjà gérée plus haut avec facturesEnRetard)
     
     // ═══════════════════════════════════════════════════════════════════════
     // PRIORITÉ 1 : Visite réalisée (fiche de visite existe) → Créer devis

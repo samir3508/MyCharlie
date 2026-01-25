@@ -157,6 +157,30 @@ export default function DossierDetailPage() {
     )
   }
 
+  const handleDemarrerChantier = () => {
+    updateDossier.mutate(
+      { id: dossierId, statut: 'chantier_en_cours' },
+      {
+        onSuccess: () => {
+          toast.success('Chantier démarré')
+          queryClient.invalidateQueries({ queryKey: ['dossier', dossierId] })
+        }
+      }
+    )
+  }
+
+  const handleTerminerChantier = () => {
+    updateDossier.mutate(
+      { id: dossierId, statut: 'chantier_termine' },
+      {
+        onSuccess: () => {
+          toast.success('Chantier terminé')
+          queryClient.invalidateQueries({ queryKey: ['dossier', dossierId] })
+        }
+      }
+    )
+  }
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('fr-FR', { 
       day: 'numeric', 
@@ -260,8 +284,29 @@ export default function DossierDetailPage() {
               </Button>
             )}
             
+            {/* Bouton Démarrer chantier : si devis signé et statut = signe */}
             {(dossier.devis as any[])?.some((d: any) => 
               d.statut === 'accepte' || d.statut === 'signe'
+            ) && dossier.statut === 'signe' && (
+              <Button variant="outline" size="sm" onClick={handleDemarrerChantier}>
+                <FileText className="w-4 h-4 mr-2" />
+                Démarrer chantier
+              </Button>
+            )}
+            
+            {/* Bouton Terminer chantier : si statut = chantier_en_cours */}
+            {dossier.statut === 'chantier_en_cours' && (
+              <Button variant="outline" size="sm" onClick={handleTerminerChantier}>
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Terminer chantier
+              </Button>
+            )}
+            
+            {/* Bouton Créer facture : si chantier terminé ou devis signé sans chantier */}
+            {((dossier.statut === 'chantier_termine' || 
+              ((dossier.devis as any[])?.some((d: any) => 
+                d.statut === 'accepte' || d.statut === 'signe'
+              ) && dossier.statut === 'signe' && dossier.statut !== 'chantier_en_cours'))
             ) && (dossier.factures as any[])?.length === 0 && (
               <Button variant="outline" size="sm" onClick={handleCreerFacture}>
                 <Euro className="w-4 h-4 mr-2" />
