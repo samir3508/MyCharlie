@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useClients } from '@/lib/hooks/use-clients'
@@ -13,15 +13,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { ArrowLeft, FileText } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function NewFacturePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { tenant } = useAuth()
   const { data: clients, isLoading: clientsLoading } = useClients(tenant?.id)
   const { data: devis, isLoading: devisLoading } = useDevis(tenant?.id)
   const createFacture = useCreateFacture()
-  const [selectedDevis, setSelectedDevis] = useState<string>('')
+  const devisIdFromUrl = searchParams.get('devis_id')
+  const [selectedDevis, setSelectedDevis] = useState<string>(devisIdFromUrl || '')
+  
+  // Pré-sélectionner le devis depuis l'URL
+  useEffect(() => {
+    if (devisIdFromUrl && devis && devis.length > 0) {
+      const devisExists = devis.find(d => d.id === devisIdFromUrl)
+      if (devisExists) {
+        setSelectedDevis(devisIdFromUrl)
+      }
+    }
+  }, [devisIdFromUrl, devis])
 
   const handleSubmit = async (data: {
     client_id: string

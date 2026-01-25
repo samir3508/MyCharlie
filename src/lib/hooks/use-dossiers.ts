@@ -19,9 +19,9 @@ export function useDossiers() {
         .select(`
           *,
           clients (id, nom_complet, telephone, email),
-          rdv (id, date_heure, statut),
-          devis (id, statut, date_envoi),
-          factures (id, statut, date_echeance)
+          rdv (id, date_heure, statut, type_rdv),
+          devis (id, numero, statut, date_envoi, date_acceptation, montant_ttc),
+          factures (id, numero, statut, date_echeance, date_paiement, montant_ttc)
         `)
         .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false })
@@ -49,7 +49,7 @@ export function useDossier(id: string) {
           clients (id, nom_complet, telephone, email, adresse_chantier, adresse_facturation),
           rdv (*),
           fiches_visite (*),
-          devis (id, numero, statut, montant_ttc, date_creation, date_envoi),
+          devis (id, numero, statut, montant_ttc, date_creation, date_envoi, date_acceptation),
           factures (id, numero, statut, montant_ttc, date_emission, date_echeance, date_paiement),
           journal_dossier (*)
         `)

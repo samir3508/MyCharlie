@@ -70,7 +70,23 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
     if (devisSigne && factures.length === 0) {
       return {
         action: 'Créer la facture',
-        description: `Devis ${devisSigne.numero} signé, facture à créer`,
+        description: `Devis ${devisSigne.numero || devisSigne.id.substring(0, 8)} signé, facture à créer`,
+        urgence: 'haute' as const,
+        dateLimite: null,
+        icon: <Euro className="w-5 h-5 text-orange-400" />,
+        couleur: 'bg-orange-500/10 border-orange-500/30 text-orange-400',
+        actionButton: {
+          label: 'Créer facture',
+          href: `/factures/nouveau?devis_id=${devisSigne.id}`
+        }
+      }
+    }
+    
+    // Vérifier si devis accepté mais pas encore de facture créée
+    if (devisSigne && factures.length === 0 && dossier.statut === 'signe') {
+      return {
+        action: 'Créer la facture',
+        description: `Devis ${devisSigne.numero || 'accepté'} signé, créer la première facture`,
         urgence: 'haute' as const,
         dateLimite: null,
         icon: <Euro className="w-5 h-5 text-orange-400" />,
@@ -140,8 +156,8 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
       }
     }
     
-    // Vérifier si RDV à planifier
-    if (statut === 'rdv_a_planifier' || statut === 'qualification') {
+    // Vérifier si RDV à planifier (contact_recu sans RDV)
+    if ((statut === 'rdv_a_planifier' || statut === 'qualification' || statut === 'contact_recu') && rdv.length === 0) {
       return {
         action: 'Planifier un RDV',
         description: 'Prendre contact avec le client pour planifier une visite',

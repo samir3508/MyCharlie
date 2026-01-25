@@ -354,6 +354,97 @@ export default function DossierDetailPage() {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
+              {/* Carte Résumé Complète - Colonne Vertébrale */}
+              <Card className="border-border bg-gradient-to-br from-card to-card/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-orange-500" />
+                    Résumé du dossier
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Stats rapides */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Calendar className="w-4 h-4 text-purple-400" />
+                        <span className="text-xs text-muted-foreground">RDV</span>
+                      </div>
+                      <p className="text-lg font-semibold text-purple-400">
+                        {(dossier.rdv as any[])?.length || 0}
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                      <div className="flex items-center gap-2 mb-1">
+                        <ClipboardList className="w-4 h-4 text-amber-400" />
+                        <span className="text-xs text-muted-foreground">Fiches</span>
+                      </div>
+                      <p className="text-lg font-semibold text-amber-400">
+                        {(dossier.fiches_visite as any[])?.length || 0}
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                      <div className="flex items-center gap-2 mb-1">
+                        <FileText className="w-4 h-4 text-orange-400" />
+                        <span className="text-xs text-muted-foreground">Devis</span>
+                      </div>
+                      <p className="text-lg font-semibold text-orange-400">
+                        {(dossier.devis as any[])?.length || 0}
+                      </p>
+                      {(dossier.devis as any[])?.find((d: any) => d.statut === 'accepte') && (
+                        <p className="text-xs text-green-400 mt-1">✓ Accepté</p>
+                      )}
+                    </div>
+                    <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Receipt className="w-4 h-4 text-green-400" />
+                        <span className="text-xs text-muted-foreground">Factures</span>
+                      </div>
+                      <p className="text-lg font-semibold text-green-400">
+                        {(dossier.factures as any[])?.length || 0}
+                      </p>
+                      {(dossier.factures as any[])?.filter((f: any) => f.statut === 'payee').length > 0 && (
+                        <p className="text-xs text-green-400 mt-1">
+                          {(dossier.factures as any[]).filter((f: any) => f.statut === 'payee').length} payée(s)
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Montants */}
+                  <div className="grid sm:grid-cols-3 gap-3 pt-3 border-t border-border/50">
+                    {dossier.montant_estime && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Montant estimé</p>
+                        <p className="text-sm font-semibold text-orange-400">
+                          {formatMontant(dossier.montant_estime)}
+                        </p>
+                      </div>
+                    )}
+                    {(dossier.devis as any[])?.length > 0 && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Total devis</p>
+                        <p className="text-sm font-semibold text-orange-400">
+                          {formatMontant(
+                            (dossier.devis as any[]).reduce((sum, d) => sum + (d.montant_ttc || 0), 0)
+                          )}
+                        </p>
+                      </div>
+                    )}
+                    {(dossier.factures as any[])?.length > 0 && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Total factures</p>
+                        <p className="text-sm font-semibold text-green-400">
+                          {formatMontant(
+                            (dossier.factures as any[]).reduce((sum, f) => sum + (f.montant_ttc || 0), 0)
+                          )}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Description */}
               {dossier.description && (
                 <Card className="border-border">
@@ -391,14 +482,6 @@ export default function DossierDetailPage() {
                     <div className="flex items-center gap-2 text-sm">
                       <Phone className="w-4 h-4 text-muted-foreground" />
                       <span className="capitalize">{dossier.source.replace(/_/g, ' ')}</span>
-                    </div>
-                  )}
-                  {dossier.montant_estime && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Euro className="w-4 h-4 text-orange-500" />
-                      <span className="font-semibold text-orange-400">
-                        {formatMontant(dossier.montant_estime)}
-                      </span>
                     </div>
                   )}
                 </CardContent>
