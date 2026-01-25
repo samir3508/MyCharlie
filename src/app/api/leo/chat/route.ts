@@ -8,7 +8,8 @@ export const maxDuration = 120 // Augmenté à 120 secondes pour laisser plus de
 
 // Constantes
 const MAX_MESSAGE_LENGTH = 5000
-const MAX_HISTORY_LENGTH = 20
+/** Historique envoyé à LÉO pour la mémoire de conversation. Augmenter si l'IA "oublie" trop. */
+const MAX_HISTORY_LENGTH = 30
 
 // Fonction pour convertir les URLs relatives en URLs absolues
 function convertToAbsoluteUrls(text: string, request: NextRequest): string {

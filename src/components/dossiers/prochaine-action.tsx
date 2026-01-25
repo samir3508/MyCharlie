@@ -150,6 +150,48 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
       }
     }
     
+    // ═══════════════════════════════════════════════════════════════════════
+    // PRIORITÉ 2 : Gestion des devis (après visite réalisée)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    // Si devis envoyé → En attente de signature
+    // Vérifier d'abord le statut du devis, pas seulement le statut du dossier
+    const devisEnvoye = devis.find((d: any) => d.statut === 'envoye')
+    if (devisEnvoye && (statut === 'devis_envoye' || statut === 'visite_realisee' || statut === 'devis_en_cours' || statut === 'devis_pret')) {
+      const dateEnvoi = devisEnvoye.date_envoi ? new Date(devisEnvoye.date_envoi) : null
+      const joursDepuisEnvoi = dateEnvoi 
+        ? Math.floor((new Date().getTime() - dateEnvoi.getTime()) / (1000 * 60 * 60 * 24))
+        : 0
+      
+      if (joursDepuisEnvoi >= 7) {
+        return {
+          action: 'Relancer le client',
+          description: `Devis ${devisEnvoye.numero} envoyé il y a ${joursDepuisEnvoi} jours - En attente de signature`,
+          urgence: joursDepuisEnvoi >= 14 ? 'haute' as const : 'normale' as const,
+          dateLimite: null,
+          icon: <Send className="w-5 h-5 text-purple-400" />,
+          couleur: joursDepuisEnvoi >= 14 ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-purple-500/10 border-purple-500/30 text-purple-400',
+          actionButton: {
+            label: 'Relancer',
+            href: `/devis/${devisEnvoye.id}?action=relancer`
+          }
+        }
+      } else {
+        return {
+          action: 'En attente de signature',
+          description: `Devis ${devisEnvoye.numero} envoyé${dateEnvoi ? ` le ${dateEnvoi.toLocaleDateString('fr-FR')}` : ''} - En attente de réponse du client`,
+          urgence: 'normale' as const,
+          dateLimite: dateEnvoi ? new Date(dateEnvoi.getTime() + 7 * 24 * 60 * 60 * 1000) : null,
+          icon: <Clock className="w-5 h-5 text-blue-400" />,
+          couleur: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+          actionButton: {
+            label: 'Voir le devis',
+            href: `/devis/${devisEnvoye.id}`
+          }
+        }
+      }
+    }
+    
     // Si visite réalisée avec devis créé → Envoyer le devis (même en brouillon)
     if ((statut === 'visite_realisee' || hasFicheVisite) && devis.length > 0) {
       // Si devis en brouillon ou en préparation → Envoyer le devis
@@ -185,33 +227,11 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
           }
         }
       }
-      
-      // Si devis envoyé depuis +7 jours → Relancer
-      const devisEnvoye = devis.find((d: any) => d.statut === 'envoye')
-      if (devisEnvoye && devisEnvoye.date_envoi) {
-        const dateEnvoi = new Date(devisEnvoye.date_envoi)
-        const joursDepuisEnvoi = Math.floor((new Date().getTime() - dateEnvoi.getTime()) / (1000 * 60 * 60 * 24))
-        
-        if (joursDepuisEnvoi >= 7) {
-          return {
-            action: 'Relancer le client',
-            description: `Devis ${devisEnvoye.numero} envoyé il y a ${joursDepuisEnvoi} jours`,
-            urgence: 'normale' as const,
-            dateLimite: null,
-            icon: <Send className="w-5 h-5 text-purple-400" />,
-            couleur: 'bg-purple-500/10 border-purple-500/30 text-purple-400',
-            actionButton: {
-              label: 'Relancer',
-              href: `/devis/${devisEnvoye.id}?action=relancer`
-            }
-          }
-        }
-      }
     }
     
     // Vérifier si devis prêt mais non envoyé (cas général, pas visite réalisée)
     const devisPret = devis.find((d: any) => d.statut === 'pret' || d.statut === 'en_preparation')
-    if (devisPret && devisPret.statut === 'pret') {
+    if (devisPret && devisPret.statut === 'pret' && statut !== 'devis_envoye') {
       return {
         action: 'Envoyer le devis',
         description: `Devis ${devisPret.numero} prêt à être envoyé`,
@@ -222,28 +242,6 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
         actionButton: {
           label: 'Envoyer',
           href: `/devis/${devisPret.id}?action=envoyer`
-        }
-      }
-    }
-    
-    // Vérifier si devis envoyé depuis plus de 7 jours
-    const devisEnvoye = devis.find((d: any) => d.statut === 'envoye')
-    if (devisEnvoye && devisEnvoye.date_envoi) {
-      const dateEnvoi = new Date(devisEnvoye.date_envoi)
-      const joursDepuisEnvoi = Math.floor((new Date().getTime() - dateEnvoi.getTime()) / (1000 * 60 * 60 * 24))
-      
-      if (joursDepuisEnvoi >= 7) {
-        return {
-          action: 'Relancer le client',
-          description: `Devis ${devisEnvoye.numero} envoyé il y a ${joursDepuisEnvoi} jours`,
-          urgence: 'normale' as const,
-          dateLimite: null,
-          icon: <Send className="w-5 h-5 text-purple-400" />,
-          couleur: 'bg-purple-500/10 border-purple-500/30 text-purple-400',
-          actionButton: {
-            label: 'Relancer',
-            href: `/devis/${devisEnvoye.id}?action=relancer`
-          }
         }
       }
     }
@@ -264,8 +262,27 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
       }
     }
     
-    // Vérifier si RDV confirmé (SEULEMENT si visite pas encore réalisée)
+    // RDV planifié(s) sans confirmation client → Créneaux envoyés, en attente confirmation
     const rdvConfirme = rdv.find((r: any) => r.statut === 'confirme')
+    const rdvPlanifies = rdv.filter((r: any) => r.statut === 'planifie' || r.statut === 'confirme')
+    if ((statut === 'rdv_planifie' || rdvPlanifies.length > 0) && !rdvConfirme && !hasFicheVisite) {
+      const prochainRdv = rdv.find((r: any) => r.statut === 'planifie')
+      return {
+        action: 'En attente de confirmation client',
+        description: prochainRdv
+          ? `Créneaux envoyés – RDV prévu le ${new Date(prochainRdv.date_heure).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. En attente du clic du client sur le lien.`
+          : 'Créneaux envoyés au client. En attente de confirmation (lien dans l\'email).',
+        urgence: 'normale' as const,
+        dateLimite: null,
+        icon: <Clock className="w-5 h-5 text-amber-400" />,
+        couleur: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+        actionButton: prochainRdv
+          ? { label: 'Voir RDV', href: `/rdv/${prochainRdv.id}` }
+          : { label: 'Agenda RDV', href: '/rdv' }
+      }
+    }
+    
+    // Vérifier si RDV confirmé (SEULEMENT si visite pas encore réalisée)
     if (rdvConfirme && !hasFicheVisite && statut !== 'visite_realisee') {
       const dateRdv = new Date(rdvConfirme.date_heure)
       const maintenant = new Date()

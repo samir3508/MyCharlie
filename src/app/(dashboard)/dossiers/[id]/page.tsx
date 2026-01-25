@@ -88,6 +88,19 @@ const journalIcons: Record<string, React.ReactNode> = {
   relance: <Send className="w-4 h-4" />,
 }
 
+const FICHE_TYPE_VISITE: Record<string, { label: string; short: string }> = {
+  premiere_visite: { label: 'Première visite', short: '1ère visite' },
+  contre_visite: { label: 'Contre-visite', short: 'Contre-visite' },
+  reception: { label: 'Réception chantier', short: 'Réception' },
+}
+
+const FICHE_URGENCE: Record<string, { label: string; cls: string }> = {
+  basse: { label: 'Basse', cls: 'bg-gray-500/10 text-gray-400 border-gray-500/30' },
+  normale: { label: 'Normale', cls: 'bg-blue-500/10 text-blue-400 border-blue-500/30' },
+  haute: { label: 'Haute', cls: 'bg-orange-500/10 text-orange-400 border-orange-500/30' },
+  critique: { label: 'Critique', cls: 'bg-red-500/10 text-red-400 border-red-500/30' },
+}
+
 export default function DossierDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -600,24 +613,59 @@ export default function DossierDetailPage() {
                 <CardContent className="p-6">
                   {(dossier.fiches_visite as any[])?.length > 0 ? (
                     <div className="space-y-3">
-                      {(dossier.fiches_visite as any[]).map((fiche: any) => (
-                        <div key={fiche.id} className="p-3 rounded-lg bg-card/50 border border-border/50">
-                          <div className="flex items-center justify-between mb-2">
-                            <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30">
-                              <Calendar className="w-3 h-3 mr-1" />
-                              {fiche.date_visite ? new Date(fiche.date_visite).toLocaleDateString('fr-FR') : '-'}
-                            </Badge>
-                          </div>
-                          {fiche.constat && (
-                            <p className="text-sm line-clamp-2">{fiche.constat}</p>
-                          )}
-                        </div>
-                      ))}
+                      {(dossier.fiches_visite as any[]).map((fiche: any) => {
+                        const typeCfg = FICHE_TYPE_VISITE[fiche.type_visite || 'premiere_visite'] || { label: 'Visite', short: 'Visite' }
+                        const urgCfg = FICHE_URGENCE[fiche.urgence || 'normale'] || FICHE_URGENCE.normale
+                        const resume = [fiche.constat, fiche.preconisations].filter(Boolean).join(' • ') || ''
+                        const specs: string[] = []
+                        if (fiche.surface_m2) specs.push(`${fiche.surface_m2} m²`)
+                        if (fiche.estimation_cout) specs.push(formatMontant(fiche.estimation_cout))
+                        const specsStr = specs.length > 0 ? specs.join(' · ') : ''
+                        const sousTitre = [resume, specsStr].filter(Boolean).join(' • ')
+                        return (
+                          <Link key={fiche.id} href={`/fiches-visite/${fiche.id}`}>
+                            <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/50 hover:bg-card/80 transition-colors cursor-pointer gap-3">
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                                  <ClipboardList className="w-5 h-5 text-amber-400" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-medium">
+                                      {fiche.date_visite ? new Date(fiche.date_visite).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sans date'}
+                                    </span>
+                                    <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-400 border-amber-500/30">
+                                      {typeCfg.short}
+                                    </Badge>
+                                  </div>
+                                  {sousTitre && (
+                                    <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
+                                      {sousTitre}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <Badge variant="outline" className={cn('text-xs', urgCfg.cls)}>
+                                  {urgCfg.label}
+                                </Badge>
+                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                              </div>
+                            </div>
+                          </Link>
+                        )
+                      })}
                     </div>
                   ) : (
                     <div className="text-center py-8">
                       <ClipboardList className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-                      <p className="text-muted-foreground">Aucune fiche de visite</p>
+                      <p className="text-muted-foreground mb-4">Aucune fiche de visite</p>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href="/fiches-visite">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Créer une fiche
+                        </Link>
+                      </Button>
                     </div>
                   )}
                 </CardContent>
