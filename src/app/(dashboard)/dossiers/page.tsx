@@ -14,9 +14,7 @@ import {
   Receipt,
   AlertTriangle,
   CheckCircle2,
-  Clock as ClockIcon
-} from 'lucide-react'
-import { 
+  Clock as ClockIcon,
   FolderKanban, 
   Plus, 
   Search, 
@@ -27,14 +25,20 @@ import {
   Clock,
   Target,
   Bot,
-  Filter
+  Filter,
+  MapPin,
+  Phone,
+  Eye
 } from 'lucide-react'
 import { useDossiers, useDossiersStats, useUpdateDossier } from '@/lib/hooks/use-dossiers'
 import { DossierKanban } from '@/components/dossiers/dossier-kanban'
 import { DossierForm } from '@/components/dossiers/dossier-form'
+import { getProchaineActionSummary } from '@/components/dossiers/prochaine-action'
 import { ExportDropdown } from '@/components/ui/export-dropdown'
 import { DOSSIER_COLUMNS } from '@/lib/utils/export'
+import { LABELS_STATUT_DOSSIER } from '@/types/database'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 export default function DossiersPage() {
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')

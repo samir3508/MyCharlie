@@ -16,13 +16,23 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import Link from 'next/link'
-interface ProchaineActionProps {
-  dossier: any
+
+export type ProchaineActionSummary = {
+  action: string
+  description: string
+  urgence: 'urgente' | 'haute' | 'normale'
+  dateLimite: Date | null
+  icon: React.ReactNode
+  couleur: string
+  actionButton?: { label: string; href: string }
 }
 
-export function ProchaineAction({ dossier }: ProchaineActionProps) {
-  // Calcul de la prochaine action basé sur le statut et les données du dossier
-  const calculerProchaineAction = () => {
+/** Logique partagée : résumé prochaine action pour liste + détail */
+export function getProchaineActionSummary(dossier: any): ProchaineActionSummary | null {
+  return calculerProchaineAction(dossier)
+}
+
+function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
     const statut = dossier.statut
     const rdv = (dossier.rdv as any[]) || []
     const devis = (dossier.devis as any[]) || []
@@ -170,9 +180,14 @@ export function ProchaineAction({ dossier }: ProchaineActionProps) {
     
     // Pas d'action urgente
     return null
-  }
-  
-  const prochaineAction = calculerProchaineAction()
+}
+
+interface ProchaineActionProps {
+  dossier: any
+}
+
+export function ProchaineAction({ dossier }: ProchaineActionProps) {
+  const prochaineAction = calculerProchaineAction(dossier)
   
   if (!prochaineAction) {
     return (

@@ -90,7 +90,8 @@ export function useDevis(tenantId: string | undefined) {
         .from('devis')
         .select(`
           *,
-          clients (nom_complet)
+          clients (nom_complet),
+          dossiers (id, numero)
         `)
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
@@ -102,10 +103,11 @@ export function useDevis(tenantId: string | undefined) {
       
       console.log('✅ [useDevis] Devis récupérés:', data?.length || 0)
       
-      return data.map((d: Devis & { clients?: { nom_complet: string } | null }) => ({
+      return data.map((d: Devis & { clients?: { nom_complet: string } | null; dossiers?: { id: string; numero: string } | null }) => ({
         ...d,
-        client_name: d.clients?.nom_complet
-      })) as (Devis & { client_name?: string })[]
+        client_name: d.clients?.nom_complet,
+        dossier_numero: d.dossiers?.numero
+      })) as (Devis & { client_name?: string; dossier_numero?: string })[]
     },
     enabled: !!tenantId,
   })

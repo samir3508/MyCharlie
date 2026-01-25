@@ -39,6 +39,8 @@ export function formatDate(date: string | null | undefined): string {
 export function getStatusLabel(statut: string): string {
   const labels: Record<string, string> = {
     brouillon: 'Brouillon',
+    en_preparation: 'En préparation',
+    pret: 'Prêt',
     envoye: 'Envoyé',
     accepte: 'Accepté',
     refuse: 'Refusé',
@@ -55,18 +57,20 @@ export function getStatusLabel(statut: string): string {
 // Get status color class for badges (devis)
 export function getStatusColor(statut: string): string {
   const colors: Record<string, string> = {
-    brouillon: 'bg-gray-900/30 text-gray-400 border-gray-800/50',
-    envoye: 'bg-blue-900/30 text-blue-400 border-blue-800/50',
-    accepte: 'bg-green-900/30 text-green-400 border-green-800/50',
-    refuse: 'bg-red-900/30 text-red-400 border-red-800/50',
-    expire: 'bg-orange-900/30 text-orange-400 border-orange-800/50',
-    paye: 'bg-emerald-900/30 text-emerald-400 border-emerald-800/50',
+    brouillon: 'bg-gray-500/10 text-gray-400 border-gray-500/30',
+    en_preparation: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+    pret: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+    envoye: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+    accepte: 'bg-green-500/10 text-green-400 border-green-500/30',
+    refuse: 'bg-red-500/10 text-red-400 border-red-500/30',
+    expire: 'bg-orange-500/10 text-orange-400 border-orange-500/30',
+    paye: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
     // Factures
-    envoyee: 'bg-blue-900/30 text-blue-400 border-blue-800/50',
-    payee: 'bg-green-900/30 text-green-400 border-green-800/50',
-    en_retard: 'bg-red-900/30 text-red-400 border-red-800/50',
+    envoyee: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+    payee: 'bg-green-500/10 text-green-400 border-green-500/30',
+    en_retard: 'bg-red-500/10 text-red-400 border-red-500/30',
   }
-  return colors[statut] || 'bg-gray-900/30 text-gray-400 border-gray-800/50'
+  return colors[statut] || 'bg-gray-500/10 text-gray-400 border-gray-500/30'
 }
 
 // Check if date is overdue
