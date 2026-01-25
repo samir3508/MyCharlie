@@ -3,7 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
+// Fallback: Render n'a souvent que NEXT_PUBLIC_GOOGLE_CLIENT_ID ; le refresh token côté serveur en a besoin
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
 
 interface EmailRequest {
@@ -37,6 +38,26 @@ async function ensureValidToken(supabase: any, connection: any): Promise<string 
   // Besoin de rafraîchir
   if (!connection.refresh_token) {
     console.error('Pas de refresh_token disponible')
+    await supabase
+      .from('oauth_connections')
+      .update({ 
+        last_error: 'Pas de refresh_token disponible',
+        is_active: false 
+      })
+      .eq('id', connection.id)
+    return null
+  }
+
+  // Vérifier que les credentials Google sont configurés
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    console.error('GOOGLE_CLIENT_ID ou GOOGLE_CLIENT_SECRET non configurés')
+    await supabase
+      .from('oauth_connections')
+      .update({ 
+        last_error: 'Credentials Google non configurés (GOOGLE_CLIENT_ID/SECRET manquants)',
+        is_active: false 
+      })
+      .eq('id', connection.id)
     return null
   }
 
@@ -54,13 +75,14 @@ async function ensureValidToken(supabase: any, connection: any): Promise<string 
   })
 
   if (!tokenResponse.ok) {
-    const error = await tokenResponse.json()
+    const error = await tokenResponse.json().catch(() => ({ error: 'Erreur inconnue' }))
     console.error('Erreur refresh token:', error)
     
+    const errorMessage = error.error_description || error.error || 'Token invalide'
     await supabase
       .from('oauth_connections')
       .update({ 
-        last_error: error.error_description || 'Token invalide',
+        last_error: errorMessage,
         is_active: false 
       })
       .eq('id', connection.id)
@@ -179,9 +201,23 @@ export async function POST(request: NextRequest) {
     const accessToken = await ensureValidToken(supabase, connection)
     
     if (!accessToken) {
+      // Récupérer le dernier message d'erreur pour plus de détails
+      const { data: connWithError } = await supabase
+        .from('oauth_connections')
+        .select('last_error')
+        .eq('id', connection.id)
+        .single()
+      
+      const errorMessage = connWithError?.last_error || 'Token Gmail invalide'
+      
       return NextResponse.json({ 
         error: 'Token Gmail invalide',
-        message: 'Reconnectez votre compte Gmail dans Paramètres > Intégrations'
+        message: errorMessage || 'Reconnectez votre compte Gmail dans Paramètres > Intégrations',
+        details: {
+          has_refresh_token: !!connection.refresh_token,
+          has_google_credentials: !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET),
+          expires_at: connection.expires_at
+        }
       }, { status: 401 })
     }
 
