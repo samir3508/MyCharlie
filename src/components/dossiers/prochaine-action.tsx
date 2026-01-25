@@ -150,26 +150,28 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
       }
     }
     
-    // Si visite réalisée avec devis en brouillon → Finaliser/Envoyer devis
+    // Si visite réalisée avec devis créé → Envoyer le devis (même en brouillon)
     if ((statut === 'visite_realisee' || hasFicheVisite) && devis.length > 0) {
-      const devisBrouillon = devis.find((d: any) => d.statut === 'brouillon')
+      // Si devis en brouillon ou en préparation → Envoyer le devis
+      const devisBrouillon = devis.find((d: any) => d.statut === 'brouillon' || d.statut === 'en_preparation')
       if (devisBrouillon) {
         return {
-          action: 'Finaliser le devis',
-          description: `Devis ${devisBrouillon.numero || 'en brouillon'} à finaliser et envoyer`,
+          action: 'Envoyer le devis',
+          description: `Devis ${devisBrouillon.numero || 'en brouillon'} à envoyer au client`,
           urgence: 'normale' as const,
           dateLimite: null,
-          icon: <FileText className="w-5 h-5 text-blue-400" />,
+          icon: <Send className="w-5 h-5 text-blue-400" />,
           couleur: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
           actionButton: {
-            label: 'Voir devis',
-            href: `/devis/${devisBrouillon.id}`
+            label: 'Envoyer',
+            href: `/devis/${devisBrouillon.id}?action=envoyer`
           }
         }
       }
       
-      const devisPret = devis.find((d: any) => d.statut === 'pret' || d.statut === 'en_preparation')
-      if (devisPret && devisPret.statut === 'pret') {
+      // Si devis prêt → Envoyer le devis
+      const devisPret = devis.find((d: any) => d.statut === 'pret')
+      if (devisPret) {
         return {
           action: 'Envoyer le devis',
           description: `Devis ${devisPret.numero} prêt à être envoyé`,
@@ -184,6 +186,7 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
         }
       }
       
+      // Si devis envoyé depuis +7 jours → Relancer
       const devisEnvoye = devis.find((d: any) => d.statut === 'envoye')
       if (devisEnvoye && devisEnvoye.date_envoi) {
         const dateEnvoi = new Date(devisEnvoye.date_envoi)
