@@ -117,14 +117,38 @@ export function useCreateFicheVisite() {
       // ═══════════════════════════════════════════════════════════════════════
       // 🔄 MISE À JOUR AUTOMATIQUE DU STATUT DU DOSSIER → visite_realisee
       // ═══════════════════════════════════════════════════════════════════════
+      // ⚠️ Ne pas écraser le statut si le dossier a déjà un devis accepté/signé
       if (fiche.dossier_id) {
-        await supabase
+        // Vérifier si le dossier a déjà un devis accepté
+        const { data: existingDevis } = await supabase
+          .from('devis')
+          .select('statut')
+          .eq('dossier_id', fiche.dossier_id)
+          .eq('statut', 'accepte')
+          .limit(1)
+          .single()
+
+        // Vérifier le statut actuel du dossier
+        const { data: dossier } = await supabase
           .from('dossiers')
-          .update({ 
-            statut: 'visite_realisee',
-            updated_at: new Date().toISOString()
-          })
+          .select('statut')
           .eq('id', fiche.dossier_id)
+          .single()
+
+        // Ne mettre à jour que si :
+        // 1. Pas de devis accepté ET
+        // 2. Le statut actuel n'est pas déjà "signe" (qui est le statut après acceptation devis)
+        const shouldUpdate = !existingDevis && dossier?.statut !== 'signe'
+
+        if (shouldUpdate) {
+          await supabase
+            .from('dossiers')
+            .update({ 
+              statut: 'visite_realisee',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', fiche.dossier_id)
+        }
       }
 
       return data
