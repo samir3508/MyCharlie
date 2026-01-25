@@ -98,9 +98,19 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
       }
     }
     
-    // Vérifier si visite réalisée sans devis
-    if (statut === 'visite_realisee' && devis.length === 0) {
-      const dateVisite = dossier.updated_at ? new Date(dossier.updated_at) : new Date()
+    // ═══════════════════════════════════════════════════════════════════════
+    // PRIORITÉ 1 : Visite réalisée (fiche de visite existe) → Créer devis
+    // ═══════════════════════════════════════════════════════════════════════
+    const ficheVisite = (dossier.fiches_visite as any[]) || []
+    const hasFicheVisite = ficheVisite.length > 0
+    
+    // Si visite réalisée (statut OU fiche existe) et pas de devis → Créer devis
+    if ((statut === 'visite_realisee' || hasFicheVisite) && devis.length === 0) {
+      const dateVisite = hasFicheVisite && ficheVisite[0]?.created_at 
+        ? new Date(ficheVisite[0].created_at) 
+        : dossier.updated_at 
+          ? new Date(dossier.updated_at) 
+          : new Date()
       const joursDepuisVisite = Math.floor((new Date().getTime() - dateVisite.getTime()) / (1000 * 60 * 60 * 24))
       
       return {
@@ -117,7 +127,63 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
       }
     }
     
-    // Vérifier si devis prêt mais non envoyé
+    // Si visite réalisée avec devis en brouillon → Finaliser/Envoyer devis
+    if ((statut === 'visite_realisee' || hasFicheVisite) && devis.length > 0) {
+      const devisBrouillon = devis.find((d: any) => d.statut === 'brouillon')
+      if (devisBrouillon) {
+        return {
+          action: 'Finaliser le devis',
+          description: `Devis ${devisBrouillon.numero || 'en brouillon'} à finaliser et envoyer`,
+          urgence: 'normale' as const,
+          dateLimite: null,
+          icon: <FileText className="w-5 h-5 text-blue-400" />,
+          couleur: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+          actionButton: {
+            label: 'Voir devis',
+            href: `/devis/${devisBrouillon.id}`
+          }
+        }
+      }
+      
+      const devisPret = devis.find((d: any) => d.statut === 'pret' || d.statut === 'en_preparation')
+      if (devisPret && devisPret.statut === 'pret') {
+        return {
+          action: 'Envoyer le devis',
+          description: `Devis ${devisPret.numero} prêt à être envoyé`,
+          urgence: 'normale' as const,
+          dateLimite: null,
+          icon: <Send className="w-5 h-5 text-blue-400" />,
+          couleur: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+          actionButton: {
+            label: 'Envoyer',
+            href: `/devis/${devisPret.id}?action=envoyer`
+          }
+        }
+      }
+      
+      const devisEnvoye = devis.find((d: any) => d.statut === 'envoye')
+      if (devisEnvoye && devisEnvoye.date_envoi) {
+        const dateEnvoi = new Date(devisEnvoye.date_envoi)
+        const joursDepuisEnvoi = Math.floor((new Date().getTime() - dateEnvoi.getTime()) / (1000 * 60 * 60 * 24))
+        
+        if (joursDepuisEnvoi >= 7) {
+          return {
+            action: 'Relancer le client',
+            description: `Devis ${devisEnvoye.numero} envoyé il y a ${joursDepuisEnvoi} jours`,
+            urgence: 'normale' as const,
+            dateLimite: null,
+            icon: <Send className="w-5 h-5 text-purple-400" />,
+            couleur: 'bg-purple-500/10 border-purple-500/30 text-purple-400',
+            actionButton: {
+              label: 'Relancer',
+              href: `/devis/${devisEnvoye.id}?action=relancer`
+            }
+          }
+        }
+      }
+    }
+    
+    // Vérifier si devis prêt mais non envoyé (cas général, pas visite réalisée)
     const devisPret = devis.find((d: any) => d.statut === 'pret' || d.statut === 'en_preparation')
     if (devisPret && devisPret.statut === 'pret') {
       return {
@@ -172,9 +238,9 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
       }
     }
     
-    // Vérifier si RDV confirmé
+    // Vérifier si RDV confirmé (SEULEMENT si visite pas encore réalisée)
     const rdvConfirme = rdv.find((r: any) => r.statut === 'confirme')
-    if (rdvConfirme) {
+    if (rdvConfirme && !hasFicheVisite && statut !== 'visite_realisee') {
       const dateRdv = new Date(rdvConfirme.date_heure)
       const maintenant = new Date()
       

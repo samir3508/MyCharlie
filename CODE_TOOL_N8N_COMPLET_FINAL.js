@@ -911,6 +911,24 @@ try {
         result.devis = result.data[0];
         if (dossierId) {
           result.dossier_id = dossierId;
+          
+          // ═══════════════════════════════════════════════════════════════════════
+          // 🔄 MISE À JOUR AUTOMATIQUE DU STATUT DU DOSSIER → devis_en_cours
+          // ═══════════════════════════════════════════════════════════════════════
+          try {
+            await supabaseRequest.call(this, 'dossiers', 'PATCH', {
+              filters: { id: dossierId },
+              body: {
+                statut: 'devis_en_cours',
+                devis_cree: true,
+                updated_at: new Date().toISOString()
+              }
+            });
+            result.dossier_statut_updated = 'devis_en_cours';
+          } catch (updateError) {
+            console.warn('⚠️ Erreur mise à jour statut dossier:', updateError.message);
+            result.dossier_update_warning = 'Statut dossier non mis à jour automatiquement';
+          }
         }
       }
       break;
