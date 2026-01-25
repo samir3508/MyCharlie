@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense, useState, useEffect } from 'react'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useClients } from '@/lib/hooks/use-clients'
 import { useDevis } from '@/lib/hooks/use-devis'
@@ -13,9 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { ArrowLeft, FileText } from 'lucide-react'
-import { useState, useEffect } from 'react'
 
-export default function NewFacturePage() {
+function NewFactureForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { tenant } = useAuth()
@@ -204,5 +204,18 @@ export default function NewFacturePage() {
         defaultValues={getDefaultValues()}
       />
     </div>
+  )
+}
+
+export default function NewFacturePage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-8">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-[600px] w-full" />
+      </div>
+    }>
+      <NewFactureForm />
+    </Suspense>
   )
 }
