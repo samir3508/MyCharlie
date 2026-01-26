@@ -45,7 +45,7 @@ import { useUpdateDevisStatus } from '@/lib/hooks/use-devis'
 import { useCreateFactureFromDevis } from '@/lib/hooks/use-factures'
 import { STATUTS_DOSSIER, LABELS_STATUT_DOSSIER, PRIORITES, LABELS_PRIORITE } from '@/types/database'
 import { getProchaineActionSummary } from '@/components/dossiers/prochaine-action'
-import { formatDate } from '@/lib/utils/dates'
+import { formatDate } from '@/lib/utils'
 import { nettoyerTitre } from '@/lib/utils/titres'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -193,16 +193,6 @@ export default function DossierDetailPage() {
         }
       }
     )
-  }
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('fr-FR', { 
-      day: 'numeric', 
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
   }
 
   const formatMontant = (montant: number) => {
