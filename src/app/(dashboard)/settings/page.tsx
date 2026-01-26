@@ -106,7 +106,7 @@ export default function SettingsPage() {
   const plans = [
     {
       name: 'Starter',
-      price: '29€',
+      price: '99€',
       period: '/mois',
       features: [
         '50 clients',
@@ -119,7 +119,7 @@ export default function SettingsPage() {
     },
     {
       name: 'Pro',
-      price: '59€',
+      price: '199€',
       period: '/mois',
       features: [
         'Clients illimités',
@@ -134,7 +134,7 @@ export default function SettingsPage() {
     },
     {
       name: 'Enterprise',
-      price: '149€',
+      price: '249€',
       period: '/mois',
       features: [
         'Tout Pro +',
