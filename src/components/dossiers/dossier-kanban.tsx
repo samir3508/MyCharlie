@@ -1,8 +1,7 @@
 'use client'
 
-import { getProchaineActionSummary } from './prochaine-action'
-import { getPrioriteColor } from '@/lib/utils/dossiers'
-import { formatTitreAffichage, nettoyerTitre } from '@/lib/utils/titres'
+import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { 
   FolderKanban, 
   Phone, 
@@ -33,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { getPrioriteColor } from '@/lib/utils/dossiers'
 import type { Dossier } from '@/types/database'
 import { LABELS_STATUT_DOSSIER, LABELS_PRIORITE } from '@/types/database'
 import Link from 'next/link'
@@ -156,16 +156,6 @@ export function DossierKanban({ dossiers, onUpdateStatut }: DossierKanbanProps) 
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
   }
 
-  const getPrioriteColor = (priorite: string | null) => {
-    switch (priorite) {
-      case 'urgente': return 'bg-red-500/20 text-red-400 border-red-500/30'
-      case 'haute': return 'bg-orange-500/20 text-orange-400 border-orange-500/30'
-      case 'normale': return 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-      case 'basse': return 'bg-green-500/20 text-green-400 border-green-500/30'
-      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
-    }
-  }
-
   return (
     <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin">
       {columns.map((column) => {
@@ -262,15 +252,8 @@ export function DossierKanban({ dossiers, onUpdateStatut }: DossierKanbanProps) 
                         </DropdownMenu>
                       </div>
 
-                      {/* Titre du dossier amélioré */}
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium line-clamp-2 leading-tight">{nettoyerTitre(dossier.titre)}</p>
-                        {dossier.titre && dossier.titre.length > 40 && (
-                          <p className="text-xs text-muted-foreground">
-                            {dossier.titre.length > 40 ? `${dossier.titre.substring(0, 40)}...` : dossier.titre}
-                          </p>
-                        )}
-                      </div>
+                      {/* Titre du dossier */}
+                      <p className="text-sm font-medium line-clamp-2">{dossier.titre}</p>
 
                       {/* Badges */}
                       <div className="flex flex-wrap gap-1.5">
