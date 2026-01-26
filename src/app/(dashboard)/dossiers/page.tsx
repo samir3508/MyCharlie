@@ -30,7 +30,7 @@ import {
   Phone,
   Eye
 } from 'lucide-react'
-import { useDossiers } from '@/lib/hooks/use-dossiers'
+import { useDossiers, useDossiersStats, useUpdateDossier } from '@/lib/hooks/use-dossiers'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { formatTitreAffichage, nettoyerTitre } from '@/lib/utils/titres'
 import { DossierKanban } from '@/components/dossiers/dossier-kanban'
