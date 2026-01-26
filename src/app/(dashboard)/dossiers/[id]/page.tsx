@@ -260,6 +260,7 @@ export default function DossierDetailPage() {
                   </Badge>
                 )}
               </div>
+              <div className="flex items-center gap-2">
                 <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/30">
                   <Bot className="w-3 h-3 mr-1" />
                   Léo
