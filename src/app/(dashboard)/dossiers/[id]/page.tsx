@@ -44,8 +44,9 @@ import { useDossier, useUpdateDossier } from '@/lib/hooks/use-dossiers'
 import { useUpdateDevisStatus } from '@/lib/hooks/use-devis'
 import { useCreateFactureFromDevis } from '@/lib/hooks/use-factures'
 import { STATUTS_DOSSIER, LABELS_STATUT_DOSSIER, PRIORITES, LABELS_PRIORITE } from '@/types/database'
-import { ProchaineAction } from '@/components/dossiers/prochaine-action'
-import { RelancesAlertes } from '@/components/dossiers/relances-alertes'
+import { getProchaineActionSummary } from '@/components/dossiers/prochaine-action'
+import { formatDate } from '@/lib/utils/dates'
+import { nettoyerTitre } from '@/lib/utils/titres'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -252,7 +253,7 @@ export default function DossierDetailPage() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
-                  {dossier.titre}
+                  {nettoyerTitre(dossier.titre)}
                 </h1>
                 {dossier.titre && dossier.titre.length > 50 && (
                   <Badge variant="outline" className="text-xs">

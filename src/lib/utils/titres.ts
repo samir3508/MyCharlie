@@ -3,6 +3,31 @@
  */
 
 /**
+ * Nettoie un titre pour corriger les problèmes d'encodage
+ * @param titre - Le titre à nettoyer
+ * @returns Le titre nettoyé
+ */
+export function nettoyerTitre(titre: string | null | undefined): string {
+  if (!titre) return 'Sans titre'
+  
+  // Remplacer les caractères bizarres courants
+  let titreNettoye = titre
+    .replace(/[^\x20-\x7EÀÁÂÃÄÅàáâãäåÒÓÔÕÖØòóôõöøÙÚÛÜùúûüÝýÿÇçÑñ]/g, '?') // Garder caractères latins de base
+    .replace(/\s+/g, ' ') // Normaliser les espaces
+    .trim()
+  
+  // Si le titre contient beaucoup de caractères bizarres, le remplacer
+  const caracteresBizarres = (titreNettoye.match(/[^\x20-\x7EÀÁÂÃÄÅàáâãäåÒÓÔÕÖØòóôõöøÙÚÛÜùúûüÝýÿÇçÑñ]/g) || []).length
+  
+  if (caracteresBizarres > titreNettoye.length * 0.3) {
+    // Si plus de 30% de caractères bizarres, générer un titre automatique
+    return 'Dossier - Titre à corriger'
+  }
+  
+  return titreNettoye
+}
+
+/**
  * Formate un titre pour l'affichage en limitant la longueur
  * @param titre - Le titre à formater
  * @param maxLength - Longueur maximale souhaitée
@@ -11,11 +36,14 @@
 export function formatTitreAffichage(titre: string | null | undefined, maxLength: number = 40): string {
   if (!titre) return 'Sans titre'
   
-  if (titre.length <= maxLength) {
-    return titre
+  // D'abord nettoyer le titre
+  const titreNettoye = nettoyerTitre(titre)
+  
+  if (titreNettoye.length <= maxLength) {
+    return titreNettoye
   }
   
-  return `${titre.substring(0, maxLength)}...`
+  return `${titreNettoye.substring(0, maxLength)}...`
 }
 
 /**

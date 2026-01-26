@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { getProchaineActionSummary } from './prochaine-action'
+import { getPrioriteColor } from '@/lib/utils/dossiers'
+import { formatTitreAffichage, nettoyerTitre } from '@/lib/utils/titres'
 import { 
   FolderKanban, 
   Phone, 
@@ -263,7 +264,7 @@ export function DossierKanban({ dossiers, onUpdateStatut }: DossierKanbanProps) 
 
                       {/* Titre du dossier amélioré */}
                       <div className="space-y-1">
-                        <p className="text-sm font-medium line-clamp-2 leading-tight">{dossier.titre}</p>
+                        <p className="text-sm font-medium line-clamp-2 leading-tight">{nettoyerTitre(dossier.titre)}</p>
                         {dossier.titre && dossier.titre.length > 40 && (
                           <p className="text-xs text-muted-foreground">
                             {dossier.titre.length > 40 ? `${dossier.titre.substring(0, 40)}...` : dossier.titre}
