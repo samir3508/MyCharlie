@@ -80,11 +80,39 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Utiliser service role pour créer la notification
+    // Vérifier si une notification similaire existe déjà pour éviter les doublons
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
+
+    // Vérifier les doublons : même type, même titre, même tenant_id, créée il y a moins de 30 secondes
+    const thirtySecondsAgo = new Date(Date.now() - 30 * 1000).toISOString()
+    
+    const { data: existingNotification, error: checkError } = await supabaseAdmin
+      .from('notifications')
+      .select('id, created_at')
+      .eq('tenant_id', tenant_id)
+      .eq('type', type)
+      .eq('titre', titre)
+      .gte('created_at', thirtySecondsAgo)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (checkError) {
+      console.warn('⚠️ Erreur lors de la vérification des doublons:', checkError)
+    }
+
+    // Si une notification similaire existe déjà, ne pas en créer une nouvelle
+    if (existingNotification) {
+      console.log(`📝 Notification similaire déjà existante (ID: ${existingNotification.id}), création ignorée`)
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Notification déjà existante',
+        notification: existingNotification
+      })
+    }
 
     const { data: notification, error } = await supabaseAdmin
       .from('notifications')

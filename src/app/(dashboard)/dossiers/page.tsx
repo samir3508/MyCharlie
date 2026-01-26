@@ -321,8 +321,8 @@ export default function DossiersPage() {
                       <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
                         <FolderKanban className="w-5 h-5 text-orange-500" />
                       </div>
-                      <div>
-                        <p className="font-medium">{dossier.titre}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{dossier.titre}</p>
                         <p className="text-sm text-muted-foreground">
                           {dossier.clients?.nom_complet} • {dossier.numero}
                         </p>

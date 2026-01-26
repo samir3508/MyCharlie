@@ -101,24 +101,87 @@ serve(async (req) => {
       return errorResponse(400, 'MISSING_PHONE', 'recipient_phone requis pour method=whatsapp')
     }
 
+    // Récupérer le devis avec toutes ses relations
     const { data: devis, error: devisError } = await supabase
       .from('devis')
-      .select('id, numero, titre, montant_ht, montant_tva, montant_ttc, pdf_url, signature_token, client_id')
+      .select(`
+        id,
+        numero,
+        titre,
+        montant_ht,
+        montant_tva,
+        montant_ttc,
+        pdf_url,
+        signature_token,
+        client_id,
+        date_creation,
+        delai_execution,
+        conditions_paiement,
+        notes,
+        adresse_chantier
+      `)
       .eq('id', devis_id)
       .eq('tenant_id', tenant_id)
       .single()
 
     if (devisError || !devis) {
-      return errorResponse(404, 'DEVIS_NOT_FOUND', 'Devis introuvable ou n\'appartient pas à ce tenant', { devis_id })
+      console.error('❌ Erreur récupération devis:', devisError)
+      return errorResponse(404, 'DEVIS_NOT_FOUND', 'Devis introuvable ou n\'appartient pas à ce tenant', { devis_id, error: devisError })
     }
 
-    const { data: client } = await supabase
+    console.log(`✅ Devis trouvé: ${devis.numero} (${devis.montant_ttc}€ TTC)`)
+
+    // Récupérer le client
+    const { data: client, error: clientError } = await supabase
       .from('clients')
-      .select('id, nom, prenom, nom_complet, email, telephone')
+      .select('id, nom, prenom, nom_complet, email, telephone, adresse_facturation')
       .eq('id', devis.client_id)
+      .eq('tenant_id', tenant_id)
       .single()
 
+    if (clientError || !client) {
+      console.error('❌ Erreur récupération client:', clientError)
+      return errorResponse(404, 'CLIENT_NOT_FOUND', 'Client introuvable pour ce devis', { client_id: devis.client_id, error: clientError })
+    }
+
+    console.log(`✅ Client trouvé: ${client.nom_complet} (${client.email})`)
+
     if (method === 'email') {
+      // ═══════════════════════════════════════════════════════════════════════
+      // Télécharger le PDF du devis pour l'ajouter en pièce jointe
+      // ═══════════════════════════════════════════════════════════════════════
+      
+      let pdfAttachment = null
+      try {
+        const pdfUrl = devis.pdf_url || `${APP_URL}/api/pdf/devis/${devis.id}`
+        console.log(`📄 Téléchargement du PDF depuis: ${pdfUrl}`)
+        
+        const pdfResponse = await fetch(pdfUrl)
+        if (pdfResponse.ok) {
+          const pdfBuffer = await pdfResponse.arrayBuffer()
+          const pdfBytes = new Uint8Array(pdfBuffer)
+          
+          // Encoder en base64 (compatible Deno)
+          let binary = ''
+          for (let i = 0; i < pdfBytes.length; i++) {
+            binary += String.fromCharCode(pdfBytes[i])
+          }
+          const pdfBase64 = btoa(binary)
+          
+          pdfAttachment = {
+            filename: `Devis_${devis.numero}.pdf`,
+            content: pdfBase64,
+            mime_type: 'application/pdf'
+          }
+          console.log(`✅ PDF téléchargé (${pdfBuffer.byteLength} bytes)`)
+        } else {
+          console.warn(`⚠️ Impossible de télécharger le PDF: ${pdfResponse.status} ${pdfResponse.statusText}`)
+        }
+      } catch (pdfError) {
+        console.error('❌ Erreur lors du téléchargement du PDF:', pdfError)
+        // On continue quand même, l'email sera envoyé avec juste le lien
+      }
+      
       // ═══════════════════════════════════════════════════════════════════════
       // Appeler l'API Next.js qui a accès aux secrets Google OAuth
       // ═══════════════════════════════════════════════════════════════════════
@@ -126,20 +189,27 @@ serve(async (req) => {
       const toEmail = recipient_email!
       const { subject, html, text } = buildDevisEmailHtml(devis, client || {})
 
+      const emailPayload: any = {
+        tenant_id,
+        to: toEmail,
+        subject,
+        body: text,
+        html_body: html,
+        related_type: 'devis',
+        related_id: devis.id
+      }
+      
+      // Ajouter le PDF en pièce jointe si disponible
+      if (pdfAttachment) {
+        emailPayload.attachments = [pdfAttachment]
+      }
+
       const apiResponse = await fetch(`${APP_URL}/api/email/send-gmail`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          tenant_id,
-          to: toEmail,
-          subject,
-          body: text,
-          html_body: html,
-          related_type: 'devis',
-          related_id: devis.id
-        })
+        body: JSON.stringify(emailPayload)
       })
 
       if (!apiResponse.ok) {

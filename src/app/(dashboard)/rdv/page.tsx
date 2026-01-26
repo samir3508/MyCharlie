@@ -46,6 +46,7 @@ import { useRdvList, useRdvToday, useRdvUpcoming, useRdvMonth, useCreateRdv, use
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useDossiers } from '@/lib/hooks/use-dossiers'
 import { useAuth } from '@/lib/hooks/use-auth'
+import { formatTitreAffichage } from '@/lib/utils/titres'
 import { RefreshCw, Calendar as CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TYPES_RDV, STATUTS_RDV } from '@/types/database'
@@ -471,7 +472,7 @@ export default function RdvPage() {
                         {typeRdvIcons[rdv.type_rdv || 'autre']}
                       </div>
                       <div>
-                        <p className="font-medium text-sm">{rdv.titre || rdv.dossiers?.titre}</p>
+                        <p className="font-medium text-sm">{formatTitreAffichage(rdv.titre || rdv.dossiers?.titre || 'RDV sans titre', 35)}</p>
                         <p className="text-xs text-muted-foreground">
                           {formatTime(rdv.date_heure)} • {rdv.duree_minutes}min
                         </p>
@@ -623,27 +624,7 @@ export default function RdvPage() {
                                   {typeRdvIcons[rdv.type_rdv || 'autre']}
                                 </span>
                                 <p className="font-medium truncate">
-                                  {(() => {
-                                    // Afficher le titre du RDV ou du dossier, en nettoyant seulement les vrais doublons
-                                    const titre = rdv.titre || rdv.dossiers?.titre || '';
-                                    if (titre.includes(' - ')) {
-                                      const parts = titre.split(' - ');
-                                      if (parts.length === 2) {
-                                        const clientPart = parts[1].trim();
-                                        const nameParts = clientPart.split(/\s+/);
-                                        // Si c'est un doublon évident (ex: "adlbapp4 adlbapp4"), remplacer par le nom du client
-                                        if (nameParts.length === 2 && nameParts[0] === nameParts[1] && nameParts[0].length < 15) {
-                                          // Essayer d'utiliser le nom du client si disponible
-                                          const client = rdv.clients || (rdv.dossiers as any)?.clients;
-                                          if (client && client.prenom && client.nom && client.prenom !== client.nom) {
-                                            return `${parts[0]} - ${client.prenom} ${client.nom}`;
-                                          }
-                                          return `${parts[0]} - Client`;
-                                        }
-                                      }
-                                    }
-                                    return titre;
-                                  })()}
+                                  {formatTitreAffichage(rdv.titre || rdv.dossiers?.titre || 'RDV sans titre', 40)}
                                 </p>
                                 {(rdv as any).source === 'google_calendar' && (
                                   <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">
@@ -831,27 +812,7 @@ export default function RdvPage() {
                                 {typeRdvIcons[rdv.type_rdv || 'autre']}
                               </span>
                               <p className="font-medium truncate">
-                                {(() => {
-                                  // Afficher le titre du RDV ou du dossier, en nettoyant seulement les vrais doublons
-                                  const titre = rdv.titre || rdv.dossiers?.titre || '';
-                                  if (titre.includes(' - ')) {
-                                    const parts = titre.split(' - ');
-                                    if (parts.length === 2) {
-                                      const clientPart = parts[1].trim();
-                                      const nameParts = clientPart.split(/\s+/);
-                                      // Si c'est un doublon évident (ex: "adlbapp4 adlbapp4"), remplacer par le nom du client
-                                      if (nameParts.length === 2 && nameParts[0] === nameParts[1] && nameParts[0].length < 15) {
-                                        // Essayer d'utiliser le nom du client si disponible
-                                        const client = rdv.clients || (rdv.dossiers as any)?.clients;
-                                        if (client && client.prenom && client.nom && client.prenom !== client.nom) {
-                                          return `${parts[0]} - ${client.prenom} ${client.nom}`;
-                                        }
-                                        return `${parts[0]} - Client`;
-                                      }
-                                    }
-                                  }
-                                  return titre;
-                                })()}
+                                {formatTitreAffichage(rdv.titre || rdv.dossiers?.titre || 'RDV sans titre', 40)}
                               </p>
                               {(rdv as any).source === 'google_calendar' && (
                                 <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">

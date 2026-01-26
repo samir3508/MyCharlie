@@ -348,12 +348,14 @@ serve(async (req) => {
       : `${typeLabels[type]} de ${pourcentage}% sur devis ${devis.numero}`
 
     // ÉTAPE 8 : Créer la facture
+    // ✅ Inclure dossier_id du devis pour lier la facture au dossier
     const { data: newFacture, error: createError } = await supabase
       .from('factures')
       .insert({
         tenant_id: devis.tenant_id,
         client_id: devis.client_id,
         devis_id: devis.id,
+        dossier_id: devis.dossier_id || null, // ✅ Lier au dossier du devis
         numero: factureNumero,
         titre,
         description,

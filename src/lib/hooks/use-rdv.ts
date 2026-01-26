@@ -231,7 +231,9 @@ export function useCreateRdv() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (rdv: Omit<InsertTables<'rdv'>, 'tenant_id'>) => {
+    mutationFn: async (rdv: Omit<InsertTables<'rdv'>, 'tenant_id'> & { 
+      envoyerCreneauxEmail?: boolean 
+    }) => {
       if (!tenant?.id) throw new Error('Tenant non trouvé')
 
       const { data, error } = await supabase
@@ -251,8 +253,12 @@ export function useCreateRdv() {
       if (rdv.dossier_id) {
         let newDossierStatut: string | null = null
 
+        // Si les créneaux sont envoyés par email → statut = rdv_planifie (en attente confirmation)
+        if (rdv.envoyerCreneauxEmail) {
+          newDossierStatut = 'rdv_planifie'
+        }
         // Si le RDV est créé directement avec statut 'confirme' (client a accepté)
-        if (rdv.statut === 'confirme') {
+        else if (rdv.statut === 'confirme') {
           newDossierStatut = 'rdv_confirme'
         } else {
           // Sinon, par défaut → rdv_planifie
@@ -268,6 +274,7 @@ export function useCreateRdv() {
             })
             .eq('id', rdv.dossier_id)
 
+          console.log(`🔄 Statut dossier mis à jour → ${newDossierStatut}`)
           // Note: L'entrée de journal est créée automatiquement par le trigger Supabase
         }
       }

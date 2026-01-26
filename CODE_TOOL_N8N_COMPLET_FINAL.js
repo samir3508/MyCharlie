@@ -494,6 +494,158 @@ const ACTION_MAP = {
 const normalizedAction = ACTION_MAP[action] || action;
 
 // ════════════════════════════════════════════════════════════════════════════
+// FONCTIONS HELPER POUR RÉSUMÉS ET PROCHAINES ACTIONS
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Génère les prochaines actions possibles selon le contexte
+ */
+function getNextActions(context) {
+  const actions = [];
+  
+  if (context.type === 'devis') {
+    if (context.statut === 'brouillon') {
+      actions.push({ label: 'Finaliser le devis', action: 'finalize-devis', devis_id: context.id });
+      actions.push({ label: 'Ajouter des lignes', action: 'add-ligne-devis', devis_id: context.id });
+    }
+    if (context.statut === 'pret' || context.statut === 'finalise') {
+      actions.push({ label: 'Envoyer le devis par email', action: 'envoyer-devis', devis_id: context.id, numero: context.numero });
+      actions.push({ label: 'Créer une facture d\'acompte', action: 'creer-facture-depuis-devis', devis_id: context.id, type: 'acompte' });
+    }
+    if (context.statut === 'envoye') {
+      actions.push({ label: 'Créer une facture d\'acompte', action: 'creer-facture-depuis-devis', devis_id: context.id, type: 'acompte' });
+      actions.push({ label: 'Voir le devis', action: 'get-devis', devis_id: context.id });
+    }
+  }
+  
+  if (context.type === 'facture') {
+    actions.push({ label: 'Envoyer la facture par email', action: 'envoyer-facture', facture_id: context.id, numero: context.numero });
+    if (context.statut !== 'payee') {
+      actions.push({ label: 'Marquer comme payée', action: 'mark-facture-paid', facture_id: context.id });
+    }
+    if (context.statut === 'envoyee' && context.date_echeance) {
+      const echeance = new Date(context.date_echeance);
+      const today = new Date();
+      if (echeance < today) {
+        actions.push({ label: 'Envoyer une relance', action: 'send-relance', facture_id: context.id });
+      }
+    }
+  }
+  
+  return actions;
+}
+
+/**
+ * Formate un résumé structuré pour un devis
+ */
+function formatDevisSummary(devis, client, lignes = []) {
+  return {
+    type: 'devis',
+    id: devis.id,
+    numero: devis.numero,
+    statut: devis.statut,
+    date_creation: devis.date_creation,
+    client: {
+      id: client?.id,
+      nom_complet: client?.nom_complet || `${client?.prenom || ''} ${client?.nom || ''}`.trim(),
+      email: client?.email,
+      telephone: client?.telephone,
+      adresse: client?.adresse_facturation
+    },
+    travaux: lignes.map(l => ({
+      designation: l.designation,
+      quantite: l.quantite,
+      unite: l.unite,
+      prix_unitaire_ht: l.prix_unitaire_ht,
+      tva_pct: l.tva_pct,
+      total_ht: (l.quantite || 0) * (l.prix_unitaire_ht || 0)
+    })),
+    montants: {
+      ht: devis.montant_ht || 0,
+      tva: devis.montant_tva || 0,
+      ttc: devis.montant_ttc || 0
+    },
+    conditions: {
+      adresse_chantier: devis.adresse_chantier,
+      delai_execution: devis.delai_execution
+    },
+    pdf_url: devis.pdf_url || (devis.id ? `${CONFIG.APP_URL}/api/pdf/devis/${devis.id}` : null),
+    next_actions: getNextActions({ type: 'devis', id: devis.id, numero: devis.numero, statut: devis.statut })
+  };
+}
+
+/**
+ * Formate un résumé structuré pour une facture
+ */
+function formatFactureSummary(facture, client, devis = null, lignes = []) {
+  return {
+    type: 'facture',
+    id: facture.id,
+    numero: facture.numero,
+    statut: facture.statut,
+    date_emission: facture.date_emission,
+    date_echeance: facture.date_echeance,
+    client: {
+      id: client?.id,
+      nom_complet: client?.nom_complet || `${client?.prenom || ''} ${client?.nom || ''}`.trim(),
+      email: client?.email,
+      telephone: client?.telephone
+    },
+    devis: devis ? {
+      id: devis.id,
+      numero: devis.numero
+    } : null,
+    travaux: lignes.map(l => ({
+      designation: l.designation,
+      quantite: l.quantite,
+      unite: l.unite,
+      prix_unitaire_ht: l.prix_unitaire_ht,
+      tva_pct: l.tva_pct,
+      total_ht: (l.quantite || 0) * (l.prix_unitaire_ht || 0)
+    })),
+    montants: {
+      ht: facture.montant_ht || 0,
+      tva: facture.montant_tva || 0,
+      ttc: facture.montant_ttc || 0
+    },
+    pdf_url: facture.pdf_url || (facture.id ? `${CONFIG.APP_URL}/api/pdf/facture/${facture.id}` : null),
+    next_actions: getNextActions({ 
+      type: 'facture', 
+      id: facture.id, 
+      numero: facture.numero, 
+      statut: facture.statut,
+      date_echeance: facture.date_echeance
+    })
+  };
+}
+
+/**
+ * Enrichit un résultat avec un résumé structuré
+ */
+function enrichResultWithSummary(result, type, data) {
+  if (!result.success || !data) return result;
+  
+  if (type === 'devis' && data.devis) {
+    result.summary = formatDevisSummary(
+      data.devis,
+      data.client || data.devis.clients,
+      data.lignes || data.devis.lignes_devis || []
+    );
+  }
+  
+  if (type === 'facture' && data.facture) {
+    result.summary = formatFactureSummary(
+      data.facture,
+      data.client || data.facture.clients,
+      data.devis || data.facture.devis,
+      data.lignes || data.facture.lignes_factures || []
+    );
+  }
+  
+  return result;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // EXÉCUTION
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -907,8 +1059,13 @@ try {
       });
       
       if (result.success && result.data && result.data.length > 0) {
-        result.message = `✅ Devis ${numero} créé`;
-        result.devis = result.data[0];
+        const devisData = result.data[0];
+        result.message = `✅ Devis ${numero} créé avec succès`;
+        result.devis = devisData;
+        result.devis_id = devisData.id;
+        result.devis_numero = numero;
+        result.client_id = client_id;
+        
         if (dossierId) {
           result.dossier_id = dossierId;
           
@@ -930,6 +1087,13 @@ try {
             result.dossier_update_warning = 'Statut dossier non mis à jour automatiquement';
           }
         }
+        
+        // ✅ Enrichir avec le résumé structuré (sans lignes pour l'instant, elles seront ajoutées après)
+        result = enrichResultWithSummary(result, 'devis', {
+          devis: devisData,
+          client: client,
+          lignes: []
+        });
       }
       break;
     }
@@ -941,6 +1105,7 @@ try {
         console.log(`🔍 [list-devis] Recherche: "${search}"`);
         
         const isNumero = typeof search === 'string' && (search.match(/^DV-\d{4}-\d{3,4}$/) || search.startsWith('DV-'));
+        const isEmail = typeof search === 'string' && search.includes('@');
         
         if (isNumero) {
           console.log(`🔍 Par numéro`);
@@ -949,6 +1114,81 @@ try {
             select: '*,clients(id,nom,prenom,nom_complet,email,telephone,adresse_facturation,adresse_chantier)',
             limit: payload.limit || 50
           });
+        } else if (isEmail) {
+          console.log(`🔍 Par email client`);
+          
+          // ✅ STRATÉGIE 1 : Recherche exacte par email
+          let clientsResult = await supabaseRequest.call(this, 'clients', 'GET', {
+            filters: { email: search },
+            select: 'id',
+            limit: 20
+          });
+          
+          if (clientsResult.success && clientsResult.count > 0) {
+            console.log(`✅ ${clientsResult.count} client(s) trouvé(s) par email, recherche devis...`);
+            console.log(`🔍 Client IDs:`, clientsResult.data.map(c => c.id));
+            
+            const clientIds = clientsResult.data.map(c => c.id);
+            
+            if (clientIds.length === 1) {
+              console.log(`🔍 Recherche devis pour client_id: ${clientIds[0]}`);
+              result = await supabaseRequest.call(this, 'devis', 'GET', {
+                filters: { client_id: clientIds[0] },
+                select: '*,clients(id,nom,prenom,nom_complet,email,telephone,adresse_facturation,adresse_chantier)',
+                limit: payload.limit || 50,
+                order: 'date_creation.desc'
+              });
+              console.log(`📋 Résultat recherche devis:`, {
+                success: result.success,
+                count: result.count,
+                hasData: Array.isArray(result.data) && result.data.length > 0
+              });
+            } else {
+              const clientIdsStr = clientIds.map(id => `"${id}"`).join(',');
+              const url = `${REST_URL}/devis?tenant_id=eq.${tenant_id}&client_id=in.(${clientIdsStr})&select=*,clients(id,nom,prenom,nom_complet,email,telephone,adresse_facturation,adresse_chantier)&order=date_creation.desc&limit=${payload.limit || 50}`;
+              
+              try {
+                const response = await this.helpers.httpRequest({
+                  method: 'GET',
+                  url: url,
+                  headers: headers,
+                  returnFullResponse: true
+                });
+                
+                const statusCode = (response && response.statusCode) || (response && response.status) || 200;
+                const responseData = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;
+                
+                if (statusCode >= 200 && statusCode < 300) {
+                  result = {
+                    success: true,
+                    data: Array.isArray(responseData) ? responseData : [],
+                    count: Array.isArray(responseData) ? responseData.length : 0
+                  };
+                } else {
+                  result = { success: false, error: 'QUERY_ERROR', message: 'Erreur recherche', data: [] };
+                }
+              } catch (httpError) {
+                const allDevis = [];
+                for (const clientId of clientIds) {
+                  const clientDevis = await supabaseRequest.call(this, 'devis', 'GET', {
+                    filters: { client_id: clientId },
+                    select: '*,clients(id,nom,prenom,nom_complet,email,telephone,adresse_facturation,adresse_chantier)',
+                    limit: 50
+                  });
+                  if (clientDevis.success && clientDevis.data) {
+                    allDevis.push(...clientDevis.data);
+                  }
+                }
+                result = {
+                  success: true,
+                  data: allDevis,
+                  count: allDevis.length
+                };
+              }
+            }
+          } else {
+            result = { success: true, data: [], count: 0, message: `Aucun client trouvé pour l'email "${search}"` };
+          }
         } else {
           console.log(`🔍 Par nom client`);
           
@@ -1010,16 +1250,23 @@ try {
           }
           
           if (clientsResult.success && clientsResult.count > 0) {
-            console.log(`✅ ${clientsResult.count} client(s), recherche devis...`);
+            console.log(`✅ ${clientsResult.count} client(s) trouvé(s), recherche devis...`);
+            console.log(`🔍 Client IDs:`, clientsResult.data.map(c => c.id));
             
             const clientIds = clientsResult.data.map(c => c.id);
             
             if (clientIds.length === 1) {
+              console.log(`🔍 Recherche devis pour client_id: ${clientIds[0]}`);
               result = await supabaseRequest.call(this, 'devis', 'GET', {
                 filters: { client_id: clientIds[0] },
                 select: '*,clients(id,nom,prenom,nom_complet,email,telephone,adresse_facturation,adresse_chantier)',
                 limit: payload.limit || 50,
                 order: 'date_creation.desc'
+              });
+              console.log(`📋 Résultat recherche devis:`, {
+                success: result.success,
+                count: result.count,
+                hasData: Array.isArray(result.data) && result.data.length > 0
               });
             } else {
               const clientIdsStr = clientIds.map(id => `"${id}"`).join(',');
@@ -1478,6 +1725,21 @@ try {
       
       try {
         const edgeFunctionUrl = `${CONFIG.SUPABASE_URL}/functions/v1/send-devis`;
+        const requestBody = {
+          tenant_id: tenant_id,
+          devis_id: devisUUID,
+          method: method,
+          recipient_email: recipient_email,
+          ...(payload.recipient_phone && { recipient_phone: payload.recipient_phone })
+        };
+        
+        console.log(`📧 Appel Edge Function: ${edgeFunctionUrl}`);
+        console.log(`📧 Headers:`, {
+          'Authorization': `Bearer ${CONFIG.SUPABASE_SERVICE_KEY ? '***' + CONFIG.SUPABASE_SERVICE_KEY.slice(-4) : 'MANQUANT'}`,
+          'Content-Type': 'application/json'
+        });
+        console.log(`📧 Payload:`, requestBody);
+        
         const edgeResponse = await this.helpers.httpRequest({
           method: 'POST',
           url: edgeFunctionUrl,
@@ -1485,42 +1747,136 @@ try {
             'Authorization': `Bearer ${CONFIG.SUPABASE_SERVICE_KEY}`,
             'Content-Type': 'application/json'
           },
-          body: {
-            tenant_id: tenant_id,
-            devis_id: devisUUID,
-            method: method,
-            recipient_email: recipient_email,
-            ...(payload.recipient_phone && { recipient_phone: payload.recipient_phone })
+          body: requestBody,
+          returnFullResponse: true,
+          ignoreHttpStatusErrors: true
+        });
+        
+        const statusCode = (edgeResponse && edgeResponse.statusCode) || (edgeResponse && edgeResponse.status) || (edgeResponse && edgeResponse.code) || 200;
+        let responseData = {};
+        
+        try {
+          if (edgeResponse && edgeResponse.body) {
+            responseData = typeof edgeResponse.body === 'string' 
+              ? (edgeResponse.body ? JSON.parse(edgeResponse.body) : {}) 
+              : edgeResponse.body;
           }
+        } catch (parseError) {
+          console.warn('⚠️ Impossible de parser la réponse:', parseError);
+          responseData = { raw_body: edgeResponse?.body };
+        }
+        
+        console.log(`📧 Réponse Edge Function:`, {
+          statusCode,
+          hasBody: !!edgeResponse?.body,
+          success: responseData?.success,
+          error: responseData?.error,
+          message: responseData?.message
         });
         
         // Si on arrive ici, la requête a réussi (pas d'exception)
-        if (edgeResponse && edgeResponse.success) {
+        if (statusCode >= 200 && statusCode < 300 && responseData && responseData.success) {
           emailSent = true;
         } else {
-          emailError = edgeResponse?.message || 'Réponse inattendue de l\'Edge Function';
+          // Gérer les différents cas d'erreur
+          if (statusCode === 404) {
+            // Fallback: appeler l'API Next.js /api/send-devis (évite la 404 Edge Function)
+            const fallbackUrl = `${CONFIG.APP_URL}/api/send-devis`;
+            console.log('📧 Edge Function 404 → tentative fallback:', fallbackUrl);
+            try {
+              const fallbackRes = await this.helpers.httpRequest({
+                method: 'POST',
+                url: fallbackUrl,
+                headers: {
+                  'Authorization': `Bearer ${CONFIG.SUPABASE_SERVICE_KEY}`,
+                  'Content-Type': 'application/json'
+                },
+                body: requestBody,
+                returnFullResponse: true,
+                ignoreHttpStatusErrors: true
+              });
+              const fc = fallbackRes?.statusCode || fallbackRes?.status || 0;
+              let fd = {};
+              try { fd = typeof fallbackRes?.body === 'string' ? JSON.parse(fallbackRes?.body || '{}') : (fallbackRes?.body || {}); } catch (_) {}
+              if (fc >= 200 && fc < 300 && fd?.success) {
+                emailSent = true;
+                console.log('📧 Fallback /api/send-devis: email envoyé');
+              } else {
+                if (fd?.error === 'DEVIS_NOT_FOUND' || fd?.error === 'CLIENT_NOT_FOUND' || fd?.error === 'UNAUTHORIZED') {
+                  emailError = fd?.message || fd?.error;
+                } else if (fc === 404) {
+                  emailError = `Fallback /api/send-devis non disponible (404). Déployez la route sur votre app Next.js (APP_URL=${CONFIG.APP_URL}) et vérifiez SUPABASE_SERVICE_ROLE_KEY. Voir DEPLOIEMENT_API_SEND_DEVIS.md`;
+                } else {
+                  emailError = fd?.message || fd?.error || `Fallback API: ${fd?.error || fc}`;
+                }
+              }
+            } catch (fbErr) {
+              emailError = `Edge Function 404. Fallback échec: ${fbErr?.message || fbErr}`;
+            }
+          } else if (statusCode === 401) {
+            emailError = `Authentification échouée (401). Vérifiez que SUPABASE_SERVICE_KEY est correct.`;
+          } else if (statusCode === 400) {
+            emailError = responseData?.message || responseData?.error || `Erreur de validation (400)`;
+          } else {
+            emailError = responseData?.message || responseData?.error || `Erreur Edge Function (${statusCode})`;
+          }
         }
       } catch (edgeError) {
-        // Si l'Edge Function échoue (Gmail non connecté, etc.), on continue quand même
-        // L'erreur peut être une réponse HTTP avec un corps JSON
-        try {
-          const errorBody = typeof edgeError.response === 'string' 
-            ? JSON.parse(edgeError.response) 
-            : edgeError.response;
-          
-          // Si c'est une erreur 400 "Gmail non connecté", on l'ignore et on continue
-          if (errorBody && (errorBody.error === 'GMAIL_NOT_CONNECTED' || errorBody.error === 'API_ERROR')) {
-            emailError = errorBody.message || errorBody.error;
-          } else {
+        // Si l'Edge Function échoue (Gmail non connecté, 404, etc.), on continue quand même
+        console.error('❌ Erreur Edge Function send-devis:', {
+          message: edgeError.message,
+          statusCode: edgeError.statusCode || edgeError.status,
+          response: edgeError.response,
+          url: edgeFunctionUrl
+        });
+        if (edgeError.statusCode === 404 || edgeError.status === 404) {
+          const fallbackUrl = `${CONFIG.APP_URL}/api/send-devis`;
+          console.log('📧 Edge Function 404 (exception) → tentative fallback:', fallbackUrl);
+          try {
+            const reqBody = { tenant_id, devis_id: devisUUID, method, recipient_email, ...(payload.recipient_phone && { recipient_phone: payload.recipient_phone }) };
+            const fb = await this.helpers.httpRequest({
+              method: 'POST',
+              url: fallbackUrl,
+              headers: { 'Authorization': `Bearer ${CONFIG.SUPABASE_SERVICE_KEY}`, 'Content-Type': 'application/json' },
+              body: reqBody,
+              returnFullResponse: true,
+              ignoreHttpStatusErrors: true
+            });
+            const fc = fb?.statusCode || fb?.status || 0;
+            let fd = {};
+            try { fd = typeof fb?.body === 'string' ? JSON.parse(fb?.body || '{}') : (fb?.body || {}); } catch (_) {}
+            if (fc >= 200 && fc < 300 && fd?.success) {
+              emailSent = true;
+              console.log('📧 Fallback /api/send-devis: email envoyé');
+            } else {
+              if (fd?.error === 'DEVIS_NOT_FOUND' || fd?.error === 'CLIENT_NOT_FOUND' || fd?.error === 'UNAUTHORIZED') {
+                emailError = fd?.message || fd?.error;
+              } else if (fc === 404) {
+                emailError = `Fallback /api/send-devis non disponible (404). Déployez la route sur votre app Next.js (APP_URL=${CONFIG.APP_URL}) et vérifiez SUPABASE_SERVICE_ROLE_KEY. Voir DEPLOIEMENT_API_SEND_DEVIS.md`;
+              } else {
+                emailError = fd?.message || fd?.error || `Fallback: ${fd?.error || fc}`;
+              }
+            }
+          } catch (fbErr) {
+            emailError = `Edge Function 404. Fallback échec: ${fbErr?.message || fbErr}`;
+          }
+        } else {
+          try {
+            const errorBody = typeof edgeError.response === 'string' ? JSON.parse(edgeError.response) : edgeError.response;
+            if (errorBody && (errorBody.error === 'GMAIL_NOT_CONNECTED' || errorBody.error === 'API_ERROR')) {
+              emailError = errorBody.message || errorBody.error;
+            } else {
+              emailError = edgeError.message || `Erreur lors de l'appel à send-devis (${edgeError.statusCode || edgeError.status || 'unknown'})`;
+            }
+          } catch (parseError) {
             emailError = edgeError.message || 'Erreur lors de l\'appel à send-devis';
           }
-        } catch (parseError) {
-          emailError = edgeError.message || 'Erreur lors de l\'appel à send-devis';
         }
       }
       
       // ═══════════════════════════════════════════════════════════════════════
       // Mettre à jour le statut du devis (toujours, même si l'email a échoué)
+      // Le trigger PostgreSQL mettra automatiquement à jour le statut du dossier
       // ═══════════════════════════════════════════════════════════════════════
       
       await supabaseRequest.call(this, 'devis', 'PATCH', {
@@ -1530,6 +1886,8 @@ try {
           date_envoi: new Date().toISOString().split('T')[0]
         }
       });
+      
+      console.log(`✅ Statut devis mis à jour à 'envoye' (le dossier sera mis à jour automatiquement via trigger)`);
       
       // ═══════════════════════════════════════════════════════════════════════
       // Retourner le résultat (succès avec avertissement si email non envoyé)
@@ -1625,13 +1983,74 @@ try {
           : edgeResponse.body;
         
         if (statusCode >= 200 && statusCode < 300) {
-          result = {
-            success: true,
-            message: `✅ Facture ${factureType} créée`,
-            data: [responseData],
-            count: 1,
-            facture: responseData
-          };
+          // ✅ Récupérer la facture complète avec toutes les infos pour le résumé
+          const factureId = responseData.id || responseData.facture_id;
+          if (factureId) {
+            try {
+              const factureComplete = await supabaseRequest.call(this, 'factures', 'GET', {
+                filters: { id: factureId },
+                select: '*,clients(id,nom,prenom,nom_complet,email,telephone),devis(id,numero,dossier_id),lignes_factures(*)'
+              });
+              
+              if (factureComplete.success && factureComplete.count > 0) {
+                const factureData = factureComplete.data[0];
+                const client = factureData.clients || {};
+                const devis = factureData.devis || {};
+                const lignes = factureData.lignes_factures || [];
+                
+                result = {
+                  success: true,
+                  message: `✅ Facture ${factureData.numero || factureType} créée avec succès`,
+                  data: [factureData],
+                  count: 1,
+                  facture: factureData,
+                  facture_id: factureData.id,
+                  facture_numero: factureData.numero,
+                  client_id: client.id,
+                  devis_id: devis.id,
+                  devis_numero: devis.numero
+                };
+                
+                // ✅ Enrichir avec le résumé structuré
+                result = enrichResultWithSummary(result, 'facture', {
+                  facture: factureData,
+                  client: client,
+                  devis: devis,
+                  lignes: lignes
+                });
+              } else {
+                // Fallback si on ne peut pas récupérer les détails
+                result = {
+                  success: true,
+                  message: `✅ Facture ${factureType} créée`,
+                  data: [responseData],
+                  count: 1,
+                  facture: responseData,
+                  facture_id: factureId,
+                  facture_numero: responseData.numero
+                };
+              }
+            } catch (fetchError) {
+              console.warn('⚠️ Erreur récupération détails facture:', fetchError);
+              result = {
+                success: true,
+                message: `✅ Facture ${factureType} créée`,
+                data: [responseData],
+                count: 1,
+                facture: responseData,
+                facture_id: factureId,
+                facture_numero: responseData.numero
+              };
+            }
+          } else {
+            result = {
+              success: true,
+              message: `✅ Facture ${factureType} créée`,
+              data: [responseData],
+              count: 1,
+              facture: responseData
+            };
+          }
         } else {
           result = {
             success: false,
@@ -1659,12 +2078,31 @@ try {
       }
       
       let factureUUID = facture_id;
-      if (facture_id.startsWith('FA-')) {
-        const searchResult = await supabaseRequest.call(this, 'factures', 'GET', {
-          search: { numero: facture_id },
+      // ✅ Détection améliorée : FA-, FAC-, FACT- ou format UUID
+      const isNumeroFacture = typeof facture_id === 'string' && (
+        facture_id.startsWith('FA-') || 
+        facture_id.startsWith('FAC-') || 
+        facture_id.startsWith('FACT-') ||
+        facture_id.match(/^FA[C]?[T]?-\d{4}-\d{3,4}(-[A-Z0-9]+)?$/i)
+      );
+      
+      if (isNumeroFacture) {
+        // ✅ Recherche exacte d'abord
+        let searchResult = await supabaseRequest.call(this, 'factures', 'GET', {
+          filters: { numero: facture_id },
           select: 'id',
           limit: 1
         });
+        
+        // ✅ Si recherche exacte échoue, essayer recherche partielle
+        if (!searchResult.success || searchResult.count === 0) {
+          searchResult = await supabaseRequest.call(this, 'factures', 'GET', {
+            search: { numero: facture_id },
+            select: 'id',
+            limit: 1
+          });
+        }
+        
         if (!searchResult.success || searchResult.count === 0) {
           result = { success: false, error: 'NOT_FOUND', message: `Facture ${facture_id} non trouvée` };
           break;
@@ -1678,14 +2116,36 @@ try {
       });
       
       if (result.success && result.count > 0) {
-        result.facture = result.data[0];
+        const factureData = result.data[0];
+        result.facture = factureData;
         const pdfUrl = CONFIG.APP_URL 
           ? `${CONFIG.APP_URL}/api/pdf/facture/${factureUUID}`
           : `/api/pdf/facture/${factureUUID}`;
         
-        result.facture.pdf_url = pdfUrl;
+        factureData.pdf_url = pdfUrl;
         result.pdf_url = pdfUrl;
-        result.message = `✅ Facture ${result.facture.numero}`;
+        result.message = `✅ Facture ${factureData.numero} trouvée`;
+        
+        // ✅ Enrichir avec le résumé structuré
+        const client = factureData.clients || {};
+        const devis = factureData.devis || {};
+        const lignes = factureData.lignes_factures || [];
+        
+        result = enrichResultWithSummary(result, 'facture', {
+          facture: factureData,
+          client: client,
+          devis: devis,
+          lignes: lignes
+        });
+        
+        // ✅ Ajouter les IDs pour les prochaines actions
+        result.facture_id = factureData.id;
+        result.facture_numero = factureData.numero;
+        result.client_id = client.id;
+        if (devis.id) {
+          result.devis_id = devis.id;
+          result.devis_numero = devis.numero;
+        }
       } else {
         result = { success: false, error: 'NOT_FOUND', message: 'Facture non trouvée' };
       }
@@ -1698,54 +2158,140 @@ try {
       if (search) {
         console.log(`🔍 [list-factures] Recherche: "${search}"`);
         
-        const isNumero = typeof search === 'string' && (search.match(/^FA-\d{4}-\d{3,4}$/) || search.startsWith('FA-'));
+        // ✅ Détection améliorée : FA-, FAC-, FACT- ou tout ce qui ressemble à un numéro de facture
+        const isNumero = typeof search === 'string' && (
+          search.match(/^FA[C]?[T]?-\d{4}-\d{3,4}(-[A-Z])?$/i) || 
+          search.startsWith('FA-') || 
+          search.startsWith('FAC-') || 
+          search.startsWith('FACT-') ||
+          search.match(/^[A-Z]{2,4}-\d{4}-\d{3,4}(-[A-Z0-9]+)?$/i) // Format générique : XX-YYYY-NNNN ou XX-YYYY-NNNN-SUFFIX
+        );
         
         if (isNumero) {
-          console.log(`🔍 Par numéro`);
+          console.log(`🔍 Par numéro de facture: "${search}"`);
+          // ✅ Recherche exacte d'abord, puis recherche partielle
+          let url = `${REST_URL}/factures?tenant_id=eq.${tenant_id}&numero=eq.${encodeURIComponent(search)}&select=*,clients(id,nom,prenom,nom_complet,email,telephone),devis(numero,id,dossier_id),dossiers(id,numero,titre),lignes_factures(*)&order=date_emission.desc&limit=${payload.limit || 50}`;
+          
           try {
-            const leoRouterUrl = `${CONFIG.SUPABASE_URL}/functions/v1/leo-router`;
-            const leoResponse = await this.helpers.httpRequest({
-              method: 'POST',
-              url: leoRouterUrl,
+            let response = await this.helpers.httpRequest({
+              method: 'GET',
+              url: url,
               headers: {
+                'apikey': CONFIG.SUPABASE_SERVICE_KEY,
                 'Authorization': `Bearer ${CONFIG.SUPABASE_SERVICE_KEY}`,
-                'Content-Type': 'application/json'
-              },
-              body: {
-                action: 'list-factures',
-                payload: { numero: search, ...payload },
-                tenant_id: tenant_id
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
               },
               returnFullResponse: true
             });
             
-            const statusCode = (leoResponse && leoResponse.statusCode) || 200;
-            const responseData = typeof leoResponse.body === 'string' 
-              ? JSON.parse(leoResponse.body) 
-              : leoResponse.body;
+            let statusCode = (response && response.statusCode) || (response && response.status) || 200;
+            let responseData = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;
+            let factures = Array.isArray(responseData) ? responseData : [];
+            
+            // ✅ Si recherche exacte ne trouve rien, essayer recherche partielle
+            if (statusCode >= 200 && statusCode < 300 && factures.length === 0) {
+              console.log(`🔍 Recherche exacte vide, tentative recherche partielle...`);
+              url = `${REST_URL}/factures?tenant_id=eq.${tenant_id}&numero=ilike.%25${encodeURIComponent(search)}%25&select=*,clients(id,nom,prenom,nom_complet,email,telephone),devis(numero,id,dossier_id),dossiers(id,numero,titre),lignes_factures(*)&order=date_emission.desc&limit=${payload.limit || 50}`;
+              
+              response = await this.helpers.httpRequest({
+                method: 'GET',
+                url: url,
+                headers: {
+                  'apikey': CONFIG.SUPABASE_SERVICE_KEY,
+                  'Authorization': `Bearer ${CONFIG.SUPABASE_SERVICE_KEY}`,
+                  'Content-Type': 'application/json',
+                  'Prefer': 'return=representation'
+                },
+                returnFullResponse: true
+              });
+              
+              statusCode = (response && response.statusCode) || (response && response.status) || 200;
+              responseData = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;
+              factures = Array.isArray(responseData) ? responseData : [];
+            }
             
             if (statusCode >= 200 && statusCode < 300) {
+              // ✅ Enrichir chaque facture avec un résumé
+              const facturesEnrichies = factures.map(f => {
+                const client = f.clients || {};
+                const devis = f.devis || {};
+                const lignes = f.lignes_factures || [];
+                const summary = formatFactureSummary(f, client, devis, lignes);
+                return {
+                  ...f,
+                  summary: summary,
+                  facture_id: f.id,
+                  facture_numero: f.numero,
+                  client_id: client.id,
+                  devis_id: devis.id,
+                  devis_numero: devis.numero
+                };
+              });
+              
               result = {
                 success: true,
-                message: `${responseData.count || 0} facture(s)`,
-                data: responseData.data || [],
-                count: responseData.count || 0,
-                factures: responseData.data || []
+                message: `${facturesEnrichies.length} facture(s) trouvée(s)`,
+                data: facturesEnrichies,
+                count: facturesEnrichies.length,
+                factures: facturesEnrichies
               };
             } else {
               result = {
                 success: false,
-                error: responseData.error || 'ERROR',
-                message: responseData.message || 'Erreur',
-                details: responseData
+                error: 'QUERY_ERROR',
+                message: 'Erreur lors de la recherche de facture',
+                data: []
               };
             }
-          } catch (leoError) {
-            result = {
-              success: false,
-              error: 'LEO_ERROR',
-              message: leoError.message
-            };
+          } catch (httpError) {
+            console.warn('⚠️ [list-factures] Erreur requête directe, tentative via leo-router...');
+            // Fallback vers leo-router si disponible
+            try {
+              const leoRouterUrl = `${CONFIG.SUPABASE_URL}/functions/v1/leo-router`;
+              const leoResponse = await this.helpers.httpRequest({
+                method: 'POST',
+                url: leoRouterUrl,
+                headers: {
+                  'Authorization': `Bearer ${CONFIG.SUPABASE_SERVICE_KEY}`,
+                  'Content-Type': 'application/json'
+                },
+                body: {
+                  action: 'list-factures',
+                  payload: { numero: search, ...payload },
+                  tenant_id: tenant_id
+                },
+                returnFullResponse: true,
+                ignoreHttpStatusErrors: true
+              });
+              
+              const statusCode = (leoResponse && leoResponse.statusCode) || 200;
+              const responseData = typeof leoResponse.body === 'string' 
+                ? JSON.parse(leoResponse.body) 
+                : leoResponse.body;
+              
+              if (statusCode >= 200 && statusCode < 300 && responseData.data) {
+                result = {
+                  success: true,
+                  message: `${responseData.count || 0} facture(s)`,
+                  data: responseData.data || [],
+                  count: responseData.count || 0,
+                  factures: responseData.data || []
+                };
+              } else {
+                result = {
+                  success: false,
+                  error: 'LEO_ROUTER_ERROR',
+                  message: `leo-router non disponible (404) ou erreur: ${responseData.message || httpError.message}`
+                };
+              }
+            } catch (leoError) {
+              result = {
+                success: false,
+                error: 'LEO_ERROR',
+                message: `Erreur recherche facture: ${httpError.message || leoError.message}`
+              };
+            }
           }
         } else {
           console.log(`🔍 Par nom client`);
@@ -1881,54 +2427,216 @@ try {
               }
             }
           } else {
-            result = { success: true, data: [], count: 0, message: `Aucun client pour "${search}"`, factures: [] };
+            // ✅ Si aucun client trouvé, essayer de chercher directement par numéro de facture
+            console.log(`🔍 Aucun client trouvé, tentative recherche directe par numéro de facture: "${search}"`);
+            // ✅ Fallback direct vers Supabase REST API
+            const url = `${REST_URL}/factures?tenant_id=eq.${tenant_id}&numero=ilike.%25${encodeURIComponent(search)}%25&select=*,clients(id,nom,prenom,nom_complet,email,telephone),devis(numero,id,dossier_id),dossiers(id,numero,titre)&order=date_emission.desc&limit=${payload.limit || 50}`;
+            
+            try {
+              const response = await this.helpers.httpRequest({
+                method: 'GET',
+                url: url,
+                headers: {
+                  'apikey': CONFIG.SUPABASE_SERVICE_KEY,
+                  'Authorization': `Bearer ${CONFIG.SUPABASE_SERVICE_KEY}`,
+                  'Content-Type': 'application/json',
+                  'Prefer': 'return=representation'
+                },
+                returnFullResponse: true
+              });
+              
+              const statusCode = (response && response.statusCode) || (response && response.status) || 200;
+              const responseData = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;
+              
+              if (statusCode >= 200 && statusCode < 300) {
+                const factures = Array.isArray(responseData) ? responseData : [];
+                if (factures.length > 0) {
+                  result = {
+                    success: true,
+                    message: `${factures.length} facture(s) trouvée(s)`,
+                    data: factures,
+                    count: factures.length,
+                    factures: factures
+                  };
+                } else {
+                  result = { 
+                    success: true, 
+                    data: [], 
+                    count: 0, 
+                    message: `Aucun client ni facture trouvé(e) pour "${search}"`, 
+                    factures: [] 
+                  };
+                }
+              } else {
+                result = { 
+                  success: true, 
+                  data: [], 
+                  count: 0, 
+                  message: `Aucun client trouvé pour "${search}" et erreur lors de la recherche de facture`, 
+                  factures: [] 
+                };
+              }
+            } catch (fallbackError) {
+              result = { 
+                success: true, 
+                data: [], 
+                count: 0, 
+                message: `Aucun client trouvé pour "${search}" et erreur lors de la recherche de facture: ${fallbackError.message}`, 
+                factures: [] 
+              };
+            }
           }
         }
       } else {
+        // ✅ Liste toutes les factures (sans recherche) - Fallback direct vers Supabase
+        const url = `${REST_URL}/factures?tenant_id=eq.${tenant_id}&select=*,clients(id,nom,prenom,nom_complet,email,telephone),devis(numero,id,dossier_id),dossiers(id,numero,titre)&order=date_emission.desc&limit=${payload.limit || 50}`;
+        
         try {
-          const leoRouterUrl = `${CONFIG.SUPABASE_URL}/functions/v1/leo-router`;
-          const leoResponse = await this.helpers.httpRequest({
-            method: 'POST',
-            url: leoRouterUrl,
+          const response = await this.helpers.httpRequest({
+            method: 'GET',
+            url: url,
             headers: {
+              'apikey': CONFIG.SUPABASE_SERVICE_KEY,
               'Authorization': `Bearer ${CONFIG.SUPABASE_SERVICE_KEY}`,
-              'Content-Type': 'application/json'
-            },
-            body: {
-              action: 'list-factures',
-              payload: payload || {},
-              tenant_id: tenant_id
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation'
             },
             returnFullResponse: true
           });
           
-          const statusCode = (leoResponse && leoResponse.statusCode) || 200;
-          const responseData = typeof leoResponse.body === 'string' 
-            ? JSON.parse(leoResponse.body) 
-            : leoResponse.body;
+          const statusCode = (response && response.statusCode) || (response && response.status) || 200;
+          const responseData = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;
           
           if (statusCode >= 200 && statusCode < 300) {
+            const factures = Array.isArray(responseData) ? responseData : [];
             result = {
               success: true,
-              message: `${responseData.count || 0} facture(s)`,
-              data: responseData.data || [],
-              count: responseData.count || 0,
-              factures: responseData.data || []
+              message: `${factures.length} facture(s)`,
+              data: factures,
+              count: factures.length,
+              factures: factures
             };
           } else {
             result = {
               success: false,
-              error: responseData.error || 'ERROR',
-              message: responseData.message || 'Erreur'
+              error: 'QUERY_ERROR',
+              message: 'Erreur lors de la récupération des factures'
             };
           }
-        } catch (leoError) {
+        } catch (httpError) {
+          // Fallback vers leo-router si disponible
+          try {
+            const leoRouterUrl = `${CONFIG.SUPABASE_URL}/functions/v1/leo-router`;
+            const leoResponse = await this.helpers.httpRequest({
+              method: 'POST',
+              url: leoRouterUrl,
+              headers: {
+                'Authorization': `Bearer ${CONFIG.SUPABASE_SERVICE_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: {
+                action: 'list-factures',
+                payload: payload || {},
+                tenant_id: tenant_id
+              },
+              returnFullResponse: true,
+              ignoreHttpStatusErrors: true
+            });
+            
+            const statusCode = (leoResponse && leoResponse.statusCode) || 200;
+            const responseData = typeof leoResponse.body === 'string' 
+              ? JSON.parse(leoResponse.body) 
+              : leoResponse.body;
+            
+            if (statusCode >= 200 && statusCode < 300) {
+              result = {
+                success: true,
+                message: `${responseData.count || 0} facture(s)`,
+                data: responseData.data || [],
+                count: responseData.count || 0,
+                factures: responseData.data || []
+              };
+            } else {
+              result = {
+                success: false,
+                error: 'LEO_ROUTER_ERROR',
+                message: `leo-router non disponible (404) ou erreur: ${responseData.message || httpError.message}`
+              };
+            }
+          } catch (leoError) {
+            result = {
+              success: false,
+              error: 'LEO_ERROR',
+              message: `Erreur récupération factures: ${httpError.message || leoError.message}`
+            };
+          }
+        }
+      }
+      break;
+    }
+    
+    case 'send-relance': {
+      const { facture_id, method, recipient_email, recipient_phone } = payload;
+      
+      if (!facture_id) {
+        result = { success: false, error: 'VALIDATION_ERROR', message: 'facture_id requis' };
+        break;
+      }
+      
+      // method par défaut: email
+      const relanceMethod = method || 'email';
+      
+      if (!['email', 'whatsapp'].includes(relanceMethod)) {
+        result = { success: false, error: 'VALIDATION_ERROR', message: 'method doit être "email" ou "whatsapp"' };
+        break;
+      }
+      
+      try {
+        const edgeFunctionUrl = `${CONFIG.SUPABASE_URL}/functions/v1/send-relance`;
+        const edgeResponse = await this.helpers.httpRequest({
+          method: 'POST',
+          url: edgeFunctionUrl,
+          headers: {
+            'Authorization': `Bearer ${CONFIG.SUPABASE_SERVICE_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: {
+            tenant_id: tenant_id,
+            facture_id: facture_id,
+            method: relanceMethod,
+            recipient_email: recipient_email || null,
+            recipient_phone: recipient_phone || null
+          },
+          returnFullResponse: true
+        });
+        
+        const statusCode = (edgeResponse && edgeResponse.statusCode) || (edgeResponse && edgeResponse.status) || 200;
+        const responseData = typeof edgeResponse.body === 'string' 
+          ? JSON.parse(edgeResponse.body) 
+          : edgeResponse.body;
+        
+        if (statusCode >= 200 && statusCode < 300) {
+          result = {
+            success: true,
+            message: responseData.message || `Relance envoyée par ${relanceMethod}`,
+            data: [responseData],
+            count: 1,
+            relance: responseData
+          };
+        } else {
           result = {
             success: false,
-            error: 'LEO_ERROR',
-            message: leoError.message
+            error: responseData.error || 'ERROR',
+            message: responseData.message || 'Erreur lors de l\'envoi de la relance',
+            details: responseData
           };
         }
+      } catch (edgeError) {
+        result = {
+          success: false,
+          error: 'EDGE_FUNCTION_ERROR',
+          message: `Erreur lors de l'appel à send-relance: ${edgeError.message}`
+        };
       }
       break;
     }
@@ -2353,7 +3061,7 @@ try {
           'create-client', 'search-client', 'list-clients', 'get-client', 'update-client', 'delete-client',
           'create-devis', 'add-ligne-devis', 'update-ligne-devis', 'delete-ligne-devis', 'finalize-devis', 
           'get-devis', 'list-devis', 'update-devis', 'delete-devis', 'envoyer-devis',
-          'creer-facture-depuis-devis', 'get-facture', 'list-factures',
+          'creer-facture-depuis-devis', 'get-facture', 'list-factures', 'send-relance',
           'create-dossier', 'list-dossiers',
           'create-rdv', 'list-rdv',
           'stats'

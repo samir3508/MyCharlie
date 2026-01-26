@@ -250,10 +250,16 @@ export default function DossierDetailPage() {
               <FolderKanban className="w-6 h-6 text-white" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <h1 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
                   {dossier.titre}
                 </h1>
+                {dossier.titre && dossier.titre.length > 50 && (
+                  <Badge variant="outline" className="text-xs">
+                    {dossier.titre.length} caractères
+                  </Badge>
+                )}
+              </div>
                 <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/30">
                   <Bot className="w-3 h-3 mr-1" />
                   Léo

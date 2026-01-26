@@ -261,8 +261,15 @@ export function DossierKanban({ dossiers, onUpdateStatut }: DossierKanbanProps) 
                         </DropdownMenu>
                       </div>
 
-                      {/* Titre du dossier */}
-                      <p className="text-sm font-medium line-clamp-2">{dossier.titre}</p>
+                      {/* Titre du dossier amélioré */}
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium line-clamp-2 leading-tight">{dossier.titre}</p>
+                        {dossier.titre && dossier.titre.length > 40 && (
+                          <p className="text-xs text-muted-foreground">
+                            {dossier.titre.length > 40 ? `${dossier.titre.substring(0, 40)}...` : dossier.titre}
+                          </p>
+                        )}
+                      </div>
 
                       {/* Badges */}
                       <div className="flex flex-wrap gap-1.5">
