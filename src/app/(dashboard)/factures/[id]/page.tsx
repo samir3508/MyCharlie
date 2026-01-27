@@ -177,33 +177,34 @@ export default function FactureDetailPage({ params }: PageProps) {
     <div className="min-h-screen bg-gradient-black-orange">
       {/* Header sticky */}
       <header className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm border-b border-gray-800 shadow-lg shadow-black/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-2 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
             {/* Breadcrumb */}
-            <div className="flex items-center space-x-2 text-sm">
-              <Link href="/dashboard" className="text-gray-400 hover:text-[#FF4D00]">
+            <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm min-w-0 flex-1">
+              <Link href="/dashboard" className="text-gray-400 hover:text-[#FF4D00] truncate">
                 Dashboard
               </Link>
-              <ChevronRight className="h-4 w-4 text-gray-600" />
-              <Link href="/factures" className="text-gray-400 hover:text-[#FF4D00]">
+              <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600 flex-shrink-0" />
+              <Link href="/factures" className="text-gray-400 hover:text-[#FF4D00] truncate">
                 Factures
               </Link>
-              <ChevronRight className="h-4 w-4 text-gray-600" />
-              <span className="font-semibold text-white">{facture.numero}</span>
+              <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600 flex-shrink-0" />
+              <span className="font-semibold text-white truncate">{facture.numero}</span>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={handleTelechargerPDF} className="bg-[#1A1A1A] text-white border-gray-700 hover:bg-[#262626] hover:border-gray-600">
-                <Download className="h-4 w-4 mr-2" />
-                Télécharger PDF
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <Button variant="outline" size="sm" onClick={handleTelechargerPDF} className="bg-[#1A1A1A] text-white border-gray-700 hover:bg-[#262626] hover:border-gray-600 flex-1 sm:flex-initial text-xs sm:text-sm">
+                <Download className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Télécharger PDF</span>
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button size="sm" className="bg-[#FF4D00] hover:bg-[#E64600]">
-                    Actions
-                    <ChevronDown className="h-4 w-4 ml-2" />
+                  <Button size="sm" className="bg-[#FF4D00] hover:bg-[#E64600] text-xs sm:text-sm">
+                    <span className="hidden sm:inline">Actions</span>
+                    <span className="sm:hidden">...</span>
+                    <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 sm:ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-[#1A1A1A] text-white border border-gray-800">
@@ -260,8 +261,8 @@ export default function FactureDetailPage({ params }: PageProps) {
       </header>
 
       {/* Container principal */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Colonne gauche (2/3) */}
           <div className="lg:col-span-2 space-y-6">
             {/* Card Statut & Vue d'ensemble */}
@@ -274,11 +275,11 @@ export default function FactureDetailPage({ params }: PageProps) {
                 facture.statut === 'brouillon' && 'border-t-gray-500'
               )}
             >
-              <CardContent className="p-6 bg-gradient-to-br from-[#1A1A1A] to-[#0F0F0F]">
+              <CardContent className="p-3 sm:p-6 bg-gradient-to-br from-[#1A1A1A] to-[#0F0F0F]">
                 {/* Numéro & Statut */}
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">
+                <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 truncate">
                       Facture {facture.numero}
                     </h1>
                     <p className="text-gray-400">{facture.titre || 'Sans titre'}</p>

@@ -2,7 +2,9 @@
 // 🤖 TOOL SUPABASE POUR CHARLIE & LÉO - VERSION N8N V4 (COMPLÈTE + CORRIGÉE)
 // ============================================================================
 // ✅ VERSION FINALE avec toutes les fonctionnalités + recherche par nom corrigée
+// ✅ Améliorations : Validation renforcée, gestion d'erreurs améliorée
 // Date : 24 janvier 2026
+// Dernière mise à jour : 24 janvier 2026
 // ============================================================================
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -363,6 +365,210 @@ function parseNomComplet(nomComplet) {
   if (parts.length === 1) return { nom: parts[0], prenom: '' };
   return { prenom: parts[0], nom: parts.slice(1).join(' ') };
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// GÉNÉRATEUR DE TITRES POUR DOSSIERS
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Génère un titre automatique pour un dossier basé sur les informations disponibles
+ * @param {Object} dossier - Les informations du dossier
+ * @param {string|null} dossier.type_travaux - Type de travaux
+ * @param {string|null} dossier.adresse_chantier - Adresse du chantier
+ * @param {Object|null} dossier.clients - Informations client
+ * @param {string|null} dossier.clients.nom_complet - Nom complet du client
+ * @param {string|null} dossier.clients.nom - Nom du client
+ * @param {string|null} dossier.clients.prenom - Prénom du client
+ * @param {string|null} dossier.description - Description du dossier
+ * @param {string|null} dossier.statut - Statut du dossier
+ * @returns {string} Un titre suggéré
+ */
+function genererTitreDossier(dossier = {}) {
+  const { type_travaux, adresse_chantier, clients, description, statut } = dossier;
+  
+  // Extraire le nom du client
+  let nomClient = clients?.nom_complet || 
+    (clients?.prenom && clients?.nom ? `${clients.prenom} ${clients.nom}`.trim() : null) ||
+    clients?.nom || 
+    null;
+
+  // Ignorer les noms invalides (instructions mal parsées: "moi le", "fais moi", etc.)
+  const motsInterdits = [
+    'moi', 'le', 'la', 'les', 'lui', 'elle', 'un', 'une', 'des', 'du', 'de',
+    'fais', 'fait', 'faire', 'c\'est', 'cest', 'oui', 'non', 'ok', 'dossier',
+    'travaux', 'client', 'merci', 'svp', 'stp'
+  ];
+  const estNomValide = (nom) => {
+    if (!nom || typeof nom !== 'string') return false;
+    const n = nom.trim();
+    if (n.length < 3) return false;
+    const nLower = n.toLowerCase();
+    if (motsInterdits.includes(nLower)) return false;
+    if (/^(moi\s|fais\s|fait\s|faire\s|c\'?est\s)/i.test(n)) return false;
+    const mots = nLower.split(/\s+/).filter(Boolean);
+    if (mots.length > 0 && mots.every(m => motsInterdits.includes(m))) return false;
+    return true;
+  };
+  if (nomClient && !estNomValide(nomClient)) {
+    nomClient = null;
+  }
+
+  // Fonction pour extraire la ville d'une adresse
+  const extraireVille = (adresse) => {
+    if (!adresse) return null;
+    // Chercher un code postal (5 chiffres) suivi d'une ville
+    const match = adresse.match(/\d{5}\s+([A-Za-zÀ-ÿ\s-]+)/i);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+    // Sinon, prendre le dernier élément après la dernière virgule
+    const parties = adresse.split(',').map(p => p.trim());
+    if (parties.length > 1) {
+      return parties[parties.length - 1];
+    }
+    // Sinon, prendre le premier élément
+    return parties[0];
+  };
+
+  // Fonction pour normaliser le type de travaux
+  const normaliserTypeTravaux = (type) => {
+    if (!type) return null;
+    const typeLower = type.toLowerCase().trim();
+    
+    // Mots-clés de travaux courants
+    const typesTravaux = {
+      'cuisine': 'Rénovation cuisine',
+      'salle de bain': 'Rénovation salle de bain',
+      'sdb': 'Rénovation salle de bain',
+      'salle bain': 'Rénovation salle de bain',
+      'peinture': 'Peinture',
+      'carrelage': 'Carrelage',
+      'parquet': 'Pose parquet',
+      'plomberie': 'Travaux plomberie',
+      'électricité': 'Travaux électricité',
+      'electricite': 'Travaux électricité',
+      'isolation': 'Isolation',
+      'chauffage': 'Installation chauffage',
+      'fenêtre': 'Remplacement fenêtres',
+      'fenetre': 'Remplacement fenêtres',
+      'porte': 'Remplacement portes',
+      'toit': 'Travaux toiture',
+      'toiture': 'Travaux toiture',
+      'façade': 'Rénovation façade',
+      'facade': 'Rénovation façade',
+      'terrasse': 'Aménagement terrasse',
+      'balcon': 'Aménagement balcon',
+      'extension': 'Extension',
+      'rénovation': 'Rénovation',
+      'renovation': 'Rénovation',
+      'construction': 'Construction',
+      'aménagement': 'Aménagement',
+      'amenagement': 'Aménagement',
+      'décoration': 'Décoration',
+      'decoration': 'Décoration',
+    };
+
+    // Chercher une correspondance exacte ou partielle
+    for (const [key, value] of Object.entries(typesTravaux)) {
+      if (typeLower.includes(key) || key.includes(typeLower)) {
+        return value;
+      }
+    }
+
+    // Si pas de correspondance, capitaliser la première lettre
+    return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+  };
+
+  // Priorité 1: Type de travaux + Client (le plus descriptif)
+  if (type_travaux && nomClient) {
+    const typeNormalise = normaliserTypeTravaux(type_travaux);
+    return `${typeNormalise} - ${nomClient}`;
+  }
+
+  // Priorité 2: Type de travaux + Ville
+  if (type_travaux && adresse_chantier) {
+    const typeNormalise = normaliserTypeTravaux(type_travaux);
+    const ville = extraireVille(adresse_chantier);
+    if (ville) {
+      return `${typeNormalise} - ${ville}`;
+    }
+  }
+
+  // Priorité 3: Type de travaux seul
+  if (type_travaux) {
+    return normaliserTypeTravaux(type_travaux);
+  }
+
+  // Priorité 4: Extraire type de travaux depuis la description
+  if (description) {
+    const descLower = description.toLowerCase();
+    const motsClesTravaux = [
+      'cuisine', 'salle de bain', 'sdb', 'peinture', 'carrelage', 'parquet',
+      'plomberie', 'électricité', 'electricite', 'isolation', 'chauffage',
+      'fenêtre', 'fenetre', 'porte', 'toit', 'toiture', 'façade', 'facade',
+      'terrasse', 'balcon', 'extension', 'rénovation', 'renovation',
+      'construction', 'aménagement', 'amenagement', 'décoration', 'decoration'
+    ];
+
+    for (const motCle of motsClesTravaux) {
+      if (descLower.includes(motCle)) {
+        const typeNormalise = normaliserTypeTravaux(motCle);
+        if (nomClient) {
+          return `${typeNormalise} - ${nomClient}`;
+        }
+        if (adresse_chantier) {
+          const ville = extraireVille(adresse_chantier);
+          if (ville) {
+            return `${typeNormalise} - ${ville}`;
+          }
+        }
+        return typeNormalise;
+      }
+    }
+  }
+
+  // Priorité 5: Client + "Travaux"
+  if (nomClient) {
+    return `Travaux ${nomClient}`;
+  }
+
+  // Priorité 6: Adresse chantier
+  if (adresse_chantier) {
+    const ville = extraireVille(adresse_chantier);
+    if (ville) {
+      return `Travaux ${ville}`;
+    }
+  }
+
+  // Priorité 7: Basé sur le statut
+  if (statut) {
+    const statutLabels = {
+      'contact_recu': 'Nouveau contact',
+      'qualification': 'Projet en qualification',
+      'rdv_a_planifier': 'RDV à planifier',
+      'rdv_planifie': 'RDV planifié',
+      'rdv_confirme': 'RDV confirmé',
+      'visite_realisee': 'Visite réalisée',
+      'devis_en_cours': 'Devis en préparation',
+      'devis_pret': 'Devis prêt',
+      'devis_envoye': 'Devis envoyé',
+      'en_negociation': 'En négociation',
+      'signe': 'Projet signé',
+      'chantier_en_cours': 'Chantier en cours',
+      'chantier_termine': 'Chantier terminé',
+    };
+    if (statutLabels[statut]) {
+      return statutLabels[statut];
+    }
+  }
+
+  // Par défaut
+  return 'Nouveau dossier';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// GÉNÉRATION DE NUMÉROS
+// ════════════════════════════════════════════════════════════════════════════
 
 async function generateNumero(type = 'DV') {
   const year = new Date().getFullYear();
@@ -753,8 +959,24 @@ try {
         result.client = newClient;
         
         try {
-          const nomCompletClient = nom_complet || `${prenom || ''} ${nom}`.trim();
-          const dossierTitle = `Dossier ${nomCompletClient}`;
+          // Construire le nom complet du client de manière robuste
+          let nomCompletClient = nom_complet || `${prenom || ''} ${nom}`.trim();
+          // Si toujours vide, utiliser les données du client créé
+          if (!nomCompletClient || nomCompletClient.trim() === '') {
+            nomCompletClient = newClient.nom_complet || `${newClient.prenom || ''} ${newClient.nom}`.trim() || 'Client';
+          }
+          // Utiliser le générateur de titres intelligent
+          const dossierTitle = genererTitreDossier({
+            type_travaux: null,
+            adresse_chantier: adresse_facturation || null,
+            clients: {
+              nom_complet: nomCompletClient,
+              nom: nom,
+              prenom: prenom
+            },
+            description: null,
+            statut: 'contact_recu'
+          });
           const dossierNumero = await generateNumero.call(this, 'DOS');
           
           const dossierResult = await supabaseRequest.call(this, 'dossiers', 'POST', {
@@ -1011,15 +1233,32 @@ try {
         if (dossierCheck.success && dossierCheck.count > 0) {
           dossierId = dossierCheck.data[0].id;
         } else {
-          const nomCompletClient = `${client.prenom || ''} ${client.nom}`.trim();
+          // Construire le nom complet du client de manière robuste
+          let nomCompletClient = client.nom_complet || `${client.prenom || ''} ${client.nom}`.trim();
+          // Si toujours vide, utiliser un fallback
+          if (!nomCompletClient || nomCompletClient.trim() === '') {
+            nomCompletClient = 'Client';
+          }
+          // Utiliser le générateur de titres intelligent
+          const dossierTitle = genererTitreDossier({
+            type_travaux: null,
+            adresse_chantier: client.adresse_facturation || null,
+            clients: {
+              nom_complet: nomCompletClient,
+              nom: client.nom,
+              prenom: client.prenom
+            },
+            description: null,
+            statut: 'contact_recu'
+          });
           const dossierNumero = await generateNumero.call(this, 'DOS');
           
           const dossierResult = await supabaseRequest.call(this, 'dossiers', 'POST', {
             body: {
               client_id: client_id,
               numero: dossierNumero,
-              titre: `Dossier ${nomCompletClient}`,
-              description: `Créé auto`,
+              titre: dossierTitle,
+              description: `Dossier automatiquement créé pour ${nomCompletClient} lors de la création du devis`,
               statut: 'contact_recu',
               priorite: 'normale',
               source: 'autre'
@@ -2575,6 +2814,211 @@ try {
       break;
     }
     
+    // ═══════════════════════════════════════════════════════════════════════
+    // 📧 ENVOI DE CRÉNEAUX PAR EMAIL
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    case 'send-creneaux-email': {
+      const { client_email, client_name, creneaux, date, type_rdv, adresse, dossier_id } = payload;
+      
+      // Validation des paramètres obligatoires
+      if (!client_email) {
+        result = { 
+          success: false, 
+          error: 'VALIDATION_ERROR', 
+          message: 'client_email est requis' 
+        };
+        break;
+      }
+      
+      if (!creneaux || !Array.isArray(creneaux) || creneaux.length === 0) {
+        result = { 
+          success: false, 
+          error: 'VALIDATION_ERROR', 
+          message: 'creneaux doit être un tableau non vide avec au moins un créneau' 
+        };
+        break;
+      }
+      
+      // Validation du format des créneaux
+      const invalidCreneaux = creneaux.filter(c => !c.start && !c.date_heure);
+      if (invalidCreneaux.length > 0) {
+        result = { 
+          success: false, 
+          error: 'VALIDATION_ERROR', 
+          message: `Certains créneaux n'ont pas de date/heure (start ou date_heure requis)` 
+        };
+        break;
+      }
+
+      try {
+        // 1. Chercher le client par email pour trouver le dossier
+        let dossierIdFinal = dossier_id;
+        let clientIdFinal = null;
+        
+        if (!dossierIdFinal) {
+          const clientResult = await supabaseRequest.call(this, 'clients', 'GET', {
+            filters: { email: client_email },
+            limit: 1
+          });
+          
+          if (clientResult.success && clientResult.data && clientResult.data.length > 0) {
+            clientIdFinal = clientResult.data[0].id;
+            
+            // Chercher le dossier du client
+            const dossiersResult = await supabaseRequest.call(this, 'dossiers', 'GET', {
+              filters: { client_id: clientIdFinal },
+              limit: 1,
+              orderBy: 'created_at',
+              orderDirection: 'desc'
+            });
+            
+            if (dossiersResult.success && dossiersResult.count > 0) {
+              dossierIdFinal = dossiersResult.data[0].id;
+            } else {
+              // Créer un dossier automatiquement
+              const nomCompletClient = client_name || clientResult.data[0].nom_complet || 
+                `${clientResult.data[0].prenom || ''} ${clientResult.data[0].nom || ''}`.trim();
+              
+              const dossierTitle = genererTitreDossier({
+                type_travaux: null,
+                adresse_chantier: clientResult.data[0].adresse_facturation || null,
+                clients: {
+                  nom_complet: nomCompletClient,
+                  nom: clientResult.data[0].nom,
+                  prenom: clientResult.data[0].prenom
+                },
+                description: null,
+                statut: 'contact_recu'
+              });
+              
+              const dossierNumero = await generateNumero.call(this, 'DOS');
+              
+              const createDossierResult = await supabaseRequest.call(this, 'dossiers', 'POST', {
+                body: {
+                  client_id: clientIdFinal,
+                  numero: dossierNumero,
+                  titre: dossierTitle,
+                  statut: 'contact_recu',
+                  priorite: 'normale',
+                  source: 'email'
+                }
+              });
+              
+              if (createDossierResult.success && createDossierResult.data && createDossierResult.data.length > 0) {
+                dossierIdFinal = createDossierResult.data[0].id;
+              }
+            }
+          }
+        }
+
+        // 2. Vérifier que dossierIdFinal est défini avant d'appeler l'API
+        if (!dossierIdFinal) {
+          result = {
+            success: false,
+            error: 'DOSSIER_NOT_FOUND',
+            message: 'Impossible de trouver ou créer un dossier pour ce client. Vérifiez que le client existe et a un email valide.',
+            data: [],
+            count: 0
+          };
+          break;
+        }
+        
+        // 3. Appeler l'API Next.js pour envoyer l'email avec les créneaux
+        // L'API met à jour le statut du dossier vers "rdv_a_planifier". 
+        // Les RDV sont créés uniquement quand le client clique sur un créneau (confirm-creneau).
+        const apiUrl = `${CONFIG.APP_URL}/api/envoyer-creneaux`;
+        
+        try {
+          const apiResponse = await this.helpers.httpRequest({
+            method: 'POST',
+            url: apiUrl,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${CONFIG.SUPABASE_SERVICE_KEY}`
+            },
+            body: {
+              dossier_id: dossierIdFinal,
+              client_email: client_email,
+              creneaux: creneaux.map(c => {
+                const dateHeure = c.start || c.date_heure;
+                if (!dateHeure) {
+                  throw new Error(`Créneau invalide: date_heure manquante`);
+                }
+                return {
+                  date_heure: dateHeure,
+                  duree_minutes: c.duree_minutes || 60
+                };
+              }),
+              tenant_id: tenant_id
+            },
+            returnFullResponse: true
+          });
+
+          const statusCode = (apiResponse && apiResponse.statusCode) || (apiResponse && apiResponse.status) || 200;
+          const responseData = typeof apiResponse.body === 'string' 
+            ? JSON.parse(apiResponse.body) 
+            : apiResponse.body;
+
+          if (statusCode >= 200 && statusCode < 300 && responseData.success) {
+            const statutMisAJour = responseData.data?.dossier_statut_mis_a_jour || false;
+            const statutDossier = responseData.data?.statut_dossier || 'inconnu';
+            
+            if (!statutMisAJour) {
+              console.warn('⚠️ ATTENTION : L\'API a réussi mais le statut du dossier n\'a pas été mis à jour');
+              console.warn('   Le dossier pourrait toujours afficher "Planifier un RDV" au lieu de "En attente de confirmation"');
+            }
+            
+            result = {
+              success: true,
+              message: statutMisAJour 
+                ? `✅ Email avec ${creneaux.length} créneau(x) envoyé au client. Statut dossier mis à jour vers "rdv_a_planifier".`
+                : `✅ Email avec ${creneaux.length} créneau(x) envoyé au client. ⚠️ Le statut du dossier n'a pas pu être mis à jour.`,
+              data: [{
+                email: client_email,
+                creneaux_count: creneaux.length,
+                dossier_id: dossierIdFinal,
+                dossier_statut_mis_a_jour: statutMisAJour,
+                statut_dossier: statutDossier,
+                rdv_crees: responseData.data?.rdv_crees || 0
+              }],
+              count: 1,
+              warning: !statutMisAJour ? 'Le statut du dossier n\'a pas été mis à jour. Vérifiez manuellement le dossier.' : undefined
+            };
+          } else {
+            // Si l'API échoue, retourner une erreur claire
+            const errorMessage = responseData?.message || responseData?.error || 'Erreur inconnue';
+            result = {
+              success: false,
+              error: 'API_ERROR',
+              message: `Erreur lors de l'appel à l'API envoyer-creneaux: ${errorMessage}`,
+              details: responseData,
+              data: [],
+              count: 0
+            };
+          }
+        } catch (apiError) {
+          // Erreur réseau ou autre erreur lors de l'appel API
+          result = {
+            success: false,
+            error: 'API_REQUEST_ERROR',
+            message: `Erreur lors de l'appel à l'API envoyer-creneaux: ${apiError.message || apiError.toString()}`,
+            details: apiError.toString(),
+            data: [],
+            count: 0
+          };
+        }
+      } catch (error) {
+        result = {
+          success: false,
+          error: 'EXECUTION_ERROR',
+          message: `Erreur lors de l'envoi des créneaux: ${error.message}`,
+          details: error.toString()
+        };
+      }
+      break;
+    }
+    
     case 'send-relance': {
       const { facture_id, method, recipient_email, recipient_phone } = payload;
       
@@ -2839,12 +3283,41 @@ try {
           if (dossiersResult.success && dossiersResult.count > 0) {
             dossierIdFinal = dossiersResult.data[0].id;
           } else {
+            // Récupérer les infos client pour générer un titre intelligent
+            let clientInfo = null;
+            if (client_id) {
+              const clientResult = await supabaseRequest.call(this, 'clients', 'GET', {
+                filters: { id: client_id },
+                limit: 1
+              });
+              if (clientResult.success && clientResult.data && clientResult.data.length > 0) {
+                clientInfo = clientResult.data[0];
+              }
+            }
+            
+            const nomCompletClient = clientInfo ? 
+              (clientInfo.nom_complet || `${clientInfo.prenom || ''} ${clientInfo.nom || ''}`.trim()) : 
+              null;
+            
+            // Utiliser le générateur de titres intelligent
+            const dossierTitle = genererTitreDossier({
+              type_travaux: null,
+              adresse_chantier: clientInfo?.adresse_facturation || null,
+              clients: clientInfo ? {
+                nom_complet: nomCompletClient,
+                nom: clientInfo.nom,
+                prenom: clientInfo.prenom
+              } : null,
+              description: null,
+              statut: 'contact_recu'
+            });
+            
             const dossierNumero = await generateNumero.call(this, 'DOS');
             
             const createDossierResult = await supabaseRequest.call(this, 'dossiers', 'POST', {
               body: {
                 client_id: client_id,
-                titre: `Dossier Client`,
+                titre: dossierTitle,
                 statut: 'contact_recu',
                 priorite: 'normale',
                 numero: dossierNumero,

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useDevis, useDeleteDevis, useUpdateDevisStatus } from '@/lib/hooks/use-devis'
 import { Button } from '@/components/ui/button'
@@ -67,6 +68,7 @@ const FILTERS: { key: FilterStatus; label: string; icon: React.ReactNode }[] = [
 ]
 
 export default function DevisPage() {
+  const router = useRouter()
   const { tenant, user } = useAuth()
   const { data: devis, isLoading } = useDevis(tenant?.id)
   const deleteDevis = useDeleteDevis()
@@ -344,7 +346,7 @@ export default function DevisPage() {
                   </TableRow>
                 ) : (
                   paginatedDevis.map((d) => (
-                    <TableRow key={d.id}>
+                    <TableRow key={d.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/devis/${d.id}`)}>
                       <TableCell className="font-medium font-mono">{d.numero}</TableCell>
                       <TableCell>{d.client_name || 'Client inconnu'}</TableCell>
                       <TableCell className="text-muted-foreground">{d.dossier_numero || '-'}</TableCell>
@@ -358,10 +360,10 @@ export default function DevisPage() {
                           {getStatusLabel(d.statut || 'brouillon')}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>

@@ -615,7 +615,12 @@ try {
         result.client = newClient;
         
         try {
-          const nomCompletClient = nom_complet || `${prenom || ''} ${nom}`.trim();
+          // Construire le nom complet du client de manière robuste
+          let nomCompletClient = nom_complet || `${prenom || ''} ${nom}`.trim();
+          // Si toujours vide, utiliser les données du client créé
+          if (!nomCompletClient || nomCompletClient.trim() === '') {
+            nomCompletClient = newClient.nom_complet || `${newClient.prenom || ''} ${newClient.nom}`.trim() || 'Client';
+          }
           const dossierTitle = `Dossier ${nomCompletClient}`;
           
           const dossierNumero = await generateNumero.call(this, 'DOS');
@@ -879,7 +884,12 @@ try {
           dossierId = dossierCheck.data[0].id;
           console.log('📁 Dossier existant trouvé pour le client:', dossierId);
         } else {
-          const nomCompletClient = `${client.prenom || ''} ${client.nom}`.trim();
+          // Construire le nom complet du client de manière robuste
+          let nomCompletClient = client.nom_complet || `${client.prenom || ''} ${client.nom}`.trim();
+          // Si toujours vide, utiliser un fallback
+          if (!nomCompletClient || nomCompletClient.trim() === '') {
+            nomCompletClient = 'Client';
+          }
           const dossierTitle = `Dossier ${nomCompletClient}`;
           
           const dossierNumero = await generateNumero.call(this, 'DOS');
@@ -889,7 +899,7 @@ try {
               client_id: client_id,
               numero: dossierNumero,
               titre: dossierTitle,
-              description: `Dossier automatiquement créé lors de la création du devis`,
+              description: `Dossier automatiquement créé pour ${nomCompletClient} lors de la création du devis`,
               statut: 'contact_recu',
               priorite: 'normale',
               source: 'autre'

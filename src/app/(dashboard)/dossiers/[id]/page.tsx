@@ -44,10 +44,8 @@ import { useDossier, useUpdateDossier } from '@/lib/hooks/use-dossiers'
 import { useUpdateDevisStatus } from '@/lib/hooks/use-devis'
 import { useCreateFactureFromDevis } from '@/lib/hooks/use-factures'
 import { STATUTS_DOSSIER, LABELS_STATUT_DOSSIER, PRIORITES, LABELS_PRIORITE } from '@/types/database'
-import { getProchaineActionSummary, ProchaineAction } from '@/components/dossiers/prochaine-action'
+import { ProchaineAction } from '@/components/dossiers/prochaine-action'
 import { RelancesAlertes } from '@/components/dossiers/relances-alertes'
-import { formatDate } from '@/lib/utils'
-import { nettoyerTitre } from '@/lib/utils/titres'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -196,6 +194,16 @@ export default function DossierDetailPage() {
     )
   }
 
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('fr-FR', { 
+      day: 'numeric', 
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
   const formatMontant = (montant: number) => {
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(montant)
   }
@@ -229,56 +237,61 @@ export default function DossierDetailPage() {
     )
   }
 
+  const devisList = (dossier.devis as any[]) || []
+  const facturesList = (dossier.factures as any[]) || []
+  const devisSigne = devisList.find((d: any) => d.statut === 'accepte' || d.statut === 'signe')
+  const template = devisSigne?.template_condition_paiement as { pourcentage_acompte?: number; pourcentage_solde?: number } | null
+  const hasAcompteRequise = (template?.pourcentage_acompte ?? 0) > 0
+  const factureAcompte = facturesList.find((f: any) => f.numero?.endsWith('-A'))
+  const factureSolde = facturesList.find((f: any) => f.numero?.endsWith('-S'))
+  const factureAcomptePayee = factureAcompte?.statut === 'payee'
+  const peutDemarrerChantier = devisSigne && dossier.statut === 'signe' && (factureAcomptePayee || !hasAcompteRequise)
+  const doitCreerFactureAcompte = devisSigne && dossier.statut === 'signe' && facturesList.length === 0 && hasAcompteRequise
+  const doitCreerFactureSolde = dossier.statut === 'chantier_termine' && (template?.pourcentage_solde ?? 0) > 0 && !factureSolde
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/dossiers')}>
-            <ArrowLeft className="w-5 h-5" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/dossiers')} className="flex-shrink-0">
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-              <FolderKanban className="w-6 h-6 text-white" />
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
+              <FolderKanban className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
-                  {nettoyerTitre(dossier.titre)}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg sm:text-xl font-bold truncate" style={{ fontFamily: 'var(--font-display)' }}>
+                  {dossier.titre}
                 </h1>
-                {dossier.titre && dossier.titre.length > 50 && (
-                  <Badge variant="outline" className="text-xs">
-                    {dossier.titre.length} caractères
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/30">
+                <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/30 flex-shrink-0">
                   <Bot className="w-3 h-3 mr-1" />
                   Léo
                 </Badge>
               </div>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-xs sm:text-sm truncate">
                 {dossier.numero} • Créé le {formatDate(dossier.created_at)}
               </p>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Edit className="w-4 h-4 mr-2" />
-            Modifier
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+            <Edit className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Modifier</span>
           </Button>
-          <Button variant="destructive" size="sm">
-            <Trash2 className="w-4 h-4 mr-2" />
-            Supprimer
+          <Button variant="destructive" size="sm" className="text-xs sm:text-sm">
+            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Supprimer</span>
           </Button>
         </div>
       </div>
 
       {/* Actions Rapides */}
       <Card className="border-border bg-gradient-to-br from-orange-500/5 to-orange-600/10">
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" asChild>
               <Link href={`/devis/nouveau?dossier_id=${dossierId}`}>
@@ -296,17 +309,14 @@ export default function DossierDetailPage() {
               </Button>
             )}
             
-            {/* Bouton Démarrer chantier : si devis signé et statut = signe */}
-            {(dossier.devis as any[])?.some((d: any) => 
-              d.statut === 'accepte' || d.statut === 'signe'
-            ) && dossier.statut === 'signe' && (
+            {/* Démarrer chantier : seulement si acompte payé (ou pas d'acompte) */}
+            {peutDemarrerChantier && (
               <Button variant="outline" size="sm" onClick={handleDemarrerChantier}>
                 <FileText className="w-4 h-4 mr-2" />
                 Démarrer chantier
               </Button>
             )}
             
-            {/* Bouton Terminer chantier : si statut = chantier_en_cours */}
             {dossier.statut === 'chantier_en_cours' && (
               <Button variant="outline" size="sm" onClick={handleTerminerChantier}>
                 <CheckCircle2 className="w-4 h-4 mr-2" />
@@ -314,15 +324,33 @@ export default function DossierDetailPage() {
               </Button>
             )}
             
-            {/* Bouton Créer facture : si chantier terminé ou devis signé sans chantier */}
-            {((dossier.statut === 'chantier_termine' || 
-              ((dossier.devis as any[])?.some((d: any) => 
-                d.statut === 'accepte' || d.statut === 'signe'
-              ) && dossier.statut === 'signe' && dossier.statut !== 'chantier_en_cours'))
-            ) && (dossier.factures as any[])?.length === 0 && (
-              <Button variant="outline" size="sm" onClick={handleCreerFacture}>
-                <Euro className="w-4 h-4 mr-2" />
-                Créer facture
+            {/* Créer facture d'acompte : devis signé, 0 facture, template avec acompte */}
+            {doitCreerFactureAcompte && devisSigne && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/devis/${devisSigne.id}`}>
+                  <Euro className="w-4 h-4 mr-2" />
+                  Créer facture d&apos;acompte
+                </Link>
+              </Button>
+            )}
+            
+            {/* Créer facture de solde : chantier terminé, template avec solde */}
+            {doitCreerFactureSolde && devisSigne && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/devis/${devisSigne.id}`}>
+                  <Euro className="w-4 h-4 mr-2" />
+                  Créer facture de solde
+                </Link>
+              </Button>
+            )}
+            
+            {/* Créer facture : chantier terminé, 0 facture, pas de solde (edge case) */}
+            {dossier.statut === 'chantier_termine' && facturesList.length === 0 && !doitCreerFactureSolde && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={devisSigne ? `/devis/${devisSigne.id}` : `/factures/nouveau?dossier_id=${dossierId}`}>
+                  <Euro className="w-4 h-4 mr-2" />
+                  Créer facture
+                </Link>
               </Button>
             )}
             

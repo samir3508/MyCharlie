@@ -54,26 +54,182 @@ export function formatTitreAffichage(titre: string | null | undefined, maxLength
 export function genererTitreAutomatique(dossier: {
   type_travaux?: string | null
   adresse_chantier?: string | null
-  clients?: { nom_complet?: string | null } | null
+  clients?: { nom_complet?: string | null; nom?: string | null; prenom?: string | null } | null
+  description?: string | null
+  statut?: string | null
 }): string {
-  const { type_travaux, adresse_chantier, clients } = dossier
+  const { type_travaux, adresse_chantier, clients, description, statut } = dossier
   
-  // Priorité 1: Type de travaux
+  // Extraire le nom du client
+  let nomClient = clients?.nom_complet || 
+    (clients?.prenom && clients?.nom ? `${clients.prenom} ${clients.nom}`.trim() : null) ||
+    clients?.nom || 
+    null
+
+  // Ignorer les noms invalides (instructions mal parsées: "moi le", "fais moi", etc.)
+  const motsInterdits = [
+    'moi', 'le', 'la', 'les', 'lui', 'elle', 'un', 'une', 'des', 'du', 'de',
+    'fais', 'fait', 'faire', 'c\'est', 'cest', 'oui', 'non', 'ok', 'dossier',
+    'travaux', 'client', 'merci', 'svp', 'stp', 's\'il te plaît', 's\'il vous plaît'
+  ]
+  const estNomValide = (nom: string | null): boolean => {
+    if (!nom || typeof nom !== 'string') return false
+    const n = nom.trim()
+    if (n.length < 3) return false
+    const nLower = n.toLowerCase()
+    // Exactement un mot interdit
+    if (motsInterdits.includes(nLower)) return false
+    // Commence par "moi " / "fais moi" etc.
+    if (/^(moi\s|fais\s|fait\s|faire\s|c\'?est\s)/i.test(n)) return false
+    // Que des mots interdits (ex: "moi le")
+    const mots = nLower.split(/\s+/).filter(Boolean)
+    if (mots.length > 0 && mots.every(m => motsInterdits.includes(m))) return false
+    return true
+  }
+  if (nomClient && !estNomValide(nomClient)) {
+    nomClient = null
+  }
+
+  // Fonction pour extraire la ville d'une adresse
+  const extraireVille = (adresse: string): string => {
+    // Chercher un code postal (5 chiffres) suivi d'une ville
+    const match = adresse.match(/\d{5}\s+([A-Za-zÀ-ÿ\s-]+)/i)
+    if (match && match[1]) {
+      return match[1].trim()
+    }
+    // Sinon, prendre le dernier élément après la dernière virgule
+    const parties = adresse.split(',').map(p => p.trim())
+    if (parties.length > 1) {
+      return parties[parties.length - 1]
+    }
+    // Sinon, prendre le premier élément
+    return parties[0]
+  }
+
+  // Fonction pour normaliser le type de travaux
+  const normaliserTypeTravaux = (type: string): string => {
+    const typeLower = type.toLowerCase().trim()
+    
+    // Mots-clés de travaux courants
+    const typesTravaux: Record<string, string> = {
+      'cuisine': 'Rénovation cuisine',
+      'salle de bain': 'Rénovation salle de bain',
+      'sdb': 'Rénovation salle de bain',
+      'salle bain': 'Rénovation salle de bain',
+      'peinture': 'Peinture',
+      'carrelage': 'Carrelage',
+      'parquet': 'Pose parquet',
+      'plomberie': 'Travaux plomberie',
+      'électricité': 'Travaux électricité',
+      'electricite': 'Travaux électricité',
+      'isolation': 'Isolation',
+      'chauffage': 'Installation chauffage',
+      'fenêtre': 'Remplacement fenêtres',
+      'fenetre': 'Remplacement fenêtres',
+      'porte': 'Remplacement portes',
+      'toit': 'Travaux toiture',
+      'toiture': 'Travaux toiture',
+      'façade': 'Rénovation façade',
+      'facade': 'Rénovation façade',
+      'terrasse': 'Aménagement terrasse',
+      'balcon': 'Aménagement balcon',
+      'extension': 'Extension',
+      'rénovation': 'Rénovation',
+      'renovation': 'Rénovation',
+      'construction': 'Construction',
+      'aménagement': 'Aménagement',
+      'amenagement': 'Aménagement',
+      'décoration': 'Décoration',
+      'decoration': 'Décoration',
+    }
+
+    // Chercher une correspondance exacte ou partielle
+    for (const [key, value] of Object.entries(typesTravaux)) {
+      if (typeLower.includes(key) || key.includes(typeLower)) {
+        return value
+      }
+    }
+
+    // Si pas de correspondance, capitaliser la première lettre
+    return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()
+  }
+
+  // Priorité 1: Type de travaux + Client (le plus descriptif)
+  if (type_travaux && nomClient) {
+    const typeNormalise = normaliserTypeTravaux(type_travaux)
+    return `${typeNormalise} - ${nomClient}`
+  }
+
+  // Priorité 2: Type de travaux + Ville
+  if (type_travaux && adresse_chantier) {
+    const typeNormalise = normaliserTypeTravaux(type_travaux)
+    const ville = extraireVille(adresse_chantier)
+    return `${typeNormalise} - ${ville}`
+  }
+
+  // Priorité 3: Type de travaux seul
   if (type_travaux) {
-    return type_travaux
+    return normaliserTypeTravaux(type_travaux)
   }
-  
-  // Priorité 2: Nom du client + "Travaux"
-  if (clients?.nom_complet) {
-    return `Travaux ${clients.nom_complet}`
+
+  // Priorité 4: Extraire type de travaux depuis la description
+  if (description) {
+    const descLower = description.toLowerCase()
+    const motsClesTravaux = [
+      'cuisine', 'salle de bain', 'sdb', 'peinture', 'carrelage', 'parquet',
+      'plomberie', 'électricité', 'electricite', 'isolation', 'chauffage',
+      'fenêtre', 'fenetre', 'porte', 'toit', 'toiture', 'façade', 'facade',
+      'terrasse', 'balcon', 'extension', 'rénovation', 'renovation',
+      'construction', 'aménagement', 'amenagement', 'décoration', 'decoration'
+    ]
+
+    for (const motCle of motsClesTravaux) {
+      if (descLower.includes(motCle)) {
+        const typeNormalise = normaliserTypeTravaux(motCle)
+        if (nomClient) {
+          return `${typeNormalise} - ${nomClient}`
+        }
+        if (adresse_chantier) {
+          const ville = extraireVille(adresse_chantier)
+          return `${typeNormalise} - ${ville}`
+        }
+        return typeNormalise
+      }
+    }
   }
-  
-  // Priorité 3: Adresse chantier
+
+  // Priorité 5: Client + "Travaux"
+  if (nomClient) {
+    return `Travaux ${nomClient}`
+  }
+
+  // Priorité 6: Adresse chantier
   if (adresse_chantier) {
-    const adresseCourte = adresse_chantier.split(',')[0]
-    return `Travaux ${adresseCourte}`
+    const ville = extraireVille(adresse_chantier)
+    return `Travaux ${ville}`
   }
-  
+
+  // Priorité 7: Basé sur le statut
+  if (statut) {
+    const statutLabels: Record<string, string> = {
+      'contact_recu': 'Nouveau contact',
+      'qualification': 'Projet en qualification',
+      'rdv_a_planifier': 'RDV à planifier',
+      'rdv_planifie': 'RDV planifié',
+      'rdv_confirme': 'RDV confirmé',
+      'visite_realisee': 'Visite réalisée',
+      'devis_en_cours': 'Devis en préparation',
+      'devis_pret': 'Devis prêt',
+      'devis_envoye': 'Devis envoyé',
+      'en_negociation': 'En négociation',
+      'signe': 'Projet signé',
+      'chantier_en_cours': 'Chantier en cours',
+      'chantier_termine': 'Chantier terminé',
+    }
+    return statutLabels[statut] || 'Nouveau dossier'
+  }
+
+  // Par défaut
   return 'Nouveau dossier'
 }
 

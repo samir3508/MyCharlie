@@ -276,9 +276,10 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
       )
       
       if (devisAEnvoyer) {
+        const numeroDevis = devisAEnvoyer.numero || `DV-${devisAEnvoyer.id.substring(0, 8)}` || 'en préparation'
         return {
           action: 'Envoyer le devis',
-          description: `Devis ${devisAEnvoyer.numero || 'en préparation'} à envoyer au client`,
+          description: `Devis ${numeroDevis} à envoyer au client`,
           urgence: 'normale' as const,
           dateLimite: null,
           icon: <Send className="w-5 h-5 text-blue-400" />,

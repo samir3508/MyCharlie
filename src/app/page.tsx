@@ -626,21 +626,9 @@ export default function HomePage() {
               <h4 className="text-lg font-semibold text-white mb-4 text-center">Informations importantes</h4>
               <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-300">
                 <div className="flex items-start gap-3">
-                  <MessageSquare className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <strong className="text-white">WhatsApp :</strong> Numéro partagé <code className="bg-gray-800 px-2 py-1 rounded text-orange-400">+33948353999</code> pour accéder aux agents IA (Charlie et Léo)
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <strong className="text-white">Sécurité :</strong> Vos données sont hébergées en France, chiffrées et conformes au RGPD
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Database className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <strong className="text-white">Conservation :</strong> Factures conservées 10 ans (obligation légale), autres données selon la politique
                   </div>
                 </div>
                 <div className="flex items-start gap-3">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useFactures, useDeleteFacture, useUpdateFactureStatus } from '@/lib/hooks/use-factures'
 import { Button } from '@/components/ui/button'
@@ -57,6 +58,7 @@ import { ExportDropdown } from '@/components/ui/export-dropdown'
 import { FACTURE_COLUMNS } from '@/lib/utils/export'
 
 export default function FacturesPage() {
+  const router = useRouter()
   const { tenant } = useAuth()
   const { data: factures, isLoading } = useFactures(tenant?.id)
   const deleteFacture = useDeleteFacture()
@@ -359,7 +361,7 @@ export default function FacturesPage() {
                   else if (f.numero.endsWith('-S')) factureType = 'solde'
                   
                   return (
-                    <TableRow key={f.id} className="border-b border-gray-800/50 hover:bg-[#1A1A1A]/50 transition-colors">
+                    <TableRow key={f.id} className="border-b border-gray-800/50 hover:bg-[#1A1A1A]/50 transition-colors cursor-pointer" onClick={() => router.push(`/factures/${f.id}`)}>
                       <TableCell className="font-medium font-mono min-w-[120px] text-white">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="whitespace-nowrap">{f.numero}</span>
@@ -397,10 +399,10 @@ export default function FacturesPage() {
                           {getStatusLabel(isLate ? 'en_retard' : (f.statut || 'brouillon'))}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>

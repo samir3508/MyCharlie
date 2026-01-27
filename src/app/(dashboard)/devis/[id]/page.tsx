@@ -503,38 +503,39 @@ export default function DevisDetailPage({ params }: PageProps) {
     <div className="min-h-screen bg-gradient-to-br from-black via-[#0A0A0A] to-[#1A0A00]">
       {/* Header sticky */}
       <header className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm border-b border-gray-800 shadow-lg shadow-black/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-2 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
             {/* Breadcrumb */}
-            <div className="flex items-center space-x-2 text-sm">
-              <Link href="/dashboard" className="text-gray-400 hover:text-[#FF4D00]">
+            <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm min-w-0 flex-1">
+              <Link href="/dashboard" className="text-gray-400 hover:text-[#FF4D00] truncate">
                 Dashboard
               </Link>
-              <ChevronRight className="h-4 w-4 text-gray-500" />
-              <Link href="/devis" className="text-gray-400 hover:text-[#FF4D00]">
+              <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500 flex-shrink-0" />
+              <Link href="/devis" className="text-gray-400 hover:text-[#FF4D00] truncate">
                 Devis
               </Link>
-              <ChevronRight className="h-4 w-4 text-gray-500" />
-              <span className="font-semibold text-white">{devis?.numero || ''}</span>
+              <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500 flex-shrink-0" />
+              <span className="font-semibold text-white truncate">{devis?.numero || ''}</span>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={handleVoirPDF}>
-                <FileText className="h-4 w-4 mr-2" />
-                Voir le PDF
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <Button variant="outline" size="sm" onClick={handleVoirPDF} className="flex-1 sm:flex-initial text-xs sm:text-sm">
+                <FileText className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Voir le PDF</span>
               </Button>
 
-              <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
-                <Download className="h-4 w-4 mr-2" />
-                Télécharger PDF
+              <Button variant="outline" size="sm" onClick={handleDownloadPDF} className="flex-1 sm:flex-initial text-xs sm:text-sm">
+                <Download className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Télécharger</span>
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button size="sm" className="bg-[#FF4D00] hover:bg-[#E64600]">
-                    Actions
-                    <ChevronDown className="h-4 w-4 ml-2" />
+                  <Button size="sm" className="bg-[#FF4D00] hover:bg-[#E64600] text-xs sm:text-sm">
+                    <span className="hidden sm:inline">Actions</span>
+                    <span className="sm:hidden">...</span>
+                    <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 sm:ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-[#1A1A1A] text-white border border-gray-800">
@@ -633,8 +634,8 @@ export default function DevisDetailPage({ params }: PageProps) {
       </header>
 
       {/* Container principal */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Colonne gauche (2/3) */}
           <div className="lg:col-span-2 space-y-6">
             {/* Card Statut & Vue d'ensemble */}
@@ -683,7 +684,7 @@ export default function DevisDetailPage({ params }: PageProps) {
                 </div>
 
                 {/* Infos rapides en grille améliorées */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                   <div className="bg-gradient-to-br from-[#262626] to-[#1A1A1A] rounded-lg p-3 border border-gray-700 shadow-sm hover:shadow-md hover:border-gray-600 transition-all">
                     <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
                       <Calendar className="h-3 w-3" />

@@ -202,43 +202,47 @@ export function DossierKanban({ dossiers, onUpdateStatut }: DossierKanbanProps) 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, dossier.id)}
+                  draggable={false}
+                  onDragStart={(e) => {
+                    e.preventDefault()
+                    handleDragStart(e as unknown as React.DragEvent, dossier.id)
+                  }}
                   className={cn(
-                    "cursor-grab active:cursor-grabbing",
+                    "cursor-pointer",
                     draggedItem === dossier.id && "opacity-50"
                   )}
                 >
-                  <Card className="bg-card hover:bg-card/80 border-border/50 hover:border-orange-500/30 transition-all duration-200 group">
-                    <CardContent className="p-4 space-y-3">
-                      {/* Header */}
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9 ring-2 ring-orange-500/20">
-                            <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs font-semibold">
-                              {dossier.clients?.nom_complet ? getInitials(dossier.clients.nom_complet) : '??'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-sm line-clamp-1">
-                              {dossier.clients?.nom_complet || 'Client inconnu'}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{dossier.numero}</p>
+                  <Link href={`/dossiers/${dossier.id}`} className="block">
+                    <Card className="bg-card hover:bg-card/80 border-border/50 hover:border-orange-500/30 transition-all duration-200 group cursor-pointer">
+                      <CardContent className="p-4 space-y-3">
+                        {/* Header */}
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <Avatar className="h-9 w-9 ring-2 ring-orange-500/20 flex-shrink-0">
+                              <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs font-semibold">
+                                {dossier.clients?.nom_complet ? getInitials(dossier.clients.nom_complet) : '??'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-sm line-clamp-1">
+                                {dossier.clients?.nom_complet || 'Client inconnu'}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">{dossier.numero}</p>
+                            </div>
                           </div>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/dossiers/${dossier.id}`}>
-                                <Eye className="w-4 h-4 mr-2" />
-                                Voir le dossier
-                              </Link>
-                            </DropdownMenuItem>
+                          <DropdownMenu onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/dossiers/${dossier.id}`} onClick={(e) => e.stopPropagation()}>
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Voir le dossier
+                                </Link>
+                              </DropdownMenuItem>
                             <DropdownMenuItem>
                               <Phone className="w-4 h-4 mr-2" />
                               Appeler
@@ -252,8 +256,8 @@ export function DossierKanban({ dossiers, onUpdateStatut }: DossierKanbanProps) 
                         </DropdownMenu>
                       </div>
 
-                      {/* Titre du dossier */}
-                      <p className="text-sm font-medium line-clamp-2">{dossier.titre}</p>
+                        {/* Titre du dossier */}
+                        <p className="text-sm font-medium line-clamp-2">{dossier.titre}</p>
 
                       {/* Badges */}
                       <div className="flex flex-wrap gap-1.5">
@@ -286,21 +290,20 @@ export function DossierKanban({ dossiers, onUpdateStatut }: DossierKanbanProps) 
                         )}
                       </div>
 
-                      {/* Footer */}
-                      {dossier.montant_estime && dossier.montant_estime > 0 && (
-                        <div className="pt-2 border-t border-border/50 flex items-center justify-between">
-                          <span className="text-sm font-semibold text-orange-400">
-                            {formatMontant(dossier.montant_estime)}
-                          </span>
-                          <Link href={`/dossiers/${dossier.id}`}>
-                            <Button variant="ghost" size="sm" className="h-7 text-xs group-hover:text-orange-400">
+                        {/* Footer */}
+                        {dossier.montant_estime && dossier.montant_estime > 0 && (
+                          <div className="pt-2 border-t border-border/50 flex items-center justify-between">
+                            <span className="text-sm font-semibold text-orange-400">
+                              {formatMontant(dossier.montant_estime)}
+                            </span>
+                            <Button variant="ghost" size="sm" className="h-7 text-xs group-hover:text-orange-400" onClick={(e) => e.stopPropagation()}>
                               Voir <ArrowRight className="w-3 h-3 ml-1" />
                             </Button>
-                          </Link>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Link>
                 </motion.div>
               ))}
 

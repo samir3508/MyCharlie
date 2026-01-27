@@ -20,8 +20,18 @@ export function useDossiers() {
           *,
           clients (id, nom_complet, telephone, email),
           rdv (id, date_heure, statut, type_rdv),
-          devis (id, numero, statut, date_envoi, date_acceptation, montant_ttc),
-          factures (id, numero, statut, date_echeance, date_paiement, montant_ttc)
+          devis (
+            id,
+            numero,
+            statut,
+            date_envoi,
+            date_acceptation,
+            montant_ttc,
+            template_condition_paiement_id,
+            template_condition_paiement:templates_conditions_paiement(id, nom, pourcentage_acompte, pourcentage_solde, delai_acompte, delai_solde)
+          ),
+          factures (id, numero, statut, date_echeance, date_paiement, montant_ttc, devis_id),
+          journal_dossier (id, type, description, created_at)
         `)
         .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false })
@@ -49,8 +59,18 @@ export function useDossier(id: string) {
           clients (id, nom_complet, telephone, email, adresse_chantier, adresse_facturation),
           rdv (*),
           fiches_visite (*),
-          devis (id, numero, statut, montant_ttc, date_creation, date_envoi, date_acceptation),
-          factures (id, numero, statut, montant_ttc, date_emission, date_echeance, date_paiement),
+          devis (
+            id,
+            numero,
+            statut,
+            montant_ttc,
+            date_creation,
+            date_envoi,
+            date_acceptation,
+            template_condition_paiement_id,
+            template_condition_paiement:templates_conditions_paiement(id, nom, pourcentage_acompte, pourcentage_solde, pourcentage_intermediaire, delai_acompte, delai_solde)
+          ),
+          factures (id, numero, statut, montant_ttc, date_emission, date_echeance, date_paiement, devis_id),
           journal_dossier (*)
         `)
         .eq('id', id)

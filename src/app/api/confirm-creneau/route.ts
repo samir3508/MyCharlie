@@ -339,7 +339,7 @@ export async function GET(request: NextRequest) {
               numero: dossierNumero || `DOS-${Date.now()}`,
               titre: `Visite - ${clientName || 'Client'}`,
               statut: 'rdv_confirme' as const,
-              description: 'Dossier créé automatiquement lors de la confirmation d\'un créneau'
+              description: `Dossier créé automatiquement pour ${clientName || 'Client'} lors de la confirmation d'un créneau`
             })
             .select('id')
             .single();
@@ -430,7 +430,7 @@ export async function GET(request: NextRequest) {
           numero: dossierNumero,
           titre: `Visite - ${clientName || 'Client'}`,
           statut: 'rdv_confirme' as const, // Utiliser un statut valide selon le type
-          description: 'Dossier créé automatiquement lors de la confirmation d\'un créneau'
+          description: `Dossier créé automatiquement pour ${clientName || 'Client'} lors de la confirmation d'un créneau`
         };
         
         console.log('📝 Tentative de création de dossier (réessai) avec les données:', dossierData);
@@ -786,11 +786,10 @@ ${tenant.company_name ? (tenant.company_name.toLowerCase() === 'nos artisan' ? '
     }
 
     // ════════════════════════════════════════════════════════════════════════════
-    // 4. NOTIFIER L'ARTISAN (UN SEUL ENVOI CONSOLIDÉ)
+    // 4. NOTIFIER L'ARTISAN (MULTIPLE CANAUX)
     // ════════════════════════════════════════════════════════════════════════════
     
     // 4.1. ENVOYER UN EMAIL DIRECT À L'ARTISAN (si email disponible)
-    let artisanEmailSent = false;
     if (tenant?.email) {
       try {
         // Récupérer la connexion Gmail pour envoyer l'email
@@ -907,7 +906,6 @@ Système MyCharlie
 
           if (artisanEmailResponse.ok) {
             console.log('✅ Email de notification envoyé à l\'artisan');
-            artisanEmailSent = true;
           } else {
             const errorData = await artisanEmailResponse.json().catch(() => ({}));
             console.error('Erreur envoi email artisan:', errorData);
@@ -918,61 +916,57 @@ Système MyCharlie
       }
     }
 
-    // 4.2. NOTIFIER VIA LE WEBHOOK N8N (uniquement si l'email n'a pas été envoyé)
-    if (!artisanEmailSent) {
-      const n8nWebhookUrl = tenant.n8n_webhook_url || 'https://n8n.srv1271213.hstgr.cloud/webhook/869b3ab3-b632-40de-acec-8f5e0312cb7d/webhook';
-      
-      try {
-        const message = `✅ CONFIRMATION DE CRÉNEAU : Le client ${displayClientName} a confirmé un créneau de visite de chantier. Le rendez-vous a été créé dans Google Calendar${calendarEventId ? ` (ID: ${calendarEventId})` : ''}${rdvId ? ` et dans le système (RDV ID: ${rdvId})` : ''}.`;
+    // 4.2. NOTIFIER VIA LE WEBHOOK N8N (pour WhatsApp/autres canaux)
+    const n8nWebhookUrl = tenant.n8n_webhook_url || 'https://n8n.srv1271213.hstgr.cloud/webhook/869b3ab3-b632-40de-acec-8f5e0312cb7d/webhook';
+    
+    try {
+      const message = `✅ CONFIRMATION DE CRÉNEAU : Le client ${displayClientName} a confirmé un créneau de visite de chantier. Le rendez-vous a été créé dans Google Calendar${calendarEventId ? ` (ID: ${calendarEventId})` : ''}${rdvId ? ` et dans le système (RDV ID: ${rdvId})` : ''}.`;
 
-        const n8nResponse = await fetch(n8nWebhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: message,
-            chatInput: message,
-            context: {
-              tenant_id: tenantId,
-              tenant_name: tenant.company_name,
-              conversation_date: new Date().toISOString().split('T')[0],
-              is_whatsapp: false,
-              creneau_confirmation: {
-                creneau_start: creneau,
-                creneau_end: creneauEnd.toISOString(),
-                client_email: email,
-                client_id: client?.id || null,
-                client_name: displayClientName || clientName || 'Client',
-                client_phone: clientPhone,
-                client_address: displayAddress,
-                type_rdv: 'visite',
-                duree_minutes: 60,
-                confirmed_at: new Date().toISOString(),
-                calendar_event_id: calendarEventId,
-                rdv_id: rdvId
-              }
+      const n8nResponse = await fetch(n8nWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: message,
+          chatInput: message,
+          context: {
+            tenant_id: tenantId,
+            tenant_name: tenant.company_name,
+            conversation_date: new Date().toISOString().split('T')[0],
+            is_whatsapp: false,
+            creneau_confirmation: {
+              creneau_start: creneau,
+              creneau_end: creneauEnd.toISOString(),
+              client_email: email,
+              client_id: client?.id || null,
+              client_name: displayClientName || clientName || 'Client',
+              client_phone: clientPhone,
+              client_address: displayAddress,
+              type_rdv: 'visite',
+              duree_minutes: 60,
+              confirmed_at: new Date().toISOString(),
+              calendar_event_id: calendarEventId,
+              rdv_id: rdvId,
+              // ✅ Flag pour indiquer que les emails ont déjà été envoyés
+              emails_already_sent: true,
+              client_email_sent: true,
+              artisan_email_sent: true
             }
-          }),
-        });
+          }
+        }),
+      });
 
-        if (n8nResponse.ok) {
-          console.log('✅ Artisan notifié via webhook n8n (email non disponible)');
-        } else {
-          console.error('Erreur appel n8n:', n8nResponse.status, await n8nResponse.text());
-        }
-      } catch (n8nError: any) {
-        console.error('Erreur lors de l\'appel n8n:', n8nError);
+      if (n8nResponse.ok) {
+        console.log('✅ Artisan notifié via webhook n8n');
+      } else {
+        console.error('Erreur appel n8n:', n8nResponse.status, await n8nResponse.text());
       }
-    } else {
-      console.log('📧 Email déjà envoyé à l\'artisan, pas d\'appel webhook n8n nécessaire');
+    } catch (n8nError: any) {
+      console.error('Erreur lors de l\'appel n8n:', n8nError);
     }
 
     // ════════════════════════════════════════════════════════════════════════════
-    // 5. CRÉER UNE NOTIFICATION DANS L'APPLICATION (avec délai pour éviter les doublons)
+    // 5. CRÉER UNE NOTIFICATION DANS L'APPLICATION
     // ════════════════════════════════════════════════════════════════════════════
-    
-    // Attendre 2 secondes pour éviter les doublons de notification
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
     try {
       const notificationResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://mycharlie.fr'}/api/notifications`, {
         method: 'POST',

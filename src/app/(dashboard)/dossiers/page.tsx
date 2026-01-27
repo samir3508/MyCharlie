@@ -31,8 +31,6 @@ import {
   Eye
 } from 'lucide-react'
 import { useDossiers, useDossiersStats, useUpdateDossier } from '@/lib/hooks/use-dossiers'
-import { useAuth } from '@/lib/hooks/use-auth'
-import { formatTitreAffichage, nettoyerTitre } from '@/lib/utils/titres'
 import { DossierKanban } from '@/components/dossiers/dossier-kanban'
 import { DossierForm } from '@/components/dossiers/dossier-form'
 import { getProchaineActionSummary } from '@/components/dossiers/prochaine-action'
@@ -323,8 +321,8 @@ export default function DossiersPage() {
                       <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
                         <FolderKanban className="w-5 h-5 text-orange-500" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{nettoyerTitre(dossier.titre)}</p>
+                      <div>
+                        <p className="font-medium">{dossier.titre}</p>
                         <p className="text-sm text-muted-foreground">
                           {dossier.clients?.nom_complet} • {dossier.numero}
                         </p>

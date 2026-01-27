@@ -20,12 +20,12 @@ export async function updateDossierStatutEnvoiCreneaux(
   tenantId: string
 ): Promise<boolean> {
   try {
-    console.log(`🔄 Mise à jour statut dossier ${dossierId} → rdv_planifie (créneaux envoyés)`)
+    console.log(`🔄 Mise à jour statut dossier ${dossierId} → rdv_a_planifier (créneaux envoyés, en attente confirmation client)`)
     
     const { error } = await supabase
       .from('dossiers')
       .update({ 
-        statut: 'rdv_planifie',
+        statut: 'rdv_a_planifier',
         updated_at: new Date().toISOString()
       })
       .eq('id', dossierId)

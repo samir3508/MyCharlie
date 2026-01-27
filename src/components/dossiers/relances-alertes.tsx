@@ -104,17 +104,21 @@ export function RelancesAlertes({ dossier, devis: devisProp, factures: facturesP
       })
     })
     
-    // 4. Devis signé sans facture
+    // 4. Devis signé sans facture (acompte ou comptant selon template)
     const devisSigne = devis.find((d: any) => d.statut === 'accepte' || d.statut === 'signe')
     if (devisSigne && factures.length === 0) {
+      const tpl = (devisSigne as any).template_condition_paiement as { pourcentage_acompte?: number } | null
+      const hasAcompte = (tpl?.pourcentage_acompte ?? 0) > 0
       alertes.push({
         type: 'facture_manquante',
         urgence: 'haute',
-        titre: 'Facture à créer',
-        message: `Devis ${devisSigne.numero} signé. La facture d'acompte doit être créée.`,
+        titre: hasAcompte ? 'Facture d\'acompte à créer' : 'Facture à créer',
+        message: hasAcompte
+          ? `Devis ${devisSigne.numero} signé. Créer la facture d'acompte selon les conditions de paiement, puis lancer le chantier une fois l'acompte payé.`
+          : `Devis ${devisSigne.numero} signé. Créer la facture selon les conditions de paiement.`,
         action: {
-          label: 'Créer facture',
-          href: `/factures/nouveau?devis_id=${devisSigne.id}`
+          label: hasAcompte ? 'Créer facture d\'acompte' : 'Créer facture',
+          href: `/devis/${devisSigne.id}`
         },
         icon: <Euro className="w-4 h-4" />
       })

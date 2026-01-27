@@ -396,6 +396,35 @@ export default function IntegrationsPage() {
     return connections.find(c => c.service === service && c.provider === 'google')
   }
 
+  // Token révoqué/expiré : l'utilisateur doit reconnecter (pas juste rafraîchir)
+  const needsReconnect = (connection: OAuthConnection) => {
+    if (!connection.last_error) return false
+    const msg = connection.last_error.toLowerCase()
+    return (
+      msg.includes('reconnectez') ||
+      msg.includes('expired or revoked') ||
+      msg.includes('token has been') ||
+      msg.includes('invalide') ||
+      msg.includes('révoqué') ||
+      (connection.is_active === false && !!connection.last_error)
+    )
+  }
+
+  // Reconnecter = déconnecter puis relancer OAuth (sans confirmation)
+  const reconnectService = async (connectionId: string, service: typeof GOOGLE_SERVICES[0]) => {
+    toast.info('Reconnexion en cours… Redirection vers Google.')
+    const { error } = await supabase
+      .from('oauth_connections')
+      .delete()
+      .eq('id', connectionId)
+    if (error) {
+      toast.error('Erreur lors de la déconnexion')
+      return
+    }
+    loadConnections()
+    connectGoogle(service)
+  }
+
   // Vérifier si le token est expiré
   const isTokenExpired = (connection: OAuthConnection) => {
     if (!connection.expires_at) return false
@@ -461,10 +490,15 @@ export default function IntegrationsPage() {
                         {service.name}
                         {isConnected && (
                           <Badge 
-                            variant={isExpired ? 'destructive' : isTokenExpiringSoon(connection!) ? 'secondary' : 'default'} 
+                            variant={
+                              needsReconnect(connection!) ? 'destructive' 
+                              : isExpired ? 'destructive' 
+                              : isTokenExpiringSoon(connection!) ? 'secondary' 
+                              : 'default'
+                            } 
                             className="text-xs"
                           >
-                            {isExpired ? 'Token expiré' : isTokenExpiringSoon(connection!) ? 'Expire bientôt' : 'Connecté'}
+                            {needsReconnect(connection!) ? 'À reconnecter' : isExpired ? 'Token expiré' : isTokenExpiringSoon(connection!) ? 'Expire bientôt' : 'Connecté'}
                           </Badge>
                         )}
                       </CardTitle>
@@ -475,7 +509,20 @@ export default function IntegrationsPage() {
                   <div className="flex items-center gap-2">
                     {isConnected ? (
                       <>
-                        {(isExpired || isTokenExpiringSoon(connection)) && (
+                        {needsReconnect(connection) ? (
+                          <Button
+                            size="sm"
+                            onClick={() => reconnectService(connection.id, service)}
+                            disabled={!GOOGLE_CLIENT_ID || connectingService === service.id}
+                          >
+                            {connectingService === service.id ? (
+                              <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                            ) : (
+                              <RefreshCw className="h-4 w-4 mr-1" />
+                            )}
+                            Reconnecter
+                          </Button>
+                        ) : (isExpired || isTokenExpiringSoon(connection)) && (
                           <Button 
                             variant="outline" 
                             size="sm"
@@ -543,9 +590,18 @@ export default function IntegrationsPage() {
                       </p>
                     )}
                     {connection.last_error && (
-                      <p className="text-xs text-red-600 mt-2">
-                        Erreur : {connection.last_error}
-                      </p>
+                      <div className="mt-2 p-2 rounded-md bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
+                        <p className="text-xs font-medium text-red-700 dark:text-red-300">
+                          {needsReconnect(connection)
+                            ? 'Votre accès Google a expiré ou a été révoqué.'
+                            : 'Erreur'}
+                        </p>
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
+                          {needsReconnect(connection)
+                            ? 'Cliquez sur Reconnecter ci-dessus pour rétablir la liaison avec Google Calendar/Gmail.'
+                            : connection.last_error}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </CardContent>

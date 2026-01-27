@@ -113,16 +113,16 @@ export default function PolitiqueConfidentialite() {
               <div className="p-4 bg-gradient-to-r from-orange-500/10 to-orange-600/10 border border-orange-500/30 rounded-lg">
                 <h3 className="text-lg font-medium text-white mb-3 flex items-center gap-2">
                   <Smartphone className="w-5 h-5 text-orange-400" />
-                  Numéro WhatsApp partagé
+                  Accès via WhatsApp
                 </h3>
                 <p className="mb-3">
-                  MyCharlie utilise un <strong>numéro WhatsApp partagé</strong> (<code className="bg-gray-800 px-2 py-1 rounded">+33948353999</code>) 
+                  MyCharlie utilise un <strong>numéro WhatsApp partagé</strong> 
                   pour permettre à tous les artisans d'accéder aux agents IA Charlie et Léo.
                 </p>
                 <div className="space-y-2 ml-4">
                   <p className="text-sm"><strong>Comment ça fonctionne :</strong></p>
                   <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
-                    <li>Vous envoyez un message WhatsApp au numéro partagé <code className="bg-gray-800 px-1 rounded">+33948353999</code></li>
+                    <li>Vous envoyez un message WhatsApp au numéro fourni lors de votre inscription</li>
                     <li>Le système identifie votre compte via votre numéro WhatsApp personnel</li>
                     <li>Votre message est routé vers l'agent IA approprié (Charlie ou Léo)</li>
                     <li>L'agent IA répond via le numéro partagé</li>

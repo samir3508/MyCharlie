@@ -16,8 +16,8 @@ export function DashboardSidebarWrapper({ children }: { children: React.ReactNod
             <NotificationBell />
           </div>
         </header>
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 bg-gradient-to-br from-black via-[#0A0A0A] to-[#1A0A00] min-h-screen">
-          <div className="w-full max-w-7xl mx-auto">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-4 md:p-6 bg-gradient-to-br from-black via-[#0A0A0A] to-[#1A0A00] min-h-screen">
+          <div className="w-full max-w-7xl mx-auto overflow-x-hidden">
             {children}
           </div>
         </main>

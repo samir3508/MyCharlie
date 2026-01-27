@@ -77,40 +77,43 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 1. Mettre à jour le statut du dossier vers "rdv_planifie"
+    // 1. Mettre à jour le statut du dossier vers "rdv_a_planifier"
+    // Les RDV ne sont créés que quand le client clique sur un créneau (confirm-creneau).
+    // Le statut "rdv_a_planifier" indique que les créneaux ont été envoyés et qu'on attend la confirmation du client.
     const statutMisAJour = await updateDossierStatutEnvoiCreneaux(dossier_id, tenant_id)
     
     if (!statutMisAJour) {
-      console.warn('⚠️ Erreur mise à jour statut dossier, mais continuation du processus')
+      console.error('❌ ERREUR CRITIQUE : Impossible de mettre à jour le statut du dossier vers "rdv_a_planifier"')
+      console.error('   Le dossier restera dans son statut actuel, ce qui peut causer des problèmes d\'affichage')
+      // On continue quand même pour envoyer l'email, mais c'est un problème
+    } else {
+      console.log('✅ Statut dossier mis à jour avec succès vers "rdv_a_planifier"')
     }
-
-    // 2. Créer les RDV en base avec statut "planifie"
-    const rdvCreer = []
-    for (const creneau of creneaux) {
-      const { data: rdv, error: rdvError } = await supabase
-        .from('rdv')
+    
+    // Ajouter une entrée dans le journal du dossier pour tracer l'envoi des créneaux
+    try {
+      await supabase
+        .from('journal_dossier')
         .insert({
           tenant_id,
           dossier_id,
-          client_id: client.id,
-          type_rdv: 'visite',
-          date_heure: new Date(creneau.date_heure).toISOString(),
-          duree_minutes: creneau.duree_minutes || 60,
-          statut: 'planifie',
-          notes: `Créneau proposé par email le ${new Date().toLocaleString('fr-FR')}`,
-          adresse: dossier.adresse_chantier || null
+          type: 'action_leo',
+          titre: 'Créneaux proposés envoyés',
+          contenu: `Créneaux proposés envoyés par email au client (${creneaux.length} créneau${creneaux.length > 1 ? 'x' : ''}). En attente de confirmation du client.`,
+          ancien_statut: dossier.statut,
+          nouveau_statut: statutMisAJour ? 'rdv_a_planifier' : null,
+          metadata: {
+            creneaux_count: creneaux.length,
+            client_email: client_email,
+            statut_mis_a_jour: statutMisAJour
+          },
+          auteur: 'leo'
         })
-        .select('id')
-        .single()
-
-      if (!rdvError && rdv) {
-        rdvCreer.push(rdv)
-      } else {
-        console.error('Erreur création RDV:', rdvError)
-      }
+    } catch (journalError) {
+      console.warn('⚠️ Erreur lors de l\'ajout dans le journal (non bloquant):', journalError)
     }
 
-    // 3. Envoyer l'email avec les créneaux (via Gmail ou N8N)
+    // 2. Envoyer l'email avec les créneaux (via Gmail ou N8N)
     let emailEnvoye = false
     
     // Essayer d'envoyer via Gmail d'abord
@@ -169,10 +172,10 @@ ${tenant.company_name || 'L\'équipe'}
       console.warn('⚠️ Erreur envoi Gmail:', gmailError)
     }
 
-    // 4. Si Gmail échoue, utiliser le webhook N8N
+    // 3. Si Gmail échoue, utiliser le webhook N8N
     if (!emailEnvoye && tenant.n8n_webhook_url) {
       try {
-        const message = `📅 PROPOSITION CRÉNEAUX : Proposition de ${creneaux.length} créneaux pour visite chantier envoyée à ${client.email}. Dossier mis à jour vers "rdv_planifie".`
+        const message = `📅 PROPOSITION CRÉNEAUX : Proposition de ${creneaux.length} créneaux pour visite chantier envoyée à ${client.email}. Dossier mis à jour vers "rdv_a_planifier".`
 
         const n8nResponse = await fetch(tenant.n8n_webhook_url, {
           method: 'POST',
@@ -209,10 +212,13 @@ ${tenant.company_name || 'L\'équipe'}
       message: 'Créneaux envoyés avec succès',
       data: {
         dossier_statut_mis_a_jour: statutMisAJour,
-        rdv_crees: rdvCreer.length,
+        statut_dossier: statutMisAJour ? 'rdv_a_planifier' : dossier.statut,
+        rdv_crees: 0,
         email_envoye: emailEnvoye,
-        nombre_creneaux: creneaux.length
-      }
+        nombre_creneaux: creneaux.length,
+        dossier_id: dossier_id
+      },
+      warning: !statutMisAJour ? 'Le statut du dossier n\'a pas pu être mis à jour. Vérifiez les logs serveur.' : undefined
     })
 
   } catch (error: any) {
