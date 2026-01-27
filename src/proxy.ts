@@ -21,12 +21,17 @@ export async function proxy(request: NextRequest) {
     // #endregion
   }
   
-  // Skip proxy entirely for API routes and public pages (signature, public devis, password reset)
+  // Skip proxy entirely for API routes and public pages (signature, public devis, password reset, RGPD)
   if (pathname.startsWith('/api') || 
       pathname.startsWith('/sign') || 
       pathname.startsWith('/devis-public') ||
       pathname.startsWith('/forgot-password') ||
-      pathname.startsWith('/auth/reset-password')) {
+      pathname.startsWith('/auth/reset-password') ||
+      pathname === '/supprimer-donnees' ||
+      pathname.startsWith('/politique-confidentialite') ||
+      pathname.startsWith('/mentions-legales') ||
+      pathname.startsWith('/cgv') ||
+      pathname.startsWith('/conditions-utilisation')) {
     console.log('[PROXY] Skipping public route:', pathname)
     // #region agent log
     fetch('http://127.0.0.1:7243/ingest/7bbffab8-4f6e-4eb2-bd56-111314e8f2b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'proxy.ts:14',message:'Skipping public route',data:{pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'A'})}).catch(()=>{});
