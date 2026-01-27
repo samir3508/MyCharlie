@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import NextImage from 'next/image'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, CheckCircle2, MessageSquare, FileText, Clock, Bell, Sparkles, ChevronDown, ChevronUp, Users, ShieldCheck, Phone, Send, FileSignature, Smartphone, TrendingUp, Zap, Target, Heart, Calendar, Check, AlertCircle, Timer, DollarSign, Briefcase, Building2, HardHat, Calculator, RotateCcw, Euro, Star, Mail } from 'lucide-react'
+import { ArrowRight, CheckCircle2, MessageSquare, FileText, Clock, Bell, Sparkles, ChevronDown, ChevronUp, Users, ShieldCheck, Phone, Send, FileSignature, Smartphone, TrendingUp, Zap, Target, Heart, Calendar, Check, AlertCircle, Timer, DollarSign, Briefcase, Building2, HardHat, Calculator, RotateCcw, Euro, Star, Mail, Trash2, Download, Shield, Database } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import DemoModal from '@/components/DemoModal'
 import RoiCalculator from '@/components/RoiCalculator'
@@ -89,6 +89,10 @@ export default function HomePage() {
               <a href="#calculateur" className="text-gray-400 hover:text-white">Calculateur ROI</a>
               <a href="#avantages" className="text-gray-400 hover:text-white">Avantages</a>
               <a href="#faq" className="text-gray-400 hover:text-white">FAQ</a>
+              <a href="#gestion-donnees" className="text-gray-400 hover:text-orange-400 flex items-center gap-1">
+                <Shield className="w-4 h-4" />
+                Mes données
+              </a>
             </nav>
             <div className="flex items-center gap-3">
               <Link href="/login"><Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">Connexion</Button></Link>
@@ -571,28 +575,93 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-br from-black via-black to-black">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm"><Sparkles className="w-4 h-4" /><span>Libère-toi de l&apos;administratif</span></div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">Et si tu n&apos;avais plus jamais à gérer l&apos;administratif ?</h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">Rejoins les artisans qui ont choisi de se concentrer sur ce qu&apos;ils font de mieux : leur métier.</p>
-            <div className="pt-6"><Button size="lg" className="h-16 px-10 text-lg bg-gradient-to-r from-orange-500 to-orange-600" onClick={() => { setDemoSource('demo'); setDemoModalOpen(true); }}>Demander une démo gratuite<ArrowRight className="ml-2 w-5 h-5" /></Button><p className="text-sm text-gray-400 mt-4">Démo gratuite • Sans engagement • Réponse en 24h</p></div>
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="py-12 px-4 bg-gradient-to-br from-black via-black to-black border-t border-gray-800">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white">Conformité et protection des données</h3>
-            <p className="text-sm text-gray-400">Nous respectons votre vie privée et protégeons vos données conformément au RGPD.</p>
-            <div className="flex flex-wrap justify-center gap-4 text-xs">
-              <Link href="/politique-confidentialite" className="text-orange-400 hover:text-orange-300 underline">Politique de confidentialité</Link>
-              <Link href="/mentions-legales" className="text-orange-400 hover:text-orange-300 underline">Mentions légales</Link>
-              <Link href="/cgv" className="text-orange-400 hover:text-orange-300 underline">Conditions générales</Link>
-              <Link href="/conditions-utilisation" className="text-orange-400 hover:text-orange-300 underline">Conditions d'utilisation</Link>
-              <a href="mailto:ddvcontact35@gmail.com" className="text-orange-400 hover:text-orange-300 underline">Exercer vos droits RGPD</a>
+      <section id="gestion-donnees" className="py-20 px-4 bg-gradient-to-br from-gray-900 via-black to-gray-900 border-t-2 border-orange-500/50 relative scroll-mt-20">
+        <div className="max-w-6xl mx-auto">
+          <div className="space-y-8">
+            <motion.div className="text-center space-y-3" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 text-orange-400 text-sm border border-orange-500/30 mb-4">
+                <Shield className="w-4 h-4" />
+                <span>Protection de vos données</span>
+              </div>
+              <h3 className="text-3xl sm:text-4xl font-bold text-white mb-3">Gestion de vos données personnelles</h3>
+              <p className="text-lg text-gray-300 max-w-2xl mx-auto">Nous respectons votre vie privée et protégeons vos données conformément au RGPD. Vous avez le contrôle total sur vos données.</p>
+            </motion.div>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              <Link href="/politique-confidentialite#suppression" className="bg-gradient-to-br from-orange-500/20 to-orange-600/10 border-2 border-orange-500/40 rounded-xl p-6 hover:bg-orange-500/30 hover:border-orange-500 transition-all duration-200 group">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-orange-500/30 flex items-center justify-center group-hover:bg-orange-500/50 transition-colors">
+                    <Trash2 className="w-6 h-6 text-orange-400" />
+                  </div>
+                  <h4 className="text-xl font-bold text-white">Supprimer mes données</h4>
+                </div>
+                <p className="text-sm text-gray-300 leading-relaxed">Demander la suppression complète de toutes vos données personnelles. Traitement sous 30 jours.</p>
+                <div className="mt-4 text-orange-400 text-sm font-medium group-hover:underline">En savoir plus →</div>
+              </Link>
+              
+              <Link href="/politique-confidentialite#acces" className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-2 border-blue-500/40 rounded-xl p-6 hover:bg-blue-500/30 hover:border-blue-500 transition-all duration-200 group">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-blue-500/30 flex items-center justify-center group-hover:bg-blue-500/50 transition-colors">
+                    <Download className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <h4 className="text-xl font-bold text-white">Accéder à mes données</h4>
+                </div>
+                <p className="text-sm text-gray-300 leading-relaxed">Obtenir une copie complète de toutes vos données personnelles au format JSON, CSV ou PDF.</p>
+                <div className="mt-4 text-blue-400 text-sm font-medium group-hover:underline">En savoir plus →</div>
+              </Link>
+              
+              <Link href="/politique-confidentialite" className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-2 border-purple-500/40 rounded-xl p-6 hover:bg-purple-500/30 hover:border-purple-500 transition-all duration-200 group">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-purple-500/30 flex items-center justify-center group-hover:bg-purple-500/50 transition-colors">
+                    <Shield className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <h4 className="text-xl font-bold text-white">Politique complète</h4>
+                </div>
+                <p className="text-sm text-gray-300 leading-relaxed">Consulter notre politique de confidentialité complète : WhatsApp, agents IA, durée de conservation...</p>
+                <div className="mt-4 text-purple-400 text-sm font-medium group-hover:underline">Consulter →</div>
+              </Link>
+            </div>
+            
+            <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800 mt-8">
+              <h4 className="text-lg font-semibold text-white mb-4 text-center">Informations importantes</h4>
+              <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-300">
+                <div className="flex items-start gap-3">
+                  <MessageSquare className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <strong className="text-white">WhatsApp :</strong> Numéro partagé <code className="bg-gray-800 px-2 py-1 rounded text-orange-400">+33948353999</code> pour accéder aux agents IA (Charlie et Léo)
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Shield className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <strong className="text-white">Sécurité :</strong> Vos données sont hébergées en France, chiffrées et conformes au RGPD
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Database className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <strong className="text-white">Conservation :</strong> Factures conservées 10 ans (obligation légale), autres données selon la politique
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Mail className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <strong className="text-white">Contact :</strong> <a href="mailto:ddvcontact35@gmail.com" className="text-orange-400 hover:text-orange-300">ddvcontact35@gmail.com</a> pour exercer vos droits
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-400 pt-4 border-t border-gray-800">
+              <Link href="/politique-confidentialite" className="hover:text-orange-400 transition-colors font-medium">Politique de confidentialité</Link>
+              <span>•</span>
+              <Link href="/mentions-legales" className="hover:text-orange-400 transition-colors">Mentions légales</Link>
+              <span>•</span>
+              <Link href="/cgv" className="hover:text-orange-400 transition-colors">Conditions générales</Link>
+              <span>•</span>
+              <Link href="/conditions-utilisation" className="hover:text-orange-400 transition-colors">Conditions d'utilisation</Link>
+              <span>•</span>
+              <a href="mailto:ddvcontact35@gmail.com?subject=Exercice de mes droits RGPD" className="hover:text-orange-400 transition-colors font-medium">Exercer vos droits RGPD</a>
             </div>
           </div>
         </div>
@@ -615,7 +684,25 @@ export default function HomePage() {
             <div><h4 className="font-semibold mb-4">Légal</h4><ul className="space-y-2 text-sm text-gray-400"><li><Link href="/mentions-legales" className="hover:text-white">Mentions légales</Link></li><li><Link href="/politique-confidentialite" className="hover:text-white">Politique de confidentialité</Link></li><li><Link href="/cgv" className="hover:text-white">CGV</Link></li><li><Link href="/conditions-utilisation" className="hover:text-white">Conditions d'utilisation</Link></li></ul></div>
             <div><h4 className="font-semibold mb-4">Contact</h4><ul className="space-y-2 text-sm text-gray-400"><li><a href="mailto:ddvcontact35@gmail.com" className="hover:text-white">Email</a></li><li><a href="tel:0745108883" className="hover:text-white">Téléphone</a></li><li><a href="https://wa.me/33745108883" className="hover:text-white">WhatsApp</a></li></ul></div>
           </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400"><p>© 2025 CHARLIE. Tous droits réservés.</p><p className="mt-2 md:mt-0">Hébergé en France 🇫🇷 • Données sécurisées • Conforme RGPD</p></div>
+          <div className="border-t border-gray-800 mt-12 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400 mb-4">
+              <p>© 2025 CHARLIE. Tous droits réservés.</p>
+              <p className="mt-2 md:mt-0">Hébergé en France 🇫🇷 • Données sécurisées • Conforme RGPD</p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500 mt-4">
+              <Link href="/politique-confidentialite" className="hover:text-orange-400 transition-colors">
+                Gérer mes données personnelles
+              </Link>
+              <span>•</span>
+              <Link href="/politique-confidentialite#suppression" className="hover:text-orange-400 transition-colors">
+                Supprimer mes données
+              </Link>
+              <span>•</span>
+              <Link href="/politique-confidentialite#acces" className="hover:text-orange-400 transition-colors">
+                Accéder à mes données
+              </Link>
+            </div>
+          </div>
         </div>
       </footer>
 
