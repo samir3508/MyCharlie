@@ -37,6 +37,23 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
     const rdv = (dossier.rdv as any[]) || []
     const devis = (dossier.devis as any[]) || []
     const factures = (dossier.factures as any[]) || []
+    const journal = (dossier.journal_dossier as any[]) || []
+    
+    // Vérifier si des créneaux ont été envoyés récemment (dans le journal)
+    // Chercher dans le journal une entrée récente (dernières 7 jours) indiquant l'envoi de créneaux
+    const maintenant = new Date()
+    const creneauxEnvoyes = journal.some((entry: any) => {
+      if (!entry.created_at) return false
+      const dateEntry = new Date(entry.created_at)
+      const joursDepuis = (maintenant.getTime() - dateEntry.getTime()) / (1000 * 60 * 60 * 24)
+      
+      // Vérifier si l'entrée est récente (7 derniers jours) et concerne les créneaux
+      return joursDepuis <= 7 && (
+        (entry.titre && entry.titre.toLowerCase().includes('créneaux')) ||
+        (entry.contenu && entry.contenu.toLowerCase().includes('créneaux')) ||
+        (entry.type === 'action_leo' && entry.contenu && entry.contenu.includes('créneaux'))
+      )
+    })
     
     // Vérifier les factures en retard
     const facturesEnRetard = factures.filter((f: any) => {
@@ -67,30 +84,108 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
     
     // ═══════════════════════════════════════════════════════════════════════
     // PRIORITÉ 0 : Gestion des phases chantier (après devis accepté)
+    // Conditions de paiement : créer facture / acompte selon template, puis
+    // "Lancer le chantier" seulement une fois l'acompte (ou facture comptant) payé.
     // ═══════════════════════════════════════════════════════════════════════
     const devisSigne = devis.find((d: any) => d.statut === 'accepte' || d.statut === 'signe')
+    const template = devisSigne?.template_condition_paiement as { pourcentage_acompte?: number; pourcentage_solde?: number; nom?: string } | null
+    const hasAcompteRequise = (template?.pourcentage_acompte ?? 0) > 0
+    const factureAcompte = factures.find((f: any) => f.numero?.endsWith('-A'))
+    const factureSolde = factures.find((f: any) => f.numero?.endsWith('-S'))
+    const factureAcomptePayee = factureAcompte?.statut === 'payee'
     
-    // Si devis signé et statut = signe → Démarrer le chantier
+    // Devis signé : facture / acompte d'abord, puis chantier
     if (devisSigne && statut === 'signe') {
-      return {
-        action: 'Démarrer le chantier',
-        description: `Devis ${devisSigne.numero || devisSigne.id.substring(0, 8)} signé, démarrer les travaux`,
-        urgence: 'haute' as const,
-        dateLimite: null,
-        icon: <FileText className="w-5 h-5 text-blue-400" />,
-        couleur: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
-        actionButton: {
-          label: 'Démarrer chantier',
-          href: `/dossiers/${dossier.id}?action=demarrer_chantier`
+      // 0 facture → créer facture (acompte ou comptant) selon template
+      if (factures.length === 0) {
+        if (hasAcompteRequise) {
+          const isComptant = (template?.pourcentage_acompte ?? 0) >= 100
+          return {
+            action: isComptant ? 'Créer la facture' : 'Créer la facture d\'acompte',
+            description: isComptant
+              ? `Devis ${devisSigne.numero} signé. Créer la facture (comptant) selon les conditions de paiement "${template?.nom ?? ''}".`
+              : `Devis ${devisSigne.numero} signé. Créer la facture d'acompte (${template?.pourcentage_acompte}%) selon le template "${template?.nom ?? ''}", puis lancer le chantier une fois l'acompte payé.`,
+            urgence: 'haute' as const,
+            dateLimite: null,
+            icon: <Euro className="w-5 h-5 text-orange-400" />,
+            couleur: 'bg-orange-500/10 border-orange-500/30 text-orange-400',
+            actionButton: {
+              label: isComptant ? 'Créer facture' : 'Créer facture d\'acompte',
+              href: `/devis/${devisSigne.id}`
+            }
+          }
+        }
+        // Template absent (ex. liste/kanban) → prudence : créer facture d'abord
+        if (template == null && devisSigne) {
+          return {
+            action: 'Créer la facture',
+            description: `Devis ${devisSigne.numero} signé. Créer la facture ou l'acompte selon les conditions de paiement du devis.`,
+            urgence: 'haute' as const,
+            dateLimite: null,
+            icon: <Euro className="w-5 h-5 text-orange-400" />,
+            couleur: 'bg-orange-500/10 border-orange-500/30 text-orange-400',
+            actionButton: {
+              label: 'Voir le devis',
+              href: `/devis/${devisSigne.id}`
+            }
+          }
+        }
+        // Pas d'acompte (100 % solde) → lancer le chantier directement
+        return {
+          action: 'Lancer le chantier',
+          description: `Devis ${devisSigne.numero} signé. Aucun acompte prévu (solde en fin de chantier). Vous pouvez démarrer les travaux.`,
+          urgence: 'haute' as const,
+          dateLimite: null,
+          icon: <FileText className="w-5 h-5 text-blue-400" />,
+          couleur: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+          actionButton: {
+            label: 'Lancer le chantier',
+            href: `/dossiers/${dossier.id}?action=demarrer_chantier`
+          }
+        }
+      }
+      // Acompte créé mais pas payé
+      if (hasAcompteRequise && factureAcompte && !factureAcomptePayee) {
+        return {
+          action: 'En attente du paiement de l\'acompte',
+          description: `Facture ${factureAcompte.numero} créée. Une fois l'acompte payé, vous pourrez lancer le chantier.`,
+          urgence: 'normale' as const,
+          dateLimite: factureAcompte.date_echeance ? new Date(factureAcompte.date_echeance) : null,
+          icon: <Clock className="w-5 h-5 text-amber-400" />,
+          couleur: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+          actionButton: {
+            label: 'Voir la facture',
+            href: `/factures/${factureAcompte.id}`
+          }
+        }
+      }
+      // Acompte payé (ou comptant payé) ou pas d'acompte → lancer le chantier
+      if (factureAcomptePayee || !hasAcompteRequise) {
+        return {
+          action: 'Lancer le chantier',
+          description: hasAcompteRequise
+            ? `Acompte payé. Devis ${devisSigne.numero} – vous pouvez démarrer les travaux.`
+            : `Devis ${devisSigne.numero} signé – démarrer les travaux.`,
+          urgence: 'haute' as const,
+          dateLimite: null,
+          icon: <FileText className="w-5 h-5 text-blue-400" />,
+          couleur: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+          actionButton: {
+            label: 'Lancer le chantier',
+            href: `/dossiers/${dossier.id}?action=demarrer_chantier`
+          }
         }
       }
     }
     
     // Si chantier en cours → Terminer le chantier
     if (statut === 'chantier_en_cours') {
+      const hasSolde = (template?.pourcentage_solde ?? 0) > 0
       return {
         action: 'Terminer le chantier',
-        description: 'Travaux en cours, terminer le chantier pour créer la facture',
+        description: hasSolde
+          ? 'Travaux en cours. Terminer le chantier, puis créer la facture de solde.'
+          : 'Travaux en cours, terminer le chantier pour créer la facture.',
         urgence: 'normale' as const,
         dateLimite: null,
         icon: <CheckCircle2 className="w-5 h-5 text-green-400" />,
@@ -102,18 +197,35 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
       }
     }
     
-    // Si chantier terminé et pas de facture → Créer la facture
-    if (statut === 'chantier_termine' && factures.length === 0) {
-      return {
-        action: 'Créer la facture',
-        description: `Chantier terminé, créer la facture${devisSigne ? ` pour le devis ${devisSigne.numero || devisSigne.id.substring(0, 8)}` : ''}`,
-        urgence: 'haute' as const,
-        dateLimite: null,
-        icon: <Euro className="w-5 h-5 text-orange-400" />,
-        couleur: 'bg-orange-500/10 border-orange-500/30 text-orange-400',
-        actionButton: {
-          label: 'Créer facture',
-          href: devisSigne ? `/factures/nouveau?devis_id=${devisSigne.id}` : `/factures/nouveau?dossier_id=${dossier.id}`
+    // Si chantier terminé : créer facture de solde (ou facture si 100 % solde)
+    if (statut === 'chantier_termine') {
+      const hasSoldeRequise = (template?.pourcentage_solde ?? 0) > 0
+      if (hasSoldeRequise && !factureSolde) {
+        return {
+          action: 'Créer la facture de solde',
+          description: `Chantier terminé. Créer la facture de solde (${template?.pourcentage_solde}%) selon les conditions de paiement.`,
+          urgence: 'haute' as const,
+          dateLimite: null,
+          icon: <Euro className="w-5 h-5 text-orange-400" />,
+          couleur: 'bg-orange-500/10 border-orange-500/30 text-orange-400',
+          actionButton: {
+            label: 'Créer facture de solde',
+            href: devisSigne ? `/devis/${devisSigne.id}` : `/factures/nouveau?dossier_id=${dossier.id}`
+          }
+        }
+      }
+      if (!hasSoldeRequise && factures.length === 0) {
+        return {
+          action: 'Créer la facture',
+          description: `Chantier terminé, créer la facture${devisSigne ? ` pour le devis ${devisSigne.numero || devisSigne.id.substring(0, 8)}` : ''}`,
+          urgence: 'haute' as const,
+          dateLimite: null,
+          icon: <Euro className="w-5 h-5 text-orange-400" />,
+          couleur: 'bg-orange-500/10 border-orange-500/30 text-orange-400',
+          actionButton: {
+            label: 'Créer facture',
+            href: devisSigne ? `/devis/${devisSigne.id}` : `/factures/nouveau?dossier_id=${dossier.id}`
+          }
         }
       }
     }
@@ -153,6 +265,31 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
     // ═══════════════════════════════════════════════════════════════════════
     // PRIORITÉ 2 : Gestion des devis (après visite réalisée)
     // ═══════════════════════════════════════════════════════════════════════
+    
+    // Si statut dossier = devis_en_cours (ou devis_en_preparation) → Envoyer le devis
+    // Vérifier s'il y a un devis en préparation ou en brouillon à envoyer
+    if (statut === 'devis_en_cours' || statut === 'devis_en_preparation' || statut === 'devis_pret') {
+      const devisAEnvoyer = devis.find((d: any) => 
+        d.statut === 'en_preparation' || 
+        d.statut === 'brouillon' || 
+        d.statut === 'pret'
+      )
+      
+      if (devisAEnvoyer) {
+        return {
+          action: 'Envoyer le devis',
+          description: `Devis ${devisAEnvoyer.numero || 'en préparation'} à envoyer au client`,
+          urgence: 'normale' as const,
+          dateLimite: null,
+          icon: <Send className="w-5 h-5 text-blue-400" />,
+          couleur: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+          actionButton: {
+            label: 'Envoyer',
+            href: `/devis/${devisAEnvoyer.id}?action=envoyer`
+          }
+        }
+      }
+    }
     
     // Si devis envoyé → En attente de signature
     // Vérifier d'abord le statut du devis, pas seulement le statut du dossier
@@ -246,8 +383,60 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
       }
     }
     
-    // Vérifier si RDV à planifier (contact_recu sans RDV)
-    if ((statut === 'rdv_a_planifier' || statut === 'qualification' || statut === 'contact_recu') && rdv.length === 0) {
+    // ═══════════════════════════════════════════════════════════════════════
+    // PRIORITÉ : Vérifier d'abord les RDV existants (planifiés/confirmés)
+    // AVANT de suggérer de planifier un nouveau RDV
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    const rdvConfirme = rdv.find((r: any) => r.statut === 'confirme')
+    const rdvPlanifies = rdv.filter((r: any) => r.statut === 'planifie' || r.statut === 'confirme')
+    
+    // Créneaux envoyés, en attente de confirmation du client
+    // Cas 1 : statut rdv_a_planifier sans RDV → créneaux envoyés par email, le client n'a pas encore cliqué
+    // Cas 2 : statut rdv_planifie sans RDV → ancien flux (créneaux envoyés)
+    // Cas 3 : Journal indique créneaux envoyés → créneaux envoyés même si statut pas à jour (fallback)
+    // Cas 4 : RDV planifié(s) existants → idem, en attente clic
+    const hasCreneauxEnvoyes = statut === 'rdv_a_planifier' || statut === 'rdv_planifie' || (creneauxEnvoyes && rdv.length === 0) || rdvPlanifies.length > 0
+    
+    if (hasCreneauxEnvoyes && rdv.length === 0 && !rdvConfirme && !hasFicheVisite) {
+      return {
+        action: 'En attente de confirmation du client pour les créneaux',
+        description: 'Créneaux proposés envoyés par email. En attente que le client clique sur un créneau pour confirmer son RDV.',
+        urgence: 'normale' as const,
+        dateLimite: null,
+        icon: <Clock className="w-5 h-5 text-amber-400" />,
+        couleur: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+        actionButton: { label: 'Agenda RDV', href: '/rdv' }
+      }
+    }
+    
+    // RDV planifié(s) existants sans confirmation (ancien flux avec RDV créés)
+    if (rdvPlanifies.length > 0 && !rdvConfirme && !hasFicheVisite) {
+      const prochainRdv = rdv.find((r: any) => r.statut === 'planifie')
+      return {
+        action: 'En attente de confirmation du client pour les créneaux',
+        description: prochainRdv
+          ? `Créneaux envoyés – RDV prévu le ${new Date(prochainRdv.date_heure).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. Le client doit cliquer sur un créneau dans l'email pour confirmer.`
+          : 'Créneaux proposés envoyés par email. En attente que le client clique sur un créneau pour confirmer son RDV.',
+        urgence: 'normale' as const,
+        dateLimite: null,
+        icon: <Clock className="w-5 h-5 text-amber-400" />,
+        couleur: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+        actionButton: prochainRdv
+          ? { label: 'Voir RDV', href: `/rdv/${prochainRdv.id}` }
+          : { label: 'Agenda RDV', href: '/rdv' }
+      }
+    }
+    
+    // Vérifier si RDV à planifier (contact_recu/qualification sans créneaux envoyés)
+    // ⚠️ IMPORTANT : Ne suggérer "Planifier un RDV" QUE si :
+    // 1. Le statut indique qu'un RDV est nécessaire (contact_recu, qualification)
+    // 2. ET qu'aucun RDV n'existe déjà
+    // 3. ET que le statut n'est PAS rdv_a_planifier (car cela signifie que les créneaux ont déjà été envoyés)
+    const hasAnyRdv = rdv.length > 0
+    const hasRdvPlanifie = rdv.some((r: any) => r.statut === 'planifie' || r.statut === 'confirme')
+    
+    if ((statut === 'qualification' || statut === 'contact_recu') && !hasAnyRdv && !hasRdvPlanifie) {
       return {
         action: 'Planifier un RDV',
         description: 'Prendre contact avec le client pour planifier une visite',
@@ -259,26 +448,6 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
           label: 'Planifier RDV',
           href: `/rdv/nouveau?dossier_id=${dossier.id}`
         }
-      }
-    }
-    
-    // RDV planifié(s) sans confirmation client → Créneaux envoyés, en attente confirmation
-    const rdvConfirme = rdv.find((r: any) => r.statut === 'confirme')
-    const rdvPlanifies = rdv.filter((r: any) => r.statut === 'planifie' || r.statut === 'confirme')
-    if ((statut === 'rdv_planifie' || rdvPlanifies.length > 0) && !rdvConfirme && !hasFicheVisite) {
-      const prochainRdv = rdv.find((r: any) => r.statut === 'planifie')
-      return {
-        action: 'En attente de confirmation client',
-        description: prochainRdv
-          ? `Créneaux envoyés – RDV prévu le ${new Date(prochainRdv.date_heure).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. En attente du clic du client sur le lien.`
-          : 'Créneaux envoyés au client. En attente de confirmation (lien dans l\'email).',
-        urgence: 'normale' as const,
-        dateLimite: null,
-        icon: <Clock className="w-5 h-5 text-amber-400" />,
-        couleur: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
-        actionButton: prochainRdv
-          ? { label: 'Voir RDV', href: `/rdv/${prochainRdv.id}` }
-          : { label: 'Agenda RDV', href: '/rdv' }
       }
     }
     
