@@ -288,6 +288,12 @@ export default function PolitiqueConfidentialite() {
                 </p>
                 <ol className="list-decimal list-inside space-y-2 ml-2">
                   <li>
+                    <strong>Via le formulaire en ligne (recommandé)</strong> : Utilisez notre 
+                    <Link href="/supprimer-donnees" className="text-orange-400 hover:text-orange-300 ml-1 font-medium">
+                      formulaire de suppression de données
+                    </Link> pour faire votre demande de manière simple et sécurisée.
+                  </li>
+                  <li>
                     <strong>Via email</strong> : Envoyez un email à 
                     <a href="mailto:ddvcontact35@gmail.com?subject=Demande de suppression de données" className="text-orange-400 hover:text-orange-300 ml-1">ddvcontact35@gmail.com</a> 
                     avec le sujet "Demande de suppression de données" en précisant :
@@ -304,9 +310,17 @@ export default function PolitiqueConfidentialite() {
                   </li>
                   <li>
                     <strong>Données conservées</strong> : Certaines données peuvent être conservées plus longtemps 
-                    si la loi l'exige (par exemple, factures pour obligations comptables).
+                    si la loi l'exige (par exemple, factures pour obligations comptables - 10 ans).
                   </li>
                 </ol>
+                <div className="mt-4 p-3 bg-orange-500/20 rounded-lg border border-orange-500/40">
+                  <p className="text-sm text-orange-200">
+                    <strong>Lien direct pour Facebook/Meta :</strong>{' '}
+                    <Link href="/supprimer-donnees" className="underline font-medium">
+                      https://mycharlie.fr/supprimer-donnees
+                    </Link>
+                  </p>
+                </div>
               </div>
 
               <div id="acces" className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mt-4 scroll-mt-20">

@@ -588,7 +588,7 @@ export default function HomePage() {
             </motion.div>
             
             <div className="grid md:grid-cols-3 gap-6">
-              <Link href="/politique-confidentialite#suppression" className="bg-gradient-to-br from-orange-500/20 to-orange-600/10 border-2 border-orange-500/40 rounded-xl p-6 hover:bg-orange-500/30 hover:border-orange-500 transition-all duration-200 group">
+              <Link href="/supprimer-donnees" className="bg-gradient-to-br from-orange-500/20 to-orange-600/10 border-2 border-orange-500/40 rounded-xl p-6 hover:bg-orange-500/30 hover:border-orange-500 transition-all duration-200 group">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-lg bg-orange-500/30 flex items-center justify-center group-hover:bg-orange-500/50 transition-colors">
                     <Trash2 className="w-6 h-6 text-orange-400" />
@@ -596,7 +596,7 @@ export default function HomePage() {
                   <h4 className="text-xl font-bold text-white">Supprimer mes données</h4>
                 </div>
                 <p className="text-sm text-gray-300 leading-relaxed">Demander la suppression complète de toutes vos données personnelles. Traitement sous 30 jours.</p>
-                <div className="mt-4 text-orange-400 text-sm font-medium group-hover:underline">En savoir plus →</div>
+                <div className="mt-4 text-orange-400 text-sm font-medium group-hover:underline">Formulaire de suppression →</div>
               </Link>
               
               <Link href="/politique-confidentialite#acces" className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-2 border-blue-500/40 rounded-xl p-6 hover:bg-blue-500/30 hover:border-blue-500 transition-all duration-200 group">
@@ -655,6 +655,8 @@ export default function HomePage() {
             <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-400 pt-4 border-t border-gray-800">
               <Link href="/politique-confidentialite" className="hover:text-orange-400 transition-colors font-medium">Politique de confidentialité</Link>
               <span>•</span>
+              <Link href="/supprimer-donnees" className="hover:text-orange-400 transition-colors font-medium text-orange-400">Supprimer mes données</Link>
+              <span>•</span>
               <Link href="/mentions-legales" className="hover:text-orange-400 transition-colors">Mentions légales</Link>
               <span>•</span>
               <Link href="/cgv" className="hover:text-orange-400 transition-colors">Conditions générales</Link>
@@ -681,7 +683,7 @@ export default function HomePage() {
               </div>
             </div>
             <div><h4 className="font-semibold mb-4">Liens</h4><ul className="space-y-2 text-sm text-gray-400"><li><a href="#comment-ca-marche" className="hover:text-white">Comment ça marche</a></li><li><a href="#calculateur" className="hover:text-white">Calculateur ROI</a></li><li><a href="#avantages" className="hover:text-white">Avantages</a></li><li><a href="#faq" className="hover:text-white">FAQ</a></li></ul></div>
-            <div><h4 className="font-semibold mb-4">Légal</h4><ul className="space-y-2 text-sm text-gray-400"><li><Link href="/mentions-legales" className="hover:text-white">Mentions légales</Link></li><li><Link href="/politique-confidentialite" className="hover:text-white">Politique de confidentialité</Link></li><li><Link href="/cgv" className="hover:text-white">CGV</Link></li><li><Link href="/conditions-utilisation" className="hover:text-white">Conditions d'utilisation</Link></li></ul></div>
+            <div><h4 className="font-semibold mb-4">Légal</h4><ul className="space-y-2 text-sm text-gray-400"><li><Link href="/mentions-legales" className="hover:text-white">Mentions légales</Link></li><li><Link href="/politique-confidentialite" className="hover:text-white">Politique de confidentialité</Link></li><li><Link href="/supprimer-donnees" className="hover:text-orange-400 text-orange-400 font-medium">Supprimer mes données</Link></li><li><Link href="/cgv" className="hover:text-white">CGV</Link></li><li><Link href="/conditions-utilisation" className="hover:text-white">Conditions d'utilisation</Link></li></ul></div>
             <div><h4 className="font-semibold mb-4">Contact</h4><ul className="space-y-2 text-sm text-gray-400"><li><a href="mailto:ddvcontact35@gmail.com" className="hover:text-white">Email</a></li><li><a href="tel:0745108883" className="hover:text-white">Téléphone</a></li><li><a href="https://wa.me/33745108883" className="hover:text-white">WhatsApp</a></li></ul></div>
           </div>
           <div className="border-t border-gray-800 mt-12 pt-8">
