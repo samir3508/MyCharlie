@@ -46,16 +46,7 @@ export function useDossier(id: string) {
           clients (id, nom_complet, telephone, email, adresse_chantier, adresse_facturation),
           rdv (*),
           fiches_visite (*),
-          devis (
-            id,
-            numero,
-            statut,
-            montant_ttc,
-            date_creation,
-            date_envoi,
-            date_acceptation,
-            template_condition_paiement_id
-          ),
+          devis (id, numero, statut, montant_ttc, date_creation, date_envoi, date_acceptation),
           factures (id, numero, statut, montant_ttc, date_emission, date_echeance, date_paiement, devis_id),
           journal_dossier (*)
         `)
