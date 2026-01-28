@@ -116,6 +116,7 @@ export async function GET(request: Request) {
               montant_max: 5000,
               pourcentage_acompte: 30,
               pourcentage_solde: 70,
+              delai_acompte: 0,
               delai_solde: 30,
             },
             {
@@ -126,6 +127,8 @@ export async function GET(request: Request) {
               pourcentage_acompte: 33,
               pourcentage_intermediaire: 33,
               pourcentage_solde: 34,
+              delai_acompte: 0,
+              delai_intermediaire: 15,
               delai_solde: 30,
             },
           ])

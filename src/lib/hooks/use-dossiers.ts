@@ -18,20 +18,7 @@ export function useDossiers() {
         .from('dossiers')
         .select(`
           *,
-          clients (id, nom_complet, telephone, email),
-          rdv (id, date_heure, statut, type_rdv),
-          devis (
-            id,
-            numero,
-            statut,
-            date_envoi,
-            date_acceptation,
-            montant_ttc,
-            template_condition_paiement_id,
-            template_condition_paiement:templates_conditions_paiement(id, nom, pourcentage_acompte, pourcentage_solde, delai_acompte, delai_solde)
-          ),
-          factures (id, numero, statut, date_echeance, date_paiement, montant_ttc, devis_id),
-          journal_dossier (id, type, description, created_at)
+          clients (id, nom_complet, telephone, email)
         `)
         .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false })
@@ -67,8 +54,7 @@ export function useDossier(id: string) {
             date_creation,
             date_envoi,
             date_acceptation,
-            template_condition_paiement_id,
-            template_condition_paiement:templates_conditions_paiement(id, nom, pourcentage_acompte, pourcentage_solde, pourcentage_intermediaire, delai_acompte, delai_solde)
+            template_condition_paiement_id
           ),
           factures (id, numero, statut, montant_ttc, date_emission, date_echeance, date_paiement, devis_id),
           journal_dossier (*)
@@ -177,6 +163,30 @@ export function useDeleteDossier() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dossiers'] })
     },
+  })
+}
+
+/** Dossiers liés à un client (fiche client) */
+export function useClientDossiers(clientId: string | undefined) {
+  const { tenant } = useAuth()
+  const supabase = getSupabaseClient()
+
+  return useQuery({
+    queryKey: ['client-dossiers', tenant?.id, clientId],
+    queryFn: async () => {
+      if (!tenant?.id || !clientId) return { dossiers: [], count: 0 }
+
+      const { data, error } = await supabase
+        .from('dossiers')
+        .select('id, numero, titre, statut, montant_estime, created_at')
+        .eq('tenant_id', tenant.id)
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      return { dossiers: data || [], count: (data || []).length }
+    },
+    enabled: !!tenant?.id && !!clientId,
   })
 }
 

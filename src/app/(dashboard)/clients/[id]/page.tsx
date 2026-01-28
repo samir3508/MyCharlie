@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useClient, useDeleteClient } from '@/lib/hooks/use-clients'
+import { useClientDossiers } from '@/lib/hooks/use-dossiers'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -46,6 +47,7 @@ import {
   Receipt,
   Calendar,
   Plus,
+  FolderKanban,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -130,12 +132,15 @@ export default function ClientDetailPage({ params }: PageProps) {
   const { data: client, isLoading: clientLoading, error: clientError } = useClient(id)
   const { data: devisData } = useClientDevis(id)
   const { data: facturesData } = useClientFactures(id)
+  const { data: dossiersData } = useClientDossiers(id)
   const deleteClient = useDeleteClient()
 
   const devis = devisData?.devis || []
   const factures = facturesData?.factures || []
+  const dossiers = dossiersData?.dossiers || []
   const nbDevis = devisData?.count || 0
   const nbFactures = facturesData?.count || 0
+  const nbDossiers = dossiersData?.count || 0
   const caTotal = facturesData?.caTotal || 0
 
   const handleDelete = () => {
@@ -358,6 +363,72 @@ export default function ClientDetailPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
+            {/* Card Dossiers liés au client */}
+            <Card>
+              <CardHeader className="bg-gradient-to-r from-[#FF4D00] to-[#E64600] text-white px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <FolderKanban className="h-5 w-5" />
+                    Dossiers
+                    {nbDossiers > 0 && (
+                      <Badge variant="secondary" className="ml-2 bg-white/20 text-white border-white/30">
+                        {nbDossiers}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <Link href="/dossiers">
+                    <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Voir tous
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 bg-gradient-to-br from-[#1A1A1A] to-[#0F0F0F]">
+                {dossiers.length > 0 ? (
+                  <div className="space-y-3">
+                    {dossiers.map((dossier: any) => (
+                      <Link
+                        key={dossier.id}
+                        href={`/dossiers/${dossier.id}`}
+                        className="block p-4 bg-[#262626] rounded-lg border border-gray-800 hover:border-[#FF4D00]/50 hover:bg-[#2A2A2A] transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-semibold text-white">{dossier.numero}</p>
+                              <Badge variant="outline" className="text-xs border border-gray-700 bg-gray-800 text-gray-300">
+                                {dossier.statut?.replace(/_/g, ' ') || dossier.statut}
+                              </Badge>
+                            </div>
+                            {dossier.titre && <p className="text-sm text-gray-400 mb-2">{dossier.titre}</p>}
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <span>{format(new Date(dossier.created_at), 'dd MMM yyyy', { locale: fr })}</span>
+                              {dossier.montant_estime != null && dossier.montant_estime > 0 && (
+                                <span>{formatCurrency(dossier.montant_estime)} estimé</span>
+                              )}
+                            </div>
+                          </div>
+                          <Eye className="h-4 w-4 text-gray-400" />
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-400">
+                    <FolderKanban className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>Aucun dossier pour ce client</p>
+                    <Link href="/dossiers" className="mt-4 inline-block">
+                      <Button size="sm" className="bg-[#FF4D00] hover:bg-[#E64600] text-white">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Créer un dossier
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Card Devis */}
             <Card>
               <CardHeader className="bg-gradient-to-r from-[#FF4D00] to-[#E64600] text-white px-4 py-3">
@@ -500,6 +571,10 @@ export default function ClientDetailPage({ params }: PageProps) {
                 <CardTitle className="text-white">Statistiques</CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Nombre de dossiers</p>
+                  <p className="text-2xl font-bold text-white">{nbDossiers}</p>
+                </div>
                 <div>
                   <p className="text-sm text-gray-400 mb-1">Nombre de devis</p>
                   <p className="text-2xl font-bold text-white">{nbDevis}</p>

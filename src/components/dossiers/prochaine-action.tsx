@@ -399,32 +399,62 @@ function calculerProchaineAction(dossier: any): ProchaineActionSummary | null {
     // Cas 4 : RDV planifié(s) existants → idem, en attente clic
     const hasCreneauxEnvoyes = statut === 'rdv_a_planifier' || statut === 'rdv_planifie' || (creneauxEnvoyes && rdv.length === 0) || rdvPlanifies.length > 0
     
+    // Calculer depuis combien de temps les créneaux ont été envoyés
+    const dateCreneauxEnvoyes = journal.find((entry: any) => {
+      if (!entry.created_at) return false
+      return (
+        (entry.titre && entry.titre.toLowerCase().includes('créneaux')) ||
+        (entry.contenu && entry.contenu.toLowerCase().includes('créneaux')) ||
+        (entry.type === 'action_leo' && entry.contenu && entry.contenu.includes('créneaux'))
+      )
+    })?.created_at
+    
+    const joursDepuisCreneaux = dateCreneauxEnvoyes 
+      ? Math.floor((maintenant.getTime() - new Date(dateCreneauxEnvoyes).getTime()) / (1000 * 60 * 60 * 24))
+      : 0
+    
     if (hasCreneauxEnvoyes && rdv.length === 0 && !rdvConfirme && !hasFicheVisite) {
+      // Si créneaux envoyés depuis +3 jours, suggérer de relancer
+      const doitRelancer = joursDepuisCreneaux >= 3
+      
       return {
-        action: 'En attente de confirmation du client pour les créneaux',
-        description: 'Créneaux proposés envoyés par email. En attente que le client clique sur un créneau pour confirmer son RDV.',
-        urgence: 'normale' as const,
-        dateLimite: null,
-        icon: <Clock className="w-5 h-5 text-amber-400" />,
-        couleur: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
-        actionButton: { label: 'Agenda RDV', href: '/rdv' }
+        action: doitRelancer ? 'Relancer le client pour les créneaux' : 'En attente de confirmation du client',
+        description: doitRelancer 
+          ? `Créneaux envoyés il y a ${joursDepuisCreneaux} jours. Le client n'a pas encore confirmé son RDV.`
+          : 'Créneaux proposés envoyés par email. En attente que le client clique sur un créneau pour confirmer son RDV.',
+        urgence: doitRelancer ? 'haute' as const : 'normale' as const,
+        dateLimite: dateCreneauxEnvoyes ? new Date(new Date(dateCreneauxEnvoyes).getTime() + 3 * 24 * 60 * 60 * 1000) : null,
+        icon: doitRelancer ? <AlertTriangle className="w-5 h-5 text-orange-400" /> : <Clock className="w-5 h-5 text-amber-400" />,
+        couleur: doitRelancer ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+        actionButton: { 
+          label: doitRelancer ? 'Relancer le client' : 'Voir agenda', 
+          href: doitRelancer ? `/dossiers/${dossier.id}?action=relancer_creneaux` : '/rdv' 
+        }
       }
     }
     
     // RDV planifié(s) existants sans confirmation (ancien flux avec RDV créés)
     if (rdvPlanifies.length > 0 && !rdvConfirme && !hasFicheVisite) {
       const prochainRdv = rdv.find((r: any) => r.statut === 'planifie')
+      const dateRdvPlanifie = prochainRdv?.created_at ? new Date(prochainRdv.created_at) : null
+      const joursDepuisRdv = dateRdvPlanifie 
+        ? Math.floor((maintenant.getTime() - dateRdvPlanifie.getTime()) / (1000 * 60 * 60 * 24))
+        : 0
+      const doitRelancerRdv = joursDepuisRdv >= 3
+      
       return {
-        action: 'En attente de confirmation du client pour les créneaux',
+        action: doitRelancerRdv ? 'Relancer le client pour les créneaux' : 'En attente de confirmation du client',
         description: prochainRdv
-          ? `Créneaux envoyés – RDV prévu le ${new Date(prochainRdv.date_heure).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. Le client doit cliquer sur un créneau dans l'email pour confirmer.`
+          ? doitRelancerRdv
+            ? `Créneaux envoyés il y a ${joursDepuisRdv} jours. RDV prévu le ${new Date(prochainRdv.date_heure).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. Relancer le client.`
+            : `Créneaux envoyés – RDV prévu le ${new Date(prochainRdv.date_heure).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. Le client doit cliquer pour confirmer.`
           : 'Créneaux proposés envoyés par email. En attente que le client clique sur un créneau pour confirmer son RDV.',
-        urgence: 'normale' as const,
-        dateLimite: null,
-        icon: <Clock className="w-5 h-5 text-amber-400" />,
-        couleur: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+        urgence: doitRelancerRdv ? 'haute' as const : 'normale' as const,
+        dateLimite: dateRdvPlanifie ? new Date(dateRdvPlanifie.getTime() + 3 * 24 * 60 * 60 * 1000) : null,
+        icon: doitRelancerRdv ? <AlertTriangle className="w-5 h-5 text-orange-400" /> : <Clock className="w-5 h-5 text-amber-400" />,
+        couleur: doitRelancerRdv ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-amber-500/10 border-amber-500/30 text-amber-400',
         actionButton: prochainRdv
-          ? { label: 'Voir RDV', href: `/rdv/${prochainRdv.id}` }
+          ? { label: doitRelancerRdv ? 'Relancer' : 'Voir RDV', href: doitRelancerRdv ? `/dossiers/${dossier.id}?action=relancer_creneaux` : `/rdv/${prochainRdv.id}` }
           : { label: 'Agenda RDV', href: '/rdv' }
       }
     }

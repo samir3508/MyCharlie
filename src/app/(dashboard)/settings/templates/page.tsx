@@ -770,14 +770,14 @@ export default function TemplatesPage() {
                   </span>
                 </div>
 
-                {/* Répartition */}
+                {/* Répartition — délais (jours) liés au template */}
                 <div className="space-y-2">
                   <div className="flex justify-between items-center p-2 bg-[#FF4D00] bg-opacity-10 rounded">
                     <span className="text-sm">Acompte</span>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">{template.pourcentage_acompte}%</Badge>
                       <span className="text-xs text-muted-foreground">
-                        {template.delai_acompte === 0 ? 'Immédiat' : template.delai_acompte + 'j'}
+                        {(template.delai_acompte ?? 0) === 0 ? 'Immédiat' : (template.delai_acompte ?? 0) + ' j'}
                       </span>
                     </div>
                   </div>
@@ -788,7 +788,7 @@ export default function TemplatesPage() {
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{template.pourcentage_intermediaire}%</Badge>
                         <span className="text-xs text-muted-foreground">
-                          {template.delai_intermediaire + 'j'}
+                          {(template.delai_intermediaire ?? 15) + ' j'}
                         </span>
                       </div>
                     </div>
@@ -800,7 +800,7 @@ export default function TemplatesPage() {
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{template.pourcentage_solde}%</Badge>
                         <span className="text-xs text-muted-foreground">
-                          {template.delai_solde + 'j'}
+                          {(template.delai_solde ?? 30) + ' j'}
                         </span>
                       </div>
                     </div>

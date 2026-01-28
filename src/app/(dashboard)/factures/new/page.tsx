@@ -12,8 +12,9 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { ArrowLeft, FileText } from 'lucide-react'
+import { ArrowLeft, FileText, Search } from 'lucide-react'
 
 function NewFactureForm() {
   const router = useRouter()
@@ -24,6 +25,21 @@ function NewFactureForm() {
   const createFacture = useCreateFacture()
   const devisIdFromUrl = searchParams.get('devis_id')
   const [selectedDevis, setSelectedDevis] = useState<string>(devisIdFromUrl || '')
+  const [devisSearch, setDevisSearch] = useState('')
+  
+  // Filtrer les devis par numéro ou nom client (toujours inclure le devis sélectionné)
+  const filteredDevis = devis
+    ? devis.filter((d) => {
+        const q = devisSearch.trim().toLowerCase()
+        if (!q) return true
+        if (selectedDevis && selectedDevis !== 'empty' && d.id === selectedDevis) return true
+        const num = (d.numero ?? '').toLowerCase()
+        const tit = (d.titre ?? '').toLowerCase()
+        const clientName = (d as { client_name?: string }).client_name ?? ''
+        const clientNom = clients?.find((c) => c.id === d.client_id)?.nom ?? ''
+        return num.includes(q) || tit.includes(q) || clientName.toLowerCase().includes(q) || clientNom.toLowerCase().includes(q)
+      })
+    : []
   
   // Pré-sélectionner le devis depuis l'URL
   useEffect(() => {
@@ -167,24 +183,33 @@ function NewFactureForm() {
               Créer depuis un devis
             </CardTitle>
             <CardDescription>
-              Sélectionnez un devis pour pré-remplir les informations de la facture
+              Sélectionnez un devis pour pré-remplir la facture. Recherche par numéro ou nom du client.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher par numéro ou nom client…"
+                value={devisSearch}
+                onChange={(e) => setDevisSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
             <Select value={selectedDevis} onValueChange={setSelectedDevis}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionnez un devis (optionnel)" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="empty">Créer une facture vierge</SelectItem>
-                {devis.map((dev) => {
-                  const client = clients.find(c => c.id === dev.client_id)
+                {filteredDevis.map((dev) => {
+                  const client = clients?.find(c => c.id === dev.client_id)
                   return (
                     <SelectItem key={dev.id} value={dev.id}>
                       <div className="flex flex-col">
                         <span>{dev.numero} - {dev.titre || 'Sans titre'}</span>
                         <span className="text-sm text-muted-foreground">
-                          {client?.nom || 'Client inconnu'} - {dev.created_at ? new Date(dev.created_at).toLocaleDateString() : '-'}
+                          {client?.nom ?? (dev as { client_name?: string }).client_name ?? 'Client inconnu'} - {dev.created_at ? new Date(dev.created_at).toLocaleDateString() : '-'}
                         </span>
                       </div>
                     </SelectItem>

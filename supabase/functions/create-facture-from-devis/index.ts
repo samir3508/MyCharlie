@@ -23,11 +23,21 @@ const corsHeaders = {
 // Schéma de validation
 const CreateFactureFromDevisRequestSchema = z.object({
   tenant_id: z.string().uuid('Le tenant_id doit être un UUID valide'),
-  devis_id: z.string().min(1, 'Le devis_id est obligatoire'), // Accepte UUID ou numéro de devis
+  devis_id: z.string().optional(), // UUID ou numéro (ex. DV-2025-001). Optionnel si client_nom/client_name fourni.
+  client_nom: z.string().optional(),
+  client_prenom: z.string().optional(),
+  client_name: z.string().optional(), // "Prénom Nom" ou "Nom Prénom" pour recherche
   type: z.enum(['acompte', 'intermediaire', 'solde'], {
     errorMap: () => ({ message: "Le type doit être 'acompte', 'intermediaire' ou 'solde'" })
   }),
-})
+}).refine(
+  (data) => {
+    const hasDevisId = !!data.devis_id?.trim()
+    const hasClientName = !!(data.client_name?.trim() || data.client_nom?.trim() || data.client_prenom?.trim())
+    return hasDevisId || hasClientName
+  },
+  { message: "Fournir devis_id (numéro ou UUID) ou client_nom/client_prenom/client_name pour rechercher le devis par nom du client." }
+)
 
 /**
  * Génère un numéro de facture avec suffixe selon le type
@@ -134,32 +144,81 @@ serve(async (req) => {
     const body = await req.json()
     const validatedRequest = CreateFactureFromDevisRequestSchema.parse(body)
 
-    const { tenant_id, devis_id, type } = validatedRequest
+    const { tenant_id, devis_id, client_nom, client_prenom, client_name, type } = validatedRequest
 
-    // ÉTAPE 0 : Convertir devis_id (UUID ou numéro) en UUID si nécessaire
-    let devisUuid: string = devis_id
-    
-    // Si ce n'est pas un UUID (format UUID: 8-4-4-4-12 caractères hexadécimaux)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-    if (!uuidRegex.test(devis_id)) {
-      // C'est probablement un numéro de devis, chercher l'UUID correspondant
-      const { data: devisByNumero, error: numeroError } = await supabase
+    let devisUuid: string
+
+    if (devis_id?.trim()) {
+      // ÉTAPE 0a : devis_id fourni — convertir (UUID ou numéro) en UUID si nécessaire
+      devisUuid = devis_id.trim()
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      if (!uuidRegex.test(devisUuid)) {
+        const { data: devisByNumero, error: numeroError } = await supabase
+          .from('devis')
+          .select('id')
+          .eq('numero', devisUuid)
+          .eq('tenant_id', tenant_id)
+          .single()
+
+        if (numeroError || !devisByNumero) {
+          return errorResponse(
+            404,
+            'DEVIS_NOT_FOUND',
+            `Le devis avec le numéro "${devis_id}" n'existe pas`,
+            { devis_id }
+          )
+        }
+        devisUuid = devisByNumero.id
+      }
+    } else {
+      // ÉTAPE 0b : Recherche par nom/prénom du client
+      const q = [client_name?.trim(), client_prenom?.trim(), client_nom?.trim()]
+        .filter(Boolean)
+        .join(' ')
+        .trim()
+        .toLowerCase()
+      if (!q) {
+        return errorResponse(400, 'VALIDATION_ERROR', 'Fournir devis_id ou client_nom/client_prenom/client_name.')
+      }
+      const safeQ = q.replace(/[%_]/g, '')
+      const { data: clients, error: clientsError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('tenant_id', tenant_id)
+        .or(`nom_complet.ilike.%${safeQ}%,nom.ilike.%${safeQ}%,prenom.ilike.%${safeQ}%`)
+        .limit(20)
+
+      if (clientsError) {
+        console.error('[create-facture-from-devis] Erreur recherche clients:', clientsError)
+        return handleSupabaseError(clientsError)
+      }
+      const clientIds = (clients || []).map((c: { id: string }) => c.id)
+      if (clientIds.length === 0) {
+        return errorResponse(
+          404,
+          'CLIENT_NOT_FOUND',
+          `Aucun client trouvé pour "${q}". Utilisez le numéro du devis (ex. DV-2025-001) ou vérifiez le nom.`,
+          { client_name: client_name || undefined, client_nom, client_prenom }
+        )
+      }
+
+      const { data: devisList, error: devisSearchError } = await supabase
         .from('devis')
         .select('id')
-        .eq('numero', devis_id)
         .eq('tenant_id', tenant_id)
-        .single()
-      
-      if (numeroError || !devisByNumero) {
+        .in('client_id', clientIds)
+        .order('date_creation', { ascending: false })
+        .limit(1)
+
+      if (devisSearchError || !devisList?.length) {
         return errorResponse(
           404,
           'DEVIS_NOT_FOUND',
-          `Le devis avec le numéro "${devis_id}" n'existe pas`,
-          { devis_id }
+          `Aucun devis trouvé pour le client "${q}". Créez un devis ou utilisez le numéro (ex. DV-2025-001).`,
+          { client_name: client_name || undefined, client_nom, client_prenom }
         )
       }
-      
-      devisUuid = devisByNumero.id
+      devisUuid = devisList[0].id
     }
 
     // ÉTAPE 1 : Récupérer le devis avec template et lignes
@@ -216,6 +275,32 @@ serve(async (req) => {
         400,
         'INVALID_DEVIS',
         'Le devis doit avoir un montant TTC valide'
+      )
+    }
+
+    // ÉTAPE 3b : Vérifier que le template définit les délais (jours) pour ce type — tout lié au template
+    if (type === 'acompte' && template.delai_acompte == null) {
+      return errorResponse(
+        400,
+        'TEMPLATE_DELAI_MISSING',
+        'Le template doit définir "delai_acompte" (jours). Paramètres > Conditions de paiement.',
+        { template_id: template.id }
+      )
+    }
+    if (type === 'intermediaire' && template.delai_intermediaire == null) {
+      return errorResponse(
+        400,
+        'TEMPLATE_DELAI_MISSING',
+        'Le template doit définir "delai_intermediaire" (jours). Paramètres > Conditions de paiement.',
+        { template_id: template.id }
+      )
+    }
+    if (type === 'solde' && template.delai_solde == null) {
+      return errorResponse(
+        400,
+        'TEMPLATE_DELAI_MISSING',
+        'Le template doit définir "delai_solde" (jours). Paramètres > Conditions de paiement.',
+        { template_id: template.id }
       )
     }
 
@@ -296,14 +381,14 @@ serve(async (req) => {
       montantHt = (devis.montant_ht * pourcentage) / 100
       montantTva = (devis.montant_tva * pourcentage) / 100
       dateEcheance = new Date(today)
-      dateEcheance.setDate(dateEcheance.getDate() + (template.delai_acompte || 0))
+      dateEcheance.setDate(dateEcheance.getDate() + template.delai_acompte)
     } else if (type === 'intermediaire') {
       pourcentage = template.pourcentage_intermediaire
       montantTtc = (devis.montant_ttc * pourcentage) / 100
       montantHt = (devis.montant_ht * pourcentage) / 100
       montantTva = (devis.montant_tva * pourcentage) / 100
       dateEcheance = new Date(today)
-      dateEcheance.setDate(dateEcheance.getDate() + (template.delai_intermediaire || 15))
+      dateEcheance.setDate(dateEcheance.getDate() + template.delai_intermediaire)
     } else { // solde
       // Pour le solde, on doit calculer ce qui reste après acompte + intermédiaire
       const { data: facturesDevis } = await supabase
@@ -320,7 +405,7 @@ serve(async (req) => {
       montantTva = devis.montant_tva - montantDejaFactureTva
       pourcentage = 100 // Le solde est le reste
       dateEcheance = new Date(today)
-      dateEcheance.setDate(dateEcheance.getDate() + (template.delai_solde || 30))
+      dateEcheance.setDate(dateEcheance.getDate() + template.delai_solde)
     }
 
     // ÉTAPE 6 : Générer le numéro de facture

@@ -104,9 +104,11 @@ export async function createFactureAcompte(devisId: string): Promise<CreateFactu
     throw new Error('Une facture d\'acompte existe déjà pour ce devis')
   }
   
-  // Vérifier que le devis a les montants requis
   if (!devis.montant_ttc || devis.montant_ttc <= 0) {
     throw new Error('Le devis doit avoir un montant TTC valide')
+  }
+  if (template.delai_acompte == null) {
+    throw new Error('Le template doit définir "delai_acompte" (jours). Paramètres > Conditions de paiement.')
   }
   
   const lignesDevis = (devis.lignes_devis as any[]) || []
@@ -239,13 +241,16 @@ export async function createFactureIntermediaire(devisId: string): Promise<Creat
   if (!devis.montant_ttc || devis.montant_ttc <= 0) {
     throw new Error('Le devis doit avoir un montant TTC valide')
   }
+  if (template.delai_intermediaire == null) {
+    throw new Error('Le template doit définir "delai_intermediaire" (jours). Paramètres > Conditions de paiement.')
+  }
   
   const lignesDevis = (devis.lignes_devis as any[]) || []
   const today = new Date()
   
   const montantInter = (devis.montant_ttc * pctInter) / 100
   const dateEcheanceInter = new Date(today)
-  dateEcheanceInter.setDate(dateEcheanceInter.getDate() + (template.delai_intermediaire || 15))
+  dateEcheanceInter.setDate(dateEcheanceInter.getDate() + template.delai_intermediaire)
   
   const numeroInter = await generateFactureNumero(devis.tenant_id, 'intermediaire')
   
@@ -365,6 +370,9 @@ export async function createFacturesFromDevis(devisId: string): Promise<CreateFa
   
   // 1. Facture d'acompte (si pourcentage > 0 et pas déjà créée)
   if (template.pourcentage_acompte > 0 && !hasAcompte) {
+    if (template.delai_acompte == null) {
+      throw new Error('Le template doit définir "delai_acompte" (jours). Paramètres > Conditions de paiement.')
+    }
     const montantAcompte = (devis.montant_ttc * template.pourcentage_acompte) / 100
     const dateEcheanceAcompte = new Date(today)
     dateEcheanceAcompte.setDate(dateEcheanceAcompte.getDate() + template.delai_acompte)
@@ -448,12 +456,14 @@ export async function createFacturesFromDevis(devisId: string): Promise<CreateFa
   }
   
   // 2. Facture intermédiaire (en brouillon, sera envoyée manuellement)
-  // (si pourcentage > 0 et pas déjà créée)
   const pctInter = template.pourcentage_intermediaire
   if (pctInter && pctInter > 0 && !hasIntermediaire) {
+    if (template.delai_intermediaire == null) {
+      throw new Error('Le template doit définir "delai_intermediaire" (jours). Paramètres > Conditions de paiement.')
+    }
     const montantInter = (devis.montant_ttc * pctInter) / 100
     const dateEcheanceInter = new Date(today)
-    dateEcheanceInter.setDate(dateEcheanceInter.getDate() + (template.delai_intermediaire || 15))
+    dateEcheanceInter.setDate(dateEcheanceInter.getDate() + template.delai_intermediaire)
     
     const numeroInter = await generateFactureNumero(devis.tenant_id, 'intermediaire')
     
@@ -551,6 +561,9 @@ export async function createFactureSolde(devisId: string): Promise<CreateFacture
   
   if (!template || !template.pourcentage_solde || template.pourcentage_solde <= 0) {
     throw new Error('Aucun solde à facturer pour ce template')
+  }
+  if (template.delai_solde == null) {
+    throw new Error('Le template doit définir "delai_solde" (jours). Paramètres > Conditions de paiement.')
   }
 
   const pctSolde = template.pourcentage_solde
