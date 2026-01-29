@@ -10,6 +10,9 @@ type VisioBody = {
   notes?: string | null
 }
 
+// Tables founder_* non typées (pas dans database.types.ts), on utilise any
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export async function GET(request: NextRequest) {
   const auth = await requireFounderAuth(request)
   if (!auth.ok) return auth.response
@@ -17,7 +20,7 @@ export async function GET(request: NextRequest) {
   const tenantId = request.nextUrl.searchParams.get('tenant_id')
   const statut = request.nextUrl.searchParams.get('statut')
 
-  let q = supabase
+  let q = (supabase as any)
     .from('founder_visios')
     .select('*, tenants(company_name)')
     .order('planifiee_le', { ascending: true })
@@ -51,7 +54,7 @@ export async function POST(request: NextRequest) {
     statut: body.statut ?? 'a_faire',
     notes: body.notes ?? null,
   }
-  const { data, error } = await supabase.from('founder_visios').insert(row).select().single()
+  const { data, error } = await (supabase as any).from('founder_visios').insert(row).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ visio: data })
 }
@@ -73,7 +76,7 @@ export async function PATCH(request: NextRequest) {
   if (body.statut !== undefined) updates.statut = body.statut
   if (body.notes !== undefined) updates.notes = body.notes
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('founder_visios')
     .update(updates)
     .eq('id', body.id)

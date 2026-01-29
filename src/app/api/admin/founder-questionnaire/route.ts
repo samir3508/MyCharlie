@@ -33,6 +33,9 @@ const KEYS: (keyof QuestionnaireBody)[] = [
   'temps_admin_heures_semaine', 'deteste_plus', 'stress_note', 'date_saisie',
 ]
 
+// Tables founder_* non typées (pas dans database.types.ts), on utilise any
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export async function GET(request: NextRequest) {
   const auth = await requireFounderAuth(request)
   if (!auth.ok) return auth.response
@@ -40,7 +43,7 @@ export async function GET(request: NextRequest) {
   const tenantId = request.nextUrl.searchParams.get('tenant_id')
   const type = request.nextUrl.searchParams.get('type') as 'AVANT' | 'APRES' | null
 
-  let q = supabase
+  let q = (supabase as any)
     .from('founder_questionnaire_avant_apres')
     .select('*, tenants(company_name)')
     .order('date_saisie', { ascending: false })
@@ -51,7 +54,7 @@ export async function GET(request: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   if (tenantId && type) {
-    const one = (data ?? []).find((r) => r.tenant_id === tenantId && r.type === type)
+    const one = (data ?? []).find((r: any) => r.tenant_id === tenantId && r.type === type)
     return NextResponse.json({ questionnaire: one ?? null })
   }
   return NextResponse.json({ questionnaires: data ?? [] })
@@ -78,7 +81,7 @@ export async function POST(request: NextRequest) {
   }
   if (!row.date_saisie) row.date_saisie = new Date().toISOString().slice(0, 10)
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('founder_questionnaire_avant_apres')
     .upsert(row, { onConflict: 'tenant_id,type', ignoreDuplicates: false })
     .select()

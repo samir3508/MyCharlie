@@ -10,13 +10,16 @@ type TemoignageBody = {
   autorisation?: boolean
 }
 
+// Tables founder_* non typées (pas dans database.types.ts), on utilise any
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export async function GET(request: NextRequest) {
   const auth = await requireFounderAuth(request)
   if (!auth.ok) return auth.response
   const { supabase } = auth
   const tenantId = request.nextUrl.searchParams.get('tenant_id')
 
-  let q = supabase
+  let q = (supabase as any)
     .from('founder_temoignages')
     .select('*, tenants(company_name)')
     .order('created_at', { ascending: false })
@@ -47,7 +50,7 @@ export async function POST(request: NextRequest) {
     video: body.video ?? false,
     autorisation: body.autorisation ?? false,
   }
-  const { data, error } = await supabase.from('founder_temoignages').insert(row).select().single()
+  const { data, error } = await (supabase as any).from('founder_temoignages').insert(row).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ temoignage: data })
 }
@@ -71,7 +74,7 @@ export async function PATCH(request: NextRequest) {
   if (body.video !== undefined) updates.video = body.video
   if (body.autorisation !== undefined) updates.autorisation = body.autorisation
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('founder_temoignages')
     .update(updates)
     .eq('id', body.id)

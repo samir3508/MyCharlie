@@ -14,6 +14,9 @@ type FicheBody = {
   statut?: 'beta' | 'actif'
 }
 
+// Tables founder_* non typées (pas dans database.types.ts), on utilise any
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export async function GET(request: NextRequest) {
   const auth = await requireFounderAuth(request)
   if (!auth.ok) return auth.response
@@ -21,7 +24,7 @@ export async function GET(request: NextRequest) {
   const tenantId = request.nextUrl.searchParams.get('tenant_id')
 
   if (tenantId) {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('founder_fiche_artisan')
       .select('*, tenants(company_name)')
       .eq('tenant_id', tenantId)
@@ -32,7 +35,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data ? { fiche: data } : { fiche: null })
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('founder_fiche_artisan')
     .select('*, tenants(company_name)')
     .order('created_at', { ascending: false })
@@ -68,7 +71,7 @@ export async function POST(request: NextRequest) {
     updated_at: new Date().toISOString(),
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('founder_fiche_artisan')
     .upsert(row, { onConflict: 'tenant_id', ignoreDuplicates: false })
     .select()
@@ -104,9 +107,9 @@ export async function PATCH(request: NextRequest) {
   if (body.date_debut_mycharlie !== undefined) updates.date_debut_mycharlie = body.date_debut_mycharlie
   if (body.statut !== undefined) updates.statut = body.statut
 
-  const q = supabase.from('founder_fiche_artisan').update(updates)
-  if (id) q.eq('id', id)
-  else q.eq('tenant_id', tenantId!)
+  let q = (supabase as any).from('founder_fiche_artisan').update(updates)
+  if (id) q = q.eq('id', id)
+  else q = q.eq('tenant_id', tenantId!)
   const { data, error } = await q.select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ fiche: data })
