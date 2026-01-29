@@ -3,12 +3,12 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 
-export type FounderSupabase = ReturnType<typeof createClient>
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function requireFounderAuth(
   request: NextRequest
 ): Promise<
-  | { ok: true; supabase: FounderSupabase }
+  | { ok: true; supabase: any }
   | { ok: false; response: NextResponse }
 > {
   const apiKey = process.env.FOUNDER_API_KEY?.trim()
